@@ -1,10 +1,12 @@
 use camino::Utf8Path;
 use clap::{Parser, Subcommand};
 use dialoguer::{Select, theme::ColorfulTheme};
-use std::fs;
-use std::path::Path;
+use include_dir::{Dir, include_dir};
+use std::path::{Path, PathBuf};
 use std::process::Command;
-use toml::Value;
+use std::{env, fs};
+
+static PROJECT_TEMPLATE: Dir = include_dir!("$CARGO_MANIFEST_DIR/template");
 
 #[derive(Parser)]
 #[command(name = "padauk")]
@@ -30,9 +32,8 @@ fn main() {
             create_project(name);
         }
         Commands::Run { platform } => {
-            let app_name = get_project_name();
             if platform == "android" {
-                run_android(&app_name);
+                run_android();
             }
         }
     }
@@ -41,31 +42,22 @@ fn main() {
 fn create_project(name: &str) {
     println!("🌳 Planting a new project: {}...", name);
 
-    // 1. Create directory structure
-    fs::create_dir_all(format!("{}/app/src", name)).ok();
+    let project_path = std::env::current_dir().unwrap().join(name);
 
-    // 2. Generate Cargo.toml
-    let cargo_content = format!(
-        r#"[package]
-name = "{}"
-version = "0.1.0"
-edition = "2021"
+    // 1. Unpack the embedded template
+    PROJECT_TEMPLATE.extract(&project_path).unwrap();
 
-[lib]
-crate-type = ["cdylib", "staticlib"]
+    // 2. Personalize the Cargo.toml
+    let cargo_path = project_path.join("rust/Cargo.toml");
+    let cargo_content = fs::read_to_string(&cargo_path)
+        .unwrap()
+        .replace("{{PROJECT_NAME}}", name);
+    fs::write(cargo_path, cargo_content).unwrap();
 
-[dependencies]
-padauk = {{ git = "https://github.com/your/padauk-framework" }}
-uniffi = "0.25"
-"#,
-        name
-    );
-    fs::write(format!("{}/app/Cargo.toml", name), cargo_content).unwrap();
-
-    println!("✅ Done! Type 'cd {}' to begin.", name);
+    println!("🌳 Padauk project '{}' is ready!", name);
 }
 
-fn run_android(app_name: &str) {
+fn run_android() {
     // 1. Pick the device first
     let device_serial = pick_android_device();
 
@@ -80,13 +72,13 @@ fn run_android(app_name: &str) {
     println!("🏗️  Building app for {}...", rust_target);
     let status = Command::new("cargo")
         .args(["build", "--target", rust_target, "--release"])
-        .current_dir("./app")
+        .current_dir("./rust")
         .status()
         .expect("Failed to build Rust library");
 
     if status.success() {
         // 4. Sync assets (we pass the detected abi so we know which jniLibs folder to use)
-        sync_assets(app_name, rust_target, &abi);
+        sync_assets(rust_target, &abi);
 
         // 5. Run on the specific device
         println!("📲 Installing on {}...", device_serial);
@@ -104,12 +96,27 @@ fn run_android(app_name: &str) {
             .current_dir("./android")
             .status()
             .expect("Failed to run Android app");
+
+        // 4. Start the Activity via ADB
+        let adb = get_adb_path(); // Resolve the path
+        Command::new(adb)
+            .args([
+                "-s",
+                &device_serial,
+                "shell",
+                "am",
+                "start",
+                "-n",
+                "com.example.padauk/com.example.padauk.MainActivity",
+            ])
+            .status()
+            .unwrap();
     }
 }
 
-fn sync_assets(app_name: &str, rust_target: &str, abi: &str) {
+fn sync_assets(rust_target: &str, abi: &str) {
     let project_root = std::env::current_dir().unwrap();
-    let so_name = format!("lib{}.so", app_name.replace("-", "_"));
+    let so_name = "libpadauk.so";
 
     // Rust target folder (e.g., target/aarch64-linux-android/release)
     let so_path = project_root
@@ -132,17 +139,6 @@ fn sync_assets(app_name: &str, rust_target: &str, abi: &str) {
     run_internal_bindgen(&so_path, &kotlin_out);
 }
 
-fn get_project_name() -> String {
-    // 1. Read the Cargo.toml in the current directory (or padauk_app folder)
-    let cargo_path = "app/Cargo.toml";
-    let content = fs::read_to_string(cargo_path)
-        .expect("❌ Error: Not a valid project (Cargo.toml not found).");
-
-    // 2. Parse the TOML to find [package] -> name
-    let value = content.parse::<Value>().unwrap();
-    value["package"]["name"].as_str().unwrap().to_string()
-}
-
 #[derive(Debug)]
 struct AndroidDevice {
     serial: String,
@@ -156,10 +152,11 @@ impl std::fmt::Display for AndroidDevice {
 }
 
 fn get_android_devices() -> Vec<AndroidDevice> {
-    let output = Command::new("adb")
-        .args(["devices", "-l"])
-        .output()
-        .expect("Failed to execute adb. Is it installed?");
+    let adb = get_adb_path(); // Resolve the path
+
+    let output = Command::new(adb).args(["devices", "-l"]).output().expect(
+        "❌ Error: Could not find 'adb'. Please set your ANDROID_HOME environment variable.",
+    );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut devices = Vec::new();
@@ -220,7 +217,9 @@ fn map_abi_to_target(abi: &str) -> Option<&'static str> {
 }
 
 fn get_device_abi(serial: &str) -> String {
-    let output = Command::new("adb")
+    let adb = get_adb_path(); // Resolve the path
+
+    let output = Command::new(adb)
         .args(["-s", serial, "shell", "getprop", "ro.product.cpu.abi"])
         .output()
         .expect("Failed to query device ABI");
@@ -260,4 +259,27 @@ fn run_internal_bindgen(library_path: &Path, out_dir: &Path) {
             std::process::exit(1);
         }
     }
+}
+
+fn get_adb_path() -> PathBuf {
+    // 1. Check ANDROID_HOME environment variable
+    if let Ok(android_home) = env::var("ANDROID_HOME") {
+        let adb_path = PathBuf::from(android_home)
+            .join("platform-tools")
+            .join("adb");
+        if adb_path.exists() {
+            return adb_path;
+        }
+    }
+
+    // 2. Fallback: Check ANDROID_SDK_ROOT (older naming convention)
+    if let Ok(sdk_root) = env::var("ANDROID_SDK_ROOT") {
+        let adb_path = PathBuf::from(sdk_root).join("platform-tools").join("adb");
+        if adb_path.exists() {
+            return adb_path;
+        }
+    }
+
+    // 3. Last Resort: Just return "adb" and hope it's in the system PATH
+    PathBuf::from("adb")
 }
