@@ -8,8 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.padauk.ui.RustRenderer
-import uniffi.rust_native.UiController
+import rs.padauk.core.RustRenderer
+import rs.padauk.core.UiController
 
 class MainActivity : ComponentActivity() {
     // Initialize the Rust Controller

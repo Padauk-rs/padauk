@@ -58,6 +58,8 @@ fn create_project(name: &str) {
 }
 
 fn run_android() {
+    prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
+
     // 1. Pick the device first
     let device_serial = pick_android_device();
 
@@ -71,13 +73,14 @@ fn run_android() {
     // 3. Compile Rust for the SPECIFIC target
     println!("🏗️  Building app for {}...", rust_target);
     let status = Command::new("cargo")
-        .args(["build", "--target", rust_target, "--release"])
+        .args(["build", "--target", rust_target])
         .current_dir("./rust")
         .status()
         .expect("Failed to build Rust library");
 
     if status.success() {
         // 4. Sync assets (we pass the detected abi so we know which jniLibs folder to use)
+        sync_from_crate_source();
         sync_assets(rust_target, &abi);
 
         // 5. Run on the specific device
@@ -116,13 +119,13 @@ fn run_android() {
 
 fn sync_assets(rust_target: &str, abi: &str) {
     let project_root = std::env::current_dir().unwrap();
-    let so_name = "libpadauk.so";
+    let so_name = "librust.so";
 
-    // Rust target folder (e.g., target/aarch64-linux-android/release)
+    // Rust target folder (e.g., target/aarch64-linux-android/debug)
     let so_path = project_root
-        .join("app/target")
+        .join("rust/target")
         .join(rust_target)
-        .join("release")
+        .join("debug")
         .join(&so_name);
 
     // Correct Android JNI folder (e.g., jniLibs/arm64-v8a)
@@ -132,11 +135,77 @@ fn sync_assets(rust_target: &str, abi: &str) {
     fs::copy(&so_path, dst_dir.join(&so_name)).expect("Failed to sync .so binary");
 
     // 2. Path where Kotlin should go
-    let kotlin_out = project_root.join("android/app/src/main/kotlin");
-    println!("  ⚙️ Generating Kotlin bindings from binary...");
+    // let kotlin_out = project_root.join("android/app/src/main/kotlin");
+    // println!("  ⚙️ Generating Kotlin bindings from binary...");
 
     // Generate bindings using the embedded logic
-    run_internal_bindgen(&so_path, &kotlin_out);
+    // run_internal_bindgen(&so_path, &kotlin_out);
+}
+
+fn sync_from_crate_source() {
+    // 1. Run 'cargo metadata' to find the path of the 'padauk' dependency
+    let project_root = std::env::current_dir().unwrap();
+    let manifest_path = project_root.join("rust/Cargo.toml");
+    let output = Command::new("cargo")
+        .args([
+            "metadata",
+            "--format-version",
+            "1",
+            "--manifest-path",
+            manifest_path
+                .to_str()
+                .expect("Failed to get Cargo.toml path."),
+        ]) // --no-deps makes it much faster
+        .output()
+        .expect("Failed to execute cargo command");
+
+    if !output.status.success() {
+        let error_message = String::from_utf8_lossy(&output.stderr);
+        eprintln!("❌ Cargo Metadata Error: {}", error_message);
+        std::process::exit(1);
+    }
+
+    let metadata: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("Failed to parse cargo metadata JSON");
+
+    // 2. Find the 'padauk' package in the dependency graph
+    let padauk_pkg = metadata["packages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["name"] == "padauk")
+        .ok_or_else(|| {
+            // Log the actual packages found to help debug
+            let found = metadata["packages"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|p| p["name"].as_str().unwrap())
+                .collect::<Vec<_>>();
+            format!("Crate 'padauk' not found. Available: {:?}", found)
+        })
+        .expect("Failed to read native resources from Padauk framework.");
+
+    let crate_root: PathBuf = PathBuf::from(padauk_pkg["manifest_path"].as_str().unwrap())
+        .parent()
+        .unwrap()
+        .to_path_buf();
+
+    // 3. Copy the pre-baked native files to the Android project
+    let native_src = crate_root.join("generated/android");
+    let android_dest = PathBuf::from("android/app/src/main/kotlin/rs/padauk/core");
+
+    fs::create_dir_all(&android_dest).unwrap();
+
+    for entry in fs::read_dir(native_src).unwrap() {
+        let entry = entry.unwrap();
+        fs::copy(entry.path(), android_dest.join(entry.file_name())).unwrap();
+    }
+
+    println!(
+        "✅ Native Renderers synced from padauk v{}",
+        padauk_pkg["version"]
+    );
 }
 
 #[derive(Debug)]
@@ -246,7 +315,7 @@ fn run_internal_bindgen(library_path: &Path, out_dir: &Path) {
     // 2. We call the generation logic directly
     // This looks inside the .so file for the 'uniffi_metadata' section
     match generate_bindings(
-        lib_utf8,           // Path to libpadauk_app.so
+        lib_utf8,           // Path to librust.so
         None,               // Optional crate name override
         &vec![target_lang], // Languages to generate
         out_utf8,           // Where to save the .kt files
@@ -282,4 +351,23 @@ fn get_adb_path() -> PathBuf {
 
     // 3. Last Resort: Just return "adb" and hope it's in the system PATH
     PathBuf::from("adb")
+}
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
+fn prepare_gradle() -> anyhow::Result<()> {
+    let project_root = std::env::current_dir().unwrap();
+    let gradlew_path = project_root.join("android/gradlew");
+
+    // Only applies to macOS/Linux
+    #[cfg(unix)]
+    {
+        let mut perms = fs::metadata(&gradlew_path)?.permissions();
+        perms.set_mode(0o755); // rwxr-xr-x
+        fs::set_permissions(&gradlew_path, perms)?;
+        println!("🔐 Set executable permissions for gradlew");
+    }
+
+    Ok(())
 }

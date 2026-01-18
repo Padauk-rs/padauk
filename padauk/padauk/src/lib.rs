@@ -1,11 +1,21 @@
-use crate::ui::widget::{UiNode, Widget};
+pub use crate::ui::widget::{UiNode, Widget};
 
 uniffi::setup_scaffolding!();
 
-mod native;
-mod ui;
+pub mod native;
+pub mod ui;
+
+// pub use crate::nodes::UiNode;
+// pub use crate::ui::widget::Widget;
+pub use crate::ui::macros::*;
+pub use crate::ui::widget::*;
+pub use padauk_macros::main;
 
 use std::sync::OnceLock;
+
+// Embed the native source code inside the Rust library
+pub const KOTLIN_RENDERER_SOURCE: &str = include_str!("../generated/android/PadaukRenderer.kt");
+pub const KOTLIN_UI_TYPES: &str = include_str!("../generated/android/Padauk.kt");
 
 pub trait PadaukApp: Send + Sync + 'static {
     fn render(&self) -> Box<dyn Widget>;

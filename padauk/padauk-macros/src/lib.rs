@@ -1,7 +1,6 @@
 extern crate proc_macro;
 
 use quote::quote;
-use syn::{ItemFn, parse_macro_input};
 
 #[proc_macro_attribute]
 pub fn main(
@@ -10,7 +9,8 @@ pub fn main(
 ) -> proc_macro::TokenStream {
     // 1. Parse the input into a syn Syntax Tree
     // parse_macro_input! handles the conversion from proc_macro::TokenStream internally
-    let input = parse_macro_input!(item as ItemFn);
+    // let input = parse_macro_input!(item as ItemFn);
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
 
     let name = &input.sig.ident;
     let vis = &input.vis;
@@ -21,12 +21,15 @@ pub fn main(
     // This generates a proc_macro2::TokenStream
     let expanded = quote! {
         #(#attrs)*
-        #vis fn #name() #block
+        #[allow(dead_code)]
+        #vis fn #name() {
+            let app = (|| #block)();
+            padauk::start_app(app);
+        }
 
         #[uniffi::export]
         pub fn padauk_init() {
-            let app = #name();
-            padauk::start_app(app);
+            #name();
         }
     };
 
