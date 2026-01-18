@@ -31,5 +31,10 @@ pub fn start_app<A: PadaukApp>(app: A) {
 pub fn padauk_render_root() -> Option<UiNode> {
     ui::event_registry::clear_actions(); // Prevent action IDs from leaking memory
 
-    APP_INSTANCE.get().map(|app| app.render().build())
+    let instance = APP_INSTANCE.get();
+    println!(
+        "🔍 padauk_render_root called. Instance exists: {}",
+        instance.is_some()
+    );
+    instance.map(|app| app.render().build())
 }

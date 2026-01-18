@@ -3,6 +3,9 @@ name = "padauk"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
 [dependencies]
 log = "0.4.29"
 uniffi = { version = "0.30.0", features = ["cli"] }

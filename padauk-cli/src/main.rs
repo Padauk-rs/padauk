@@ -1,10 +1,12 @@
-use camino::Utf8Path;
+use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use dialoguer::{Select, theme::ColorfulTheme};
 use include_dir::{Dir, include_dir};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::str::FromStr;
 use std::{env, fs};
+use uniffi_bindgen::bindings::{GenerateOptions, TargetLanguage};
 
 static PROJECT_TEMPLATE: Dir = include_dir!("$CARGO_MANIFEST_DIR/template");
 
@@ -130,16 +132,24 @@ fn sync_assets(rust_target: &str, abi: &str) {
 
     // Correct Android JNI folder (e.g., jniLibs/arm64-v8a)
     let dst_dir = project_root.join("android/app/src/main/jniLibs").join(abi);
+    let dst_so = dst_dir.join("libpadauk.so");
 
     fs::create_dir_all(&dst_dir).unwrap();
-    fs::copy(&so_path, dst_dir.join(&so_name)).expect("Failed to sync .so binary");
+    fs::copy(&so_path, &dst_so).expect("Failed to sync .so binary");
 
     // 2. Path where Kotlin should go
     // let kotlin_out = project_root.join("android/app/src/main/kotlin");
     // println!("  ⚙️ Generating Kotlin bindings from binary...");
 
     // Generate bindings using the embedded logic
-    // run_internal_bindgen(&so_path, &kotlin_out);
+    // run_internal_bindgen(dst_so.to_path_buf(), kotlin_out.to_path_buf());
+    match generate_app_bindings_cmd(&project_root, &dst_so) {
+        Ok(_) => println!("  ✅ Bindings generated successfully."),
+        Err(e) => {
+            eprintln!("  ❌ Failed to generate bindings: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 fn sync_from_crate_source() {
@@ -296,38 +306,87 @@ fn get_device_abi(serial: &str) -> String {
     String::from_utf8_lossy(&output.stdout).trim().to_string()
 }
 
-use uniffi_bindgen::bindings::TargetLanguage;
-use uniffi_bindgen::library_mode::generate_bindings;
+// fn run_internal_bindgen(library_path: PathBuf, out_dir: PathBuf) {
+//     println!("  ⚙️  Generating Kotlin bindings (Internal)...");
 
-fn run_internal_bindgen(library_path: &Path, out_dir: &Path) {
-    println!("  ⚙️  Generating Kotlin bindings (Internal)...");
+//     // 1. We specify Kotlin as the target
+//     let target_lang = TargetLanguage::Kotlin;
 
-    // 1. We specify Kotlin as the target
-    let target_lang = TargetLanguage::Kotlin;
+//     let lib_utf8 = Utf8PathBuf::from_path_buf(library_path).expect("Invalid UTF-8 path for input");
+//     let out_utf8 = Utf8PathBuf::from_path_buf(out_dir).expect("Invalid UTF-8 path for output");
 
-    let lib_utf8 = Utf8Path::new(
-        library_path
-            .to_str()
-            .expect("Invalid UTF-8 path for library"),
-    );
-    let out_utf8 = Utf8Path::new(out_dir.to_str().expect("Invalid UTF-8 path for output"));
+//     // 2. We call the generation logic directly
+//     // This looks inside the .so file for the 'uniffi_metadata' section
+//     match uniffi_bindgen::bindings::generate(GenerateOptions {
+//         languages: vec![target_lang],
+//         source: lib_utf8,
+//         out_dir: out_utf8,
+//         config_override: Some(Utf8PathBuf::from_str("./rust/uniffi.toml").expect("Config file.")),
+//         format: false,
+//         crate_filter: None,
+//         metadata_no_deps: false,
+//     }) {
+//         Ok(_) => println!("  ✅ Bindings generated successfully."),
+//         Err(e) => {
+//             eprintln!("  ❌ Failed to generate bindings: {}", e);
+//             std::process::exit(1);
+//         }
+//     }
+// }
 
-    // 2. We call the generation logic directly
-    // This looks inside the .so file for the 'uniffi_metadata' section
-    match generate_bindings(
-        lib_utf8,           // Path to librust.so
-        None,               // Optional crate name override
-        &vec![target_lang], // Languages to generate
-        out_utf8,           // Where to save the .kt files
-        // None,              // config_file_path
-        false, // try_format_code
-    ) {
-        Ok(_) => println!("  ✅ Bindings generated successfully."),
-        Err(e) => {
-            eprintln!("  ❌ Failed to generate bindings: {}", e);
-            std::process::exit(1);
-        }
+fn check_dependencies() -> anyhow::Result<()> {
+    if Command::new("uniffi-bindgen")
+        .arg("--version")
+        .output()
+        .is_err()
+    {
+        anyhow::bail!("uniffi-bindgen not found. Please run: cargo install uniffi_bindgen");
     }
+    Ok(())
+}
+
+fn generate_app_bindings_cmd(project_root: &Path, lib_path: &Path) -> anyhow::Result<()> {
+    // let rust_dir = project_root.join("rust");
+    let out_dir = project_root.join("android/app/src/main/kotlin");
+
+    // 1. Build the user's rust code first to create the library
+    // let build_status = Command::new("cargo")
+    //     .arg("build")
+    //     .current_dir(&rust_dir)
+    //     .status()?;
+
+    // if !build_status.success() {
+    //     anyhow::bail!("Cargo build failed in rust/ folder");
+    // }
+
+    // 2. Identify the compiled library (e.g., target/debug/libpadauk_app.so)
+    // let lib_ext = if cfg!(target_os = "macos") {
+    //     "dylib"
+    // } else {
+    //     "so"
+    // };
+    // let lib_path = rust_dir.join(format!("target/debug/libpadauk_app.{}", lib_ext));
+
+    // 3. Run uniffi-bindgen via Command
+    let bindgen_status = Command::new("cargo run --features=uniffi/cli --bin uniffi-bindgen")
+        .args([
+            "generate",
+            "--library",
+            lib_path.to_str().unwrap(),
+            "--language",
+            "kotlin",
+            "--out-dir",
+            out_dir.to_str().unwrap(),
+            "--no-format", // Faster generation
+        ])
+        .status()?;
+
+    if !bindgen_status.success() {
+        anyhow::bail!("uniffi-bindgen command failed. Is uniffi-bindgen installed?");
+    }
+
+    println!("✨ AppBindings generated successfully via CLI.");
+    Ok(())
 }
 
 fn get_adb_path() -> PathBuf {

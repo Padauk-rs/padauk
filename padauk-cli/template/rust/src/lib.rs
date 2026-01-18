@@ -18,7 +18,7 @@ impl PadaukApp for CounterApp {
 }
 
 #[padauk::main]
-fn start() -> CounterApp {
+fn start() {
     CounterApp {
         count: State::new(0),
     }
