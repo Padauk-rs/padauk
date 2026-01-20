@@ -1,25 +1,16 @@
 use padauk::*;
 
-struct CounterApp {
-    count: State<i32>,
-}
+uniffi::setup_scaffolding!();
+
+struct CounterApp {}
 
 impl PadaukApp for CounterApp {
     fn render(&self) -> Box<dyn Widget> {
-        column(children![
-            text(format!("Count: {}", self.count.get())),
-            button("Increment", move || {
-                let val = self.count.get();
-                self.count.set(val + 1);
-            })
-        ])
-        .into_widget()
+        column(children![text("Hello World!"),]).into_widget()
     }
 }
 
 #[padauk::main]
 fn start() {
-    CounterApp {
-        count: State::new(0),
-    }
+    CounterApp {}
 }

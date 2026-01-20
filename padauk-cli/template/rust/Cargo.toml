@@ -1,5 +1,5 @@
 [package]
-name = "padauk"
+name = "rust"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,18 +7,6 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-log = "0.4.29"
-uniffi = { version = "0.30.0", features = ["cli"] }
+uniffi = { version = "0.30.0" }
 uuid = { version = "1.19.0", features = ["v4"] }
 padauk = { path = "../../../Padauk/padauk/padauk" }
-
-# Only enable android_logger when compiling for Android
-[target.'cfg(not(target_os = "ios"))'.dependencies]
-android_logger = "0.15.1"
-
-[build-dependencies]
-uniffi = { version = "0.30.0", features = ["build"]}
-
-[[bin]]
-name = "uniffi-bindgen"
-path = "uniffi-bindgen.rs"
