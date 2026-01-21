@@ -195,8 +195,8 @@ fn sync_from_crate_source() {
         .to_path_buf();
 
     // 3. Copy the pre-baked native files to the Android project
-    let native_src = crate_root.join("generated/android");
-    let android_dest = PathBuf::from("android/app/src/main/kotlin/rs/padauk/core");
+    let native_src = crate_root.join("assets").join("android");
+    let android_dest = PathBuf::from("android").join("app").join("libs");
 
     fs::create_dir_all(&android_dest).unwrap();
 

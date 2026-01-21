@@ -14,8 +14,7 @@ pub use padauk_macros::main;
 use std::sync::OnceLock;
 
 // Embed the native source code inside the Rust library
-pub const KOTLIN_RENDERER_SOURCE: &str = include_str!("../generated/android/PadaukRenderer.kt");
-pub const KOTLIN_UI_TYPES: &str = include_str!("../generated/android/Padauk.kt");
+pub const FRAMEWORK_AAR: &[u8] = include_bytes!("../assets/android/padauk-release.aar");
 
 pub trait PadaukApp: Send + Sync + 'static {
     fn render(&self) -> Box<dyn Widget>;
