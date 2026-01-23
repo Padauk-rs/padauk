@@ -46,6 +46,9 @@ fn create_project(name: &str) {
 
     let project_path = std::env::current_dir().unwrap().join(name);
 
+    // IMPORTANT: include_dir's extract() will fail if this path doesn't exist
+    fs::create_dir_all(&project_path).unwrap();
+
     // 1. Unpack the embedded template
     PROJECT_TEMPLATE.extract(&project_path).unwrap();
 
