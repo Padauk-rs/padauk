@@ -11,7 +11,7 @@ use crate::{impl_modifiers, ui::modifier::Modifiers};
 // --------------------------------------------------------
 
 #[cfg(target_os = "ios")]
-pub use nodes::android::IosUiNode as UiNode;
+pub use IosUiNode as UiNode;
 
 #[cfg(not(target_os = "ios"))] // Fallback for iOS/Tests
 pub use AndroidUiNode as UiNode;
@@ -98,9 +98,9 @@ impl Widget for Button {
             };
 
             UiNode::Button {
-                action: self.action.clone(),
+                action_id: self.action_id.clone(),
                 // FIX: Wrap in Arc::new
-                label: std::sync::Arc::new(child_node),
+                label: vec![child_node],
                 attributes: self.modifiers.clone(),
             }
         }

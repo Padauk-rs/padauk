@@ -15,6 +15,7 @@ use std::sync::OnceLock;
 
 // Embed the native source code inside the Rust library
 pub const FRAMEWORK_AAR: &[u8] = include_bytes!("../assets/android/padauk-release.aar");
+pub const FRAMEWORK_XC: &[u8] = include_bytes!("../assets/ios/Padauk.xcframework.zip");
 
 pub trait PadaukApp: Send + Sync + 'static {
     fn render(&self) -> Box<dyn Widget>;
