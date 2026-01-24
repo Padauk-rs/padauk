@@ -1,15 +1,16 @@
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use dialoguer::{Select, theme::ColorfulTheme};
-use include_dir::{Dir, include_dir};
 use serde_json::Value;
+use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 use std::{env, fs};
 use uniffi_bindgen::bindings::{GenerateOptions, TargetLanguage};
+use zip::ZipArchive;
 
-static PROJECT_TEMPLATE: Dir = include_dir!("$CARGO_MANIFEST_DIR/template");
+static PROJECT_TEMPLATE: &[u8] = include_bytes!("../target/template.zip");
 
 #[derive(Parser)]
 #[command(name = "padauk")]
@@ -53,7 +54,7 @@ fn create_project(name: &str) {
     fs::create_dir_all(&project_path).unwrap();
 
     // 1. Unpack the embedded template
-    PROJECT_TEMPLATE.extract(&project_path).unwrap();
+    extract_template(&project_path).unwrap();
 
     // 2. Personalize the Cargo.toml
     let cargo_path = project_path.join("rust/Cargo.toml");
@@ -63,6 +64,47 @@ fn create_project(name: &str) {
     fs::write(cargo_path, cargo_content).unwrap();
 
     println!("🌳 Padauk project '{}' is ready!", name);
+}
+
+pub fn extract_template(target_dir: &PathBuf) -> anyhow::Result<()> {
+    // 1. Create the root project directory
+    std::fs::create_dir_all(target_dir)?;
+
+    // 2. Wrap our embedded bytes in a Cursor for the ZipArchive
+    let reader = Cursor::new(PROJECT_TEMPLATE);
+    let mut archive = ZipArchive::new(reader)?;
+
+    // 3. Iterate through every file in the zip and extract it
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = match file.enclosed_name() {
+            Some(path) => target_dir.join(path),
+            None => continue,
+        };
+
+        if (*file.name()).ends_with('/') {
+            std::fs::create_dir_all(&outpath)?;
+        } else {
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    std::fs::create_dir_all(p)?;
+                }
+            }
+            let mut outfile = std::fs::File::create(&outpath)?;
+            std::io::copy(&mut file, &mut outfile)?;
+        }
+
+        // On Unix, restore file permissions (very important for scripts!)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Some(mode) = file.unix_mode() {
+                std::fs::set_permissions(&outpath, std::fs::Permissions::from_mode(mode))?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn run_android() {
