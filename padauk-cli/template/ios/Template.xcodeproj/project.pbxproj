@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		4FFCC2E92F23DC92007E21FF /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4FFCC2E92F23DC92007E21FF /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		4FFCC2EA2F23DC92007E21FF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4FFCC2E92F23DC92007E21FF /* Template.app */,
+				4FFCC2E92F23DC92007E21FF /* Runner.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4FFCC2E82F23DC92007E21FF /* Template */ = {
+		4FFCC2E82F23DC92007E21FF /* Runner */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4FFCC2F42F23DC93007E21FF /* Build configuration list for PBXNativeTarget "Template" */;
+			buildConfigurationList = 4FFCC2F42F23DC93007E21FF /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				4FFCC2E52F23DC92007E21FF /* Sources */,
 				4FFCC2E62F23DC92007E21FF /* Frameworks */,
@@ -63,11 +63,11 @@
 			fileSystemSynchronizedGroups = (
 				4FFCC2EB2F23DC92007E21FF /* Template */,
 			);
-			name = Template;
+			name = Runner;
 			packageProductDependencies = (
 			);
 			productName = Template;
-			productReference = 4FFCC2E92F23DC92007E21FF /* Template.app */;
+			productReference = 4FFCC2E92F23DC92007E21FF /* Runner.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4FFCC2E82F23DC92007E21FF /* Template */,
+				4FFCC2E82F23DC92007E21FF /* Runner */,
 			);
 		};
 /* End PBXProject section */
@@ -258,7 +258,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13;
+				IPHONEOS_DEPLOYMENT_TARGET = 14;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -289,7 +289,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13;
+				IPHONEOS_DEPLOYMENT_TARGET = 14;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -318,7 +318,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4FFCC2F42F23DC93007E21FF /* Build configuration list for PBXNativeTarget "Template" */ = {
+		4FFCC2F42F23DC93007E21FF /* Build configuration list for PBXNativeTarget "Runner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4FFCC2F52F23DC93007E21FF /* Debug */,

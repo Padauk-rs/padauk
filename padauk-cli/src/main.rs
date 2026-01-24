@@ -2,6 +2,7 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use dialoguer::{Select, theme::ColorfulTheme};
 use include_dir::{Dir, include_dir};
+use serde_json::Value;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
@@ -36,6 +37,8 @@ fn main() {
         Commands::Run { platform } => {
             if platform == "android" {
                 run_android();
+            } else if platform == "ios" {
+                handle_run_ios().unwrap();
             }
         }
     }
@@ -120,6 +123,91 @@ fn run_android() {
             .status()
             .unwrap();
     }
+}
+
+fn handle_run_ios() -> anyhow::Result<()> {
+    let project_root = std::env::current_dir().unwrap();
+    let devices = get_available_simulators()?;
+
+    let selected_device: &Device;
+
+    if devices.is_empty() {
+        anyhow::bail!("No available iOS simulators found.");
+    } else if devices.len() == 1 {
+        selected_device = &devices[0];
+    } else {
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select a device to run on")
+            .items(&devices.iter().map(|d| &d.name).collect::<Vec<_>>())
+            .default(0)
+            .interact()?;
+        selected_device = &devices[selection];
+    }
+
+    // Sync framework and run
+    // deploy_ios_framework(project_root)?; // Zipped extraction we discussed
+    run_ios(&project_root, selected_device)?;
+
+    Ok(())
+}
+
+pub fn run_ios(project_root: &PathBuf, device: &Device) -> anyhow::Result<()> {
+    // 1. Build Rust Static Library
+    println!("🦀 Building Rust library for iOS...");
+    Command::new("cargo")
+        .args(["build", "--target", "aarch64-apple-ios-sim", "--release"])
+        .current_dir(project_root.join("rust"))
+        .status()?;
+
+    // 2. Build and Install via xcodebuild
+    println!("🍎 Building Xcode project for {}...", device.name);
+    let project_name = "Template"; // TODO: Rename to Runner
+
+    // 1. Build the .app bundle
+    // We use -derivedDataPath to know exactly where the output goes
+    let build_dir = project_root.join("ios/build");
+
+    Command::new("xcodebuild")
+        .args([
+            "-project",
+            &format!("ios/{}.xcodeproj", project_name),
+            "-scheme",
+            project_name,
+            "-configuration",
+            "Debug",
+            "-destination",
+            &format!("id={}", device.serial),
+            "-derivedDataPath",
+            build_dir.to_str().unwrap(),
+            "build",
+        ])
+        .current_dir(project_root)
+        .status()?;
+
+    // 2. Locate the built .app file
+    // The path usually looks like build/Build/Products/Debug-iphonesimulator/MyApp.app
+    let app_path = build_dir.join(format!(
+        "Build/Products/Debug-iphonesimulator/{}.app",
+        project_name
+    ));
+
+    // 3. Manually install to the simulator
+    println!("📲 Installing to simulator...");
+    Command::new("xcrun")
+        .args([
+            "simctl",
+            "install",
+            &device.serial,
+            app_path.to_str().unwrap(),
+        ])
+        .status()?;
+
+    // TODO:  Replace 'com.example.Template' with the user's Bundle ID
+    Command::new("xcrun")
+        .args(["simctl", "launch", &device.serial, "rs.padauk.app"])
+        .status()?;
+
+    Ok(())
 }
 
 fn sync_assets(rust_target: &str, abi: &str) {
@@ -215,18 +303,19 @@ fn sync_from_crate_source() {
 }
 
 #[derive(Debug)]
-struct AndroidDevice {
+pub struct Device {
     serial: String,
-    model: String,
+    name: String,
+    ios: bool,
 }
 
-impl std::fmt::Display for AndroidDevice {
+impl std::fmt::Display for Device {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} [{}]", self.model, self.serial)
+        write!(f, "{} [{}]", self.name, self.serial)
     }
 }
 
-fn get_android_devices() -> Vec<AndroidDevice> {
+fn get_android_devices() -> Vec<Device> {
     let adb = get_adb_path(); // Resolve the path
 
     let output = Command::new(adb).args(["devices", "-l"]).output().expect(
@@ -246,16 +335,47 @@ fn get_android_devices() -> Vec<AndroidDevice> {
         if parts.len() > 1 {
             let serial = parts[0].to_string();
             // Find the part that starts with "model:"
-            let model = parts
+            let name = parts
                 .iter()
                 .find(|p| p.starts_with("model:"))
                 .map(|p| p.replace("model:", ""))
                 .unwrap_or_else(|| "Unknown Device".to_string());
 
-            devices.push(AndroidDevice { serial, model });
+            devices.push(Device {
+                serial,
+                name,
+                ios: false,
+            });
         }
     }
     devices
+}
+
+pub fn get_available_simulators() -> anyhow::Result<Vec<Device>> {
+    // xcrun simctl list devices --json
+    let output = Command::new("xcrun")
+        .args(["simctl", "list", "devices", "available", "--json"])
+        .output()?;
+
+    let json: Value = serde_json::from_slice(&output.stdout)?;
+    let mut devices = Vec::new();
+
+    if let Some(runtimes) = json["devices"].as_object() {
+        for (_, dev_list) in runtimes {
+            if let Some(list) = dev_list.as_array() {
+                for d in list {
+                    if d["state"] == "Booted" {
+                        devices.push(Device {
+                            serial: d["udid"].as_str().unwrap().to_string(),
+                            name: d["name"].as_str().unwrap().to_string(),
+                            ios: true,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    Ok(devices)
 }
 
 fn pick_android_device() -> String {
