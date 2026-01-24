@@ -14,8 +14,11 @@ pub use padauk_macros::main;
 use std::sync::OnceLock;
 
 // Embed the native source code inside the Rust library
+#[cfg(feature = "embed-assets")]
 pub const FRAMEWORK_AAR: &[u8] = include_bytes!("../assets/android/padauk-release.aar");
-pub const FRAMEWORK_XC: &[u8] = include_bytes!("../assets/ios/Padauk.xcframework.zip");
+
+// #[cfg(feature = "embed-assets")]
+// pub const FRAMEWORK_XC: &[u8] = include_bytes!("../assets/ios/Padauk.xcframework.zip");
 
 pub trait PadaukApp: Send + Sync + 'static {
     fn render(&self) -> Box<dyn Widget>;

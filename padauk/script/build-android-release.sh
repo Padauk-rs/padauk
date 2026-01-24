@@ -38,4 +38,4 @@ cp "$AAR_SOURCE" "$ASSETS_DIR/padauk-release.aar"
 echo "✅ CLI is now armed with the latest framework AAR."
 
 echo "🔄 Building again to embed generated aar file"
-cargo build -p padauk --release
+cargo build -p padauk --release --features embed-assets

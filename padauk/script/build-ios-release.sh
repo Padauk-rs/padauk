@@ -58,4 +58,4 @@ zip -r -X "$ASSETS_DIR/Padauk.xcframework.zip" "$FRAMEWORK_NAME.xcframework"
 echo "✅ iOS Framework zipped and moved to CLI assets."
 
 echo "🔄 Building again to embed generated xcframework file"
-cargo build -p padauk --release
+cargo build -p padauk --release --features embed-assets
