@@ -1,11 +1,15 @@
 package rs.padauk.core
 
+import android.annotation.SuppressLint
+import android.graphics.Color.*
 import android.graphics.RenderNode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import rs.padauk.core.widget.PadaukImage
+import rs.padauk.core.widget.toCompose
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +56,7 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
                 }
             }
         }
+
         is AndroidUiNode.AppBar -> {
             TopAppBar(
                 title = { Text(text = widget.title) },
@@ -62,38 +69,48 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
         }
 
         is AndroidUiNode.Column -> {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = widget.modifier.toCompose()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = widget.modifiers.toCompose()
+            ) {
                 widget.children.forEach { PadaukRenderer(it, onEvent) }
             }
         }
+
         is AndroidUiNode.Row -> {
             Row(modifier = widget.modifiers.toCompose()) {
                 widget.children.forEach { PadaukRenderer(it, onEvent) }
             }
         }
+
         is AndroidUiNode.Stack -> {
             Box(modifier = widget.modifiers.toCompose()) {
                 widget.children.forEach { PadaukRenderer(it, onEvent) }
             }
         }
+
         is AndroidUiNode.Text -> {
-            Text(text = widget.text, fontSize = widget.spSize.sp, modifier = widget.modifier.toCompose())
+            Text(
+                text = widget.text,
+                fontSize = widget.spSize.sp,
+                modifier = widget.modifiers.toCompose()
+            )
         }
+
         is AndroidUiNode.Button -> {
-            Button( modifier = widget.modifier.toCompose(), onClick = { onEvent?.invoke(widget.actionId, null) }) {
-                PadaukRenderer (widget.content.first())
+            Button(
+                modifier = widget.modifiers.toCompose(),
+                onClick = { onEvent?.invoke(widget.actionId, null) }) {
+                PadaukRenderer(widget.content.first())
             }
         }
+
         is AndroidUiNode.Image -> {
-            val context = LocalContext.current
-            val resId = context.resources.getIdentifier(widget.resourceName, "drawable", context.packageName)
-            if (resId != 0) {
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = resId),
-                    contentDescription = null,
-                    modifier = widget.modifiers.toCompose()
-                )
-            }
+            PadaukImage(
+                source = widget.source,
+                fit = widget.fit,
+                modifier = widget.modifiers.toCompose()
+            )
         }
 //        is AndroidUiNode.TextField -> {
 //            OutlinedTextField(
@@ -106,27 +123,5 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
 //                modifier = composeModifier
 //            )
 //        }
-    }
-}
-
-
-
-fun Modifiers.toCompose(): Modifier {
-    var m : Modifier = Modifier
-    this.padding.let { m = m.padding(it.dp) }
-//    this.width?.let { m = m.width(it.dp) }
-//    this.height?.let { m = m.height(it.dp) }
-    this.backgroundColor?.let {
-        m = m.then(Modifier.background(it.toComposeColor()))
-    }
-    // Add clickable, etc here
-    return m
-}
-
-fun String.toComposeColor(): Color {
-    return try {
-        Color(android.graphics.Color.parseColor(this))
-    } catch (e: Exception) {
-        Color.Black
     }
 }

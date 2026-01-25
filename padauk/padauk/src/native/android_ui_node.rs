@@ -1,4 +1,7 @@
-use crate::ui::modifier::Modifiers;
+use crate::ui::{
+    image::{BoxFit, ImageSource},
+    modifier::Modifiers,
+};
 
 // Android-specific definitions
 #[derive(uniffi::Enum, Clone)]
@@ -6,7 +9,7 @@ pub enum AndroidUiNode {
     // --- Layouts ---
     Column {
         children: Vec<AndroidUiNode>,
-        modifier: Modifiers,
+        modifiers: Modifiers,
     },
     Row {
         children: Vec<AndroidUiNode>,
@@ -36,24 +39,16 @@ pub enum AndroidUiNode {
     Text {
         text: String,
         sp_size: f32, // Android uses SP for fonts
-        modifier: Modifiers,
+        modifiers: Modifiers,
     },
     Button {
         action_id: String,
         content: Vec<AndroidUiNode>, // Using Vec as workaround to avoid uniffi error in Box/Arc
-        modifier: Modifiers,
-    },
-    Image {
-        resource_name: String,
         modifiers: Modifiers,
     },
-}
-
-// Alignment enum for Column/Row
-#[derive(uniffi::Enum, Clone)]
-pub enum MainAxisAlignment {
-    Start,
-    Center,
-    End,
-    SpaceBetween,
+    Image {
+        source: ImageSource,
+        fit: BoxFit,
+        modifiers: Modifiers,
+    },
 }

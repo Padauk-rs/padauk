@@ -154,7 +154,7 @@ impl Widget for Text {
                 text: self.content.clone(),
                 // Logic: Convert abstract "size" to Android SP
                 sp_size: self.font_size,
-                modifier: self.modifiers.clone(),
+                modifiers: self.modifiers.clone(),
             }
         }
     }
@@ -209,14 +209,14 @@ impl Widget for Button {
             let child_node = UiNode::Text {
                 text: self.label.clone(),
                 sp_size: 16.0,
-                modifier: Modifiers::default(),
+                modifiers: Modifiers::default(),
             };
 
             UiNode::Button {
                 action_id: self.action_id.clone(),
                 // FIX: Wrap in Arc::new
                 content: vec![child_node],
-                modifier: self.modifiers.clone(),
+                modifiers: self.modifiers.clone(),
             }
         }
     }
@@ -271,7 +271,7 @@ impl Widget for Column {
         {
             UiNode::Column {
                 children: node_children, // Matches Vec<AndroidUiNode>
-                modifier: self.modifiers.clone(),
+                modifiers: self.modifiers.clone(),
             }
         }
     }

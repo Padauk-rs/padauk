@@ -10,6 +10,8 @@ use std::{env, fs};
 use uniffi_bindgen::bindings::{GenerateOptions, TargetLanguage};
 use zip::ZipArchive;
 
+mod assets;
+
 static PROJECT_TEMPLATE: &[u8] = include_bytes!("../target/template.zip");
 
 #[derive(Parser)]
@@ -23,9 +25,15 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Create a new Padauk project
-    Create { name: String },
+    Create {
+        name: String,
+    },
     /// Run the app on a device
-    Run { platform: String },
+    Run {
+        platform: String,
+    },
+    // Generate Assets Constant
+    Generate,
 }
 
 fn main() {
@@ -41,6 +49,9 @@ fn main() {
             } else if platform == "ios" {
                 handle_run_ios().unwrap();
             }
+        }
+        Commands::Generate => {
+            sync_and_generate_assets().unwrap();
         }
     }
 }
@@ -535,6 +546,8 @@ fn get_adb_path() -> PathBuf {
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+
+use crate::assets::sync_and_generate_assets;
 
 fn prepare_gradle() -> anyhow::Result<()> {
     let project_root = std::env::current_dir().unwrap();

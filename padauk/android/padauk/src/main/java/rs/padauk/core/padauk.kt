@@ -610,6 +610,28 @@ internal open class UniffiForeignFutureResultVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultVoid.UniffiByValue,)
 }
+internal interface UniffiCallbackInterfaceResourceLoaderMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`name`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "loadRawResource")
+internal open class UniffiVTableCallbackInterfaceResourceLoader(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `loadRawResource`: UniffiCallbackInterfaceResourceLoaderMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `loadRawResource`: UniffiCallbackInterfaceResourceLoaderMethod0? = null,
+    ): UniffiVTableCallbackInterfaceResourceLoader(`uniffiFree`,`uniffiClone`,`loadRawResource`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceResourceLoader) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `loadRawResource` = other.`loadRawResource`
+    }
+
+}
 
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
@@ -639,6 +661,10 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_padauk_checksum_func_padauk_render_root(
     ): Short
+    external fun uniffi_padauk_checksum_func_register_resource_loader(
+    ): Short
+    external fun uniffi_padauk_checksum_method_resourceloader_load_raw_resource(
+    ): Short
     external fun ffi_padauk_uniffi_contract_version(
     ): Int
     
@@ -650,14 +676,19 @@ internal object UniffiLib {
 
     init {
         Native.register(UniffiLib::class.java, findLibraryName(componentName = "padauk"))
+        uniffiCallbackInterfaceResourceLoader.register(this)
         
     }
+    external fun uniffi_padauk_fn_init_callback_vtable_resourceloader(`vtable`: UniffiVTableCallbackInterfaceResourceLoader,
+    ): Unit
     external fun uniffi_padauk_fn_func_init_logging(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_dispatch_action(`id`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_render_root(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    external fun uniffi_padauk_fn_func_register_resource_loader(`loader`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     external fun ffi_padauk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun ffi_padauk_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -786,6 +817,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 5074.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_padauk_checksum_func_register_resource_loader() != 36297.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_method_resourceloader_load_raw_resource() != 54703.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
 }
 
 /**
@@ -877,7 +914,38 @@ object UniffiWithHandle
  *
  * @suppress
  * */
-object NoHandle
+object NoHandle// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+internal const val IDX_CALLBACK_FREE = 0
+// Callback return codes
+internal const val UNIFFI_CALLBACK_SUCCESS = 0
+internal const val UNIFFI_CALLBACK_ERROR = 1
+internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
+
+/**
+ * @suppress
+ */
+public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
+    internal val handleMap = UniffiHandleMap<CallbackInterface>()
+
+    internal fun drop(handle: Long) {
+        handleMap.remove(handle)
+    }
+
+    override fun lift(value: Long): CallbackInterface {
+        return handleMap.get(value)
+    }
+
+    override fun read(buf: ByteBuffer) = lift(buf.getLong())
+
+    override fun lower(value: CallbackInterface) = handleMap.insert(value)
+
+    override fun allocationSize(value: CallbackInterface) = 8UL
+
+    override fun write(value: CallbackInterface, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
 
 /**
  * @suppress
@@ -959,12 +1027,35 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     }
 }
 
+/**
+ * @suppress
+ */
+public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+    override fun read(buf: ByteBuffer): ByteArray {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr
+    }
+    override fun allocationSize(value: ByteArray): ULong {
+        return 4UL + value.size.toULong()
+    }
+    override fun write(value: ByteArray, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        buf.put(value)
+    }
+}
+
 
 
 data class Modifiers (
     var `padding`: kotlin.Float
     , 
     var `backgroundColor`: kotlin.String?
+    , 
+    var `width`: kotlin.Float?
+    , 
+    var `height`: kotlin.Float?
     
 ){
     
@@ -981,17 +1072,23 @@ public object FfiConverterTypeModifiers: FfiConverterRustBuffer<Modifiers> {
         return Modifiers(
             FfiConverterFloat.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
         )
     }
 
     override fun allocationSize(value: Modifiers) = (
             FfiConverterFloat.allocationSize(value.`padding`) +
-            FfiConverterOptionalString.allocationSize(value.`backgroundColor`)
+            FfiConverterOptionalString.allocationSize(value.`backgroundColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`width`) +
+            FfiConverterOptionalFloat.allocationSize(value.`height`)
     )
 
     override fun write(value: Modifiers, buf: ByteBuffer) {
             FfiConverterFloat.write(value.`padding`, buf)
             FfiConverterOptionalString.write(value.`backgroundColor`, buf)
+            FfiConverterOptionalFloat.write(value.`width`, buf)
+            FfiConverterOptionalFloat.write(value.`height`, buf)
     }
 }
 
@@ -1001,7 +1098,7 @@ sealed class AndroidUiNode {
     
     data class Column(
         val `children`: List<AndroidUiNode>, 
-        val `modifier`: Modifiers) : AndroidUiNode()
+        val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
         
@@ -1054,7 +1151,7 @@ sealed class AndroidUiNode {
     data class Text(
         val `text`: kotlin.String, 
         val `spSize`: kotlin.Float, 
-        val `modifier`: Modifiers) : AndroidUiNode()
+        val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
         
@@ -1065,7 +1162,7 @@ sealed class AndroidUiNode {
     data class Button(
         val `actionId`: kotlin.String, 
         val `content`: List<AndroidUiNode>, 
-        val `modifier`: Modifiers) : AndroidUiNode()
+        val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
         
@@ -1074,7 +1171,8 @@ sealed class AndroidUiNode {
     }
     
     data class Image(
-        val `resourceName`: kotlin.String, 
+        val `source`: ImageSource, 
+        val `fit`: BoxFit, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1127,7 +1225,8 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.read(buf),
                 )
             8 -> AndroidUiNode.Image(
-                FfiConverterString.read(buf),
+                FfiConverterTypeImageSource.read(buf),
+                FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -1140,7 +1239,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             (
                 4UL
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
-                + FfiConverterTypeModifiers.allocationSize(value.`modifier`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
         is AndroidUiNode.Row -> {
@@ -1183,7 +1282,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`text`)
                 + FfiConverterFloat.allocationSize(value.`spSize`)
-                + FfiConverterTypeModifiers.allocationSize(value.`modifier`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
         is AndroidUiNode.Button -> {
@@ -1192,14 +1291,15 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`actionId`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`content`)
-                + FfiConverterTypeModifiers.allocationSize(value.`modifier`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
         is AndroidUiNode.Image -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterString.allocationSize(value.`resourceName`)
+                + FfiConverterTypeImageSource.allocationSize(value.`source`)
+                + FfiConverterTypeBoxFit.allocationSize(value.`fit`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1210,7 +1310,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             is AndroidUiNode.Column -> {
                 buf.putInt(1)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
-                FfiConverterTypeModifiers.write(value.`modifier`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Row -> {
@@ -1243,20 +1343,182 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(6)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
-                FfiConverterTypeModifiers.write(value.`modifier`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Button -> {
                 buf.putInt(7)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
-                FfiConverterTypeModifiers.write(value.`modifier`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Image -> {
                 buf.putInt(8)
-                FfiConverterString.write(value.`resourceName`, buf)
+                FfiConverterTypeImageSource.write(value.`source`, buf)
+                FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class BoxFit {
+    
+    CONTAIN,
+    COVER,
+    FILL,
+    FIT_WIDTH,
+    FIT_HEIGHT,
+    NONE,
+    SCALE_DOWN;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBoxFit: FfiConverterRustBuffer<BoxFit> {
+    override fun read(buf: ByteBuffer) = try {
+        BoxFit.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: BoxFit) = 4UL
+
+    override fun write(value: BoxFit, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+sealed class ImageSource {
+    
+    data class Asset(
+        val `name`: kotlin.String) : ImageSource()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Network(
+        val `url`: kotlin.String) : ImageSource()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class File(
+        val `path`: kotlin.String) : ImageSource()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Memory(
+        val `data`: kotlin.ByteArray) : ImageSource()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeImageSource : FfiConverterRustBuffer<ImageSource>{
+    override fun read(buf: ByteBuffer): ImageSource {
+        return when(buf.getInt()) {
+            1 -> ImageSource.Asset(
+                FfiConverterString.read(buf),
+                )
+            2 -> ImageSource.Network(
+                FfiConverterString.read(buf),
+                )
+            3 -> ImageSource.File(
+                FfiConverterString.read(buf),
+                )
+            4 -> ImageSource.Memory(
+                FfiConverterByteArray.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ImageSource) = when(value) {
+        is ImageSource.Asset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`name`)
+            )
+        }
+        is ImageSource.Network -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`url`)
+            )
+        }
+        is ImageSource.File -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`path`)
+            )
+        }
+        is ImageSource.Memory -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterByteArray.allocationSize(value.`data`)
+            )
+        }
+    }
+
+    override fun write(value: ImageSource, buf: ByteBuffer) {
+        when(value) {
+            is ImageSource.Asset -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`name`, buf)
+                Unit
+            }
+            is ImageSource.Network -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`url`, buf)
+                Unit
+            }
+            is ImageSource.File -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`path`, buf)
+                Unit
+            }
+            is ImageSource.Memory -> {
+                buf.putInt(4)
+                FfiConverterByteArray.write(value.`data`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1422,6 +1684,186 @@ public object FfiConverterTypeMainAxisAlignment: FfiConverterRustBuffer<MainAxis
 
 
 
+
+sealed class PlatformException: kotlin.Exception() {
+    
+    class NotFound(
+        
+        val `name`: kotlin.String
+        ) : PlatformException() {
+        override val message
+            get() = "name=${ `name` }"
+    }
+    
+    class Generic(
+        
+        val `details`: kotlin.String
+        ) : PlatformException() {
+        override val message
+            get() = "details=${ `details` }"
+    }
+    
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<PlatformException> {
+        override fun lift(error_buf: RustBuffer.ByValue): PlatformException = FfiConverterTypePlatformError.lift(error_buf)
+    }
+
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypePlatformError : FfiConverterRustBuffer<PlatformException> {
+    override fun read(buf: ByteBuffer): PlatformException {
+        
+
+        return when(buf.getInt()) {
+            1 -> PlatformException.NotFound(
+                FfiConverterString.read(buf),
+                )
+            2 -> PlatformException.Generic(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: PlatformException): ULong {
+        return when(value) {
+            is PlatformException.NotFound -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`name`)
+            )
+            is PlatformException.Generic -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`details`)
+            )
+        }
+    }
+
+    override fun write(value: PlatformException, buf: ByteBuffer) {
+        when(value) {
+            is PlatformException.NotFound -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`name`, buf)
+                Unit
+            }
+            is PlatformException.Generic -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`details`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+
+public interface ResourceLoader {
+    
+    /**
+     * Returns the bytes of the file, or a PlatformError
+     */
+    fun `loadRawResource`(`name`: kotlin.String): kotlin.ByteArray
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceResourceLoader {
+    internal object `loadRawResource`: UniffiCallbackInterfaceResourceLoaderMethod0 {
+        override fun callback(`uniffiHandle`: Long,`name`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeResourceLoader.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`loadRawResource`(
+                    FfiConverterString.lift(`name`),
+                )
+            }
+            val writeReturn = { value: kotlin.ByteArray -> uniffiOutReturn.setValue(FfiConverterByteArray.lower(value)) }
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: PlatformException -> FfiConverterTypePlatformError.lower(e) }
+            )
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeResourceLoader.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeResourceLoader.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceResourceLoader.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `loadRawResource`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_padauk_fn_init_callback_vtable_resourceloader(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeResourceLoader: FfiConverterCallbackInterface<ResourceLoader>()
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalFloat: FfiConverterRustBuffer<kotlin.Float?> {
+    override fun read(buf: ByteBuffer): kotlin.Float? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterFloat.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.Float?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterFloat.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.Float?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterFloat.write(value, buf)
+        }
+    }
+}
+
+
+
+
 /**
  * @suppress
  */
@@ -1564,6 +2006,15 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
 }
     )
     }
+    
+ fun `registerResourceLoader`(`loader`: ResourceLoader)
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_register_resource_loader(
+    
+        FfiConverterTypeResourceLoader.lower(`loader`),_status)
+}
+    
     
 
 

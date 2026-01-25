@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Text
+import rs.padauk.core.resource.AndroidResourceLoader
 
 open class PadaukActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +33,9 @@ open class PadaukActivity: ComponentActivity() {
 
         // Configure logger
         initLogging()
+
+        val loader = AndroidResourceLoader(this)
+        rs.padauk.core.registerResourceLoader(loader)
 
         setContent {
             if (padaukRenderRoot() != null) {

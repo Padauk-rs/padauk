@@ -1,10 +1,3 @@
-use uuid::Uuid;
-
-use crate::ui::{
-    modifier::Modifiers,
-    widget::{Button, Column, Text, Widget},
-};
-
 #[macro_export]
 macro_rules! children {
     ( $($widget:expr),* $(,)? ) => {
@@ -30,13 +23,12 @@ macro_rules! impl_modifiers {
                 self
             }
 
-            // You can easily add more here later!
-            // pub fn size(mut self, width: f32, height: f32) -> Self {
-            //     // assuming you add size to Modifiers struct
-            //     self.modifiers.width = Some(width);
-            //     self.modifiers.height = Some(height);
-            //     self
-            // }
+            pub fn size(mut self, width: Option<f32>, height: Option<f32>) -> Self {
+                // assuming you add size to Modifiers struct
+                self.modifiers.width = width;
+                self.modifiers.height = height;
+                self
+            }
         }
     };
 }

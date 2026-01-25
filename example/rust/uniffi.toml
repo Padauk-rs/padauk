@@ -1,0 +1,8 @@
+[bindings.kotlin]
+# Explicitly disable the Java 9+ Cleaner
+disable_java_cleaner = true
+package_name = "rs.padauk.app"
+skip_crates = ["padauk"]
+# Optional: Use this if you are using JNA 5.12+ 
+# which has its own internal fallback for Android
+# android_cleaner = "jna"

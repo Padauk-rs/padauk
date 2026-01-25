@@ -15,6 +15,7 @@ log = "0.4.29"
 uniffi = { version = "0.30.0", features = ["cli"] }
 uuid = { version = "1.19.0", features = ["v4"] }
 padauk_macros = { path = "../padauk-macros" }
+thiserror = "2.0.18"
 
 # Only enable android_logger when compiling for Android
 [target.'cfg(not(target_os = "ios"))'.dependencies]
