@@ -15,6 +15,7 @@ pub use IosUiNode as UiNode;
 
 #[cfg(not(target_os = "ios"))] // Fallback for iOS/Tests
 pub use AndroidUiNode as UiNode;
+use uuid::Uuid;
 
 // This is equivalent to Flutter's "abstract class Widget"
 pub trait Widget {
@@ -30,6 +31,97 @@ impl<T: Widget + Sized + 'static> IntoWidget for T {
     fn into_widget(self) -> Box<dyn Widget> {
         Box::new(self)
     }
+}
+
+// ==========================
+//      SCAFFOLD WIDGET
+// ==========================
+
+pub struct Scaffold {
+    pub app_bar: Option<Box<dyn Widget>>,
+    pub body: Box<dyn Widget>,
+    pub fab: Option<Box<dyn Widget>>,
+    pub modifiers: Modifiers,
+}
+
+impl Scaffold {
+    pub fn new(body: impl Widget + 'static) -> Self {
+        Self {
+            body: Box::new(body),
+            app_bar: None,
+            fab: None,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn app_bar(mut self, bar: impl Widget + 'static) -> Self {
+        self.app_bar = Some(Box::new(bar));
+        self
+    }
+
+    pub fn fab(mut self, button: impl Widget + 'static) -> Self {
+        self.fab = Some(Box::new(button));
+        self
+    }
+}
+
+impl_modifiers!(Scaffold);
+
+impl Widget for Scaffold {
+    fn build(&self) -> UiNode {
+        // Helper to convert Option<Box<Widget>> -> Vec<UiNode>
+        let to_vec = |opt: &Option<Box<dyn Widget>>| -> Vec<UiNode> {
+            match opt {
+                Some(w) => vec![w.build()],
+                None => vec![],
+            }
+        };
+
+        UiNode::Scaffold {
+            app_bar: to_vec(&self.app_bar),
+            body: vec![self.body.build()],
+            floating_action_button: to_vec(&self.fab),
+            modifiers: self.modifiers.clone(),
+        }
+    }
+}
+
+// DSL Helper
+pub fn scaffold(body: impl Widget + 'static) -> Scaffold {
+    Scaffold::new(body)
+}
+
+// ==========================
+//      APP BAR WIDGET
+// ==========================
+
+pub struct AppBar {
+    pub title: String,
+    pub modifiers: Modifiers,
+}
+
+impl AppBar {
+    pub fn new(title: impl Into<String>) -> Self {
+        Self {
+            title: title.into(),
+            modifiers: Modifiers::default(),
+        }
+    }
+}
+
+impl_modifiers!(AppBar);
+
+impl Widget for AppBar {
+    fn build(&self) -> UiNode {
+        UiNode::AppBar {
+            title: self.title.clone(),
+            modifiers: self.modifiers.clone(),
+        }
+    }
+}
+
+pub fn app_bar(title: impl Into<String>) -> AppBar {
+    AppBar::new(title)
 }
 
 // --- Primitives ---
@@ -76,6 +168,11 @@ impl Text {
             modifiers: Modifiers::default(),
         }
     }
+}
+
+// Returns 'Text', NOT 'Box<dyn Widget>'
+pub fn text(content: &str) -> Text {
+    Text::new(content)
 }
 
 pub struct Button {
@@ -136,6 +233,19 @@ impl Button {
     }
 }
 
+pub fn button(label: impl Into<String>, action: impl Fn() + Send + Sync + 'static) -> Button {
+    let id = Uuid::new_v4().to_string();
+
+    // Register the closure in our static map
+    crate::ui::event_registry::register_action(id.clone(), action);
+
+    Button {
+        label: label.into(),
+        modifiers: Modifiers::default(),
+        action_id: id,
+    }
+}
+
 pub struct Column {
     pub children: Vec<Box<dyn Widget>>,
     pub modifiers: Modifiers,
@@ -175,4 +285,8 @@ impl Column {
             modifiers: Modifiers::default(),
         }
     }
+}
+
+pub fn column(children: Vec<Box<dyn Widget>>) -> Column {
+    Column::new(children)
 }

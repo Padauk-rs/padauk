@@ -1009,6 +1009,48 @@ sealed class AndroidUiNode {
         companion object
     }
     
+    data class Row(
+        val `children`: List<AndroidUiNode>, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Stack(
+        val `children`: List<AndroidUiNode>, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Scaffold(
+        val `appBar`: List<AndroidUiNode>, 
+        val `body`: List<AndroidUiNode>, 
+        val `floatingActionButton`: List<AndroidUiNode>, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class AppBar(
+        val `title`: kotlin.String, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Text(
         val `text`: kotlin.String, 
         val `spSize`: kotlin.Float, 
@@ -1031,6 +1073,16 @@ sealed class AndroidUiNode {
         companion object
     }
     
+    data class Image(
+        val `resourceName`: kotlin.String, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
 
     
     companion object
@@ -1046,14 +1098,36 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            2 -> AndroidUiNode.Text(
+            2 -> AndroidUiNode.Row(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            3 -> AndroidUiNode.Stack(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            4 -> AndroidUiNode.Scaffold(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            5 -> AndroidUiNode.AppBar(
+                FfiConverterString.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            6 -> AndroidUiNode.Text(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            3 -> AndroidUiNode.Button(
+            7 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            8 -> AndroidUiNode.Image(
+                FfiConverterString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -1067,6 +1141,40 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifier`)
+            )
+        }
+        is AndroidUiNode.Row -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Stack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Scaffold -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`appBar`)
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`body`)
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`floatingActionButton`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.AppBar -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`title`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
         is AndroidUiNode.Text -> {
@@ -1087,6 +1195,14 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterTypeModifiers.allocationSize(value.`modifier`)
             )
         }
+        is AndroidUiNode.Image -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`resourceName`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
     }
 
     override fun write(value: AndroidUiNode, buf: ByteBuffer) {
@@ -1097,18 +1213,50 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifier`, buf)
                 Unit
             }
-            is AndroidUiNode.Text -> {
+            is AndroidUiNode.Row -> {
                 buf.putInt(2)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Stack -> {
+                buf.putInt(3)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Scaffold -> {
+                buf.putInt(4)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`appBar`, buf)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`body`, buf)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`floatingActionButton`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.AppBar -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`title`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Text -> {
+                buf.putInt(6)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
                 FfiConverterTypeModifiers.write(value.`modifier`, buf)
                 Unit
             }
             is AndroidUiNode.Button -> {
-                buf.putInt(3)
+                buf.putInt(7)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeModifiers.write(value.`modifier`, buf)
+                Unit
+            }
+            is AndroidUiNode.Image -> {
+                buf.putInt(8)
+                FfiConverterString.write(value.`resourceName`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1234,6 +1382,38 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class MainAxisAlignment {
+    
+    START,
+    CENTER,
+    END,
+    SPACE_BETWEEN;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeMainAxisAlignment: FfiConverterRustBuffer<MainAxisAlignment> {
+    override fun read(buf: ByteBuffer) = try {
+        MainAxisAlignment.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: MainAxisAlignment) = 4UL
+
+    override fun write(value: MainAxisAlignment, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 

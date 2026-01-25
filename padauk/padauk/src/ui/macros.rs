@@ -13,28 +13,6 @@ macro_rules! children {
     };
 }
 
-pub fn column(children: Vec<Box<dyn Widget>>) -> Column {
-    Column::new(children)
-}
-
-// Returns 'Text', NOT 'Box<dyn Widget>'
-pub fn text(content: &str) -> Text {
-    Text::new(content)
-}
-
-pub fn button(label: impl Into<String>, action: impl Fn() + Send + Sync + 'static) -> Button {
-    let id = Uuid::new_v4().to_string();
-
-    // Register the closure in our static map
-    crate::ui::event_registry::register_action(id.clone(), action);
-
-    Button {
-        label: label.into(),
-        modifiers: Modifiers::default(),
-        action_id: id,
-    }
-}
-
 #[macro_export]
 macro_rules! impl_modifiers {
     // Matches the Struct Name (e.g., Text, Button)
