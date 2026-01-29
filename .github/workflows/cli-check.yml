@@ -46,19 +46,9 @@ jobs:
           ndk-version: r26b
           add-to-path: true
 
-      # 5. Cache Padauk Artifacts (CLI Binary & Embeds)
-      # We cache the final CLI binary. Since it embeds the AAR, this covers both.
-      - name: Cache Padauk Artifacts
-        id: cache-padauk
-        uses: actions/cache@v4
-        with:
-          path: padauk-cli/target/release/padauk-cli
-          key: ${{ runner.os }}-padauk-cli-${{ hashFiles('padauk/**', 'padauk-cli/**') }}
-
       # 6. Build Framework Assets
       # This runs your script to generate 'padauk-core.aar' and moves it to CLI assets
       - name: Generate Framework AAR
-        if: steps.cache-padauk.outputs.cache-hit != 'true'
         run: |
           cd padauk
           chmod +x script/build-android-release.sh
@@ -67,7 +57,6 @@ jobs:
       # 7. Build the Padauk CLI
       # We use --features embed-assets to bake the AAR into the binary
       - name: Build Padauk CLI
-        if: steps.cache-padauk.outputs.cache-hit != 'true'
         run: |
           cd padauk-cli
           chmod +x script/build.sh
