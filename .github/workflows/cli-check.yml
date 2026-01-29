@@ -1,0 +1,106 @@
+name: CLI - Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  integration-test-android:
+    name: Build CLI & Verify Android App
+    runs-on: macos-latest # macOS is preferred for Android Emulator performance in CI
+    strategy:
+      matrix:
+        api-level: [29] # Android 10 (Stable & fast for CI)
+
+    steps:
+      # 1. Checkout Code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Java (Required for Gradle/Android SDK)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. Setup Rust
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-linux-android # Target for the Emulator
+
+      # 4. Setup Android NDK (Required to compile Rust for Android)
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
+          add-to-path: true
+
+      # 5. Install Dependencies (UniFFI Bindgen CLI)
+      # Required by refresh_bindings.sh to generate the Framework AAR
+      # - name: Install uniffi-bindgen
+      #   run: cargo install uniffi_bindgen --version 0.25.3 --features cli
+
+      # 6. Build Framework Assets
+      # This runs your script to generate 'padauk-core.aar' and moves it to CLI assets
+      - name: Generate Framework AAR
+        run: |
+          cd padauk
+          chmod +x script/build-android-release.sh
+          ./script/build-android-release.sh
+
+      # 7. Build the Padauk CLI
+      # We use --features embed-assets to bake the AAR into the binary
+      - name: Build Padauk CLI
+        run: |
+          cd ../padauk-cli
+          chmod +x script/build.sh
+          ./script/build.sh
+          
+          # 8. Add CLI to System Path
+          echo "$(pwd)/target/release" >> $GITHUB_PATH
+
+      # 9. Emulator Test
+      # This action creates an AVD, boots it, and runs our custom script
+      - name: Run Integration Test on Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            echo "📱 Emulator is ready. Creating project..."
+            
+            # A. Create New Project
+            padauk create ci_test_app
+            
+            # B. Run the App
+            # 'padauk run' handles the build (cargo + gradle) and installation
+            echo "🚀 Running app on Android..."
+            cd ci_test_app
+            padauk run android
+            
+            # C. Verification
+            echo "👀 Verifying UI content..."
+            # Wait for app launch animation
+            sleep 15 
+            
+            # Dump the current UI hierarchy to an XML file
+            adb shell uiautomator dump /data/local/tmp/ui.xml
+            adb pull /data/local/tmp/ui.xml .
+            
+            # D. Check for "Hello" text (Assuming default template contains this)
+            # You can adjust the grep string based on your exact template text
+            if grep -q "Hello World!" ui.xml; then
+              echo "✅ SUCCESS: Found 'Hello World!' text in the running app!"
+            else
+              echo "❌ FAILURE: Could not find 'Hello World!' text in the UI dump."
+              echo "--- UI Dump Content ---"
+              cat ui.xml
+              exit 1
+            fi
