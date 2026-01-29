@@ -69,7 +69,7 @@ jobs:
       - name: Build Padauk CLI
         if: steps.cache-padauk.outputs.cache-hit != 'true'
         run: |
-          cd ./../padauk-cli
+          cd padauk-cli
           chmod +x script/build.sh
           ./script/build.sh
          
