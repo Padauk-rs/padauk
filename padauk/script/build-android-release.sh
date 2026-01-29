@@ -33,6 +33,7 @@ AAR_SOURCE="$ANDROID_LIB_DIR/padauk/build/outputs/aar/padauk-release.aar"
 ASSETS_DIR="$SDK_ROOT/padauk/assets/android"
 
 echo "🚚 Moving AAR to CLI assets..."
+mkdir -p "$ASSETS_DIR"
 cp "$AAR_SOURCE" "$ASSETS_DIR/padauk-release.aar"
 
 echo "✅ CLI is now armed with the latest framework AAR."
