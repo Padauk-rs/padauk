@@ -7,6 +7,12 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# Prevents duplicate runs for the same branch/PR
+# If a new commit is pushed, the previous running job for that branch is cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   integration-test-android:
     name: Build CLI & Verify Android App
@@ -40,14 +46,19 @@ jobs:
           ndk-version: r26b
           add-to-path: true
 
-      # 5. Install Dependencies (UniFFI Bindgen CLI)
-      # Required by refresh_bindings.sh to generate the Framework AAR
-      # - name: Install uniffi-bindgen
-      #   run: cargo install uniffi_bindgen --version 0.25.3 --features cli
+      # 5. Cache Padauk Artifacts (CLI Binary & Embeds)
+      # We cache the final CLI binary. Since it embeds the AAR, this covers both.
+      - name: Cache Padauk Artifacts
+        id: cache-padauk
+        uses: actions/cache@v4
+        with:
+          path: padauk-cli/target/release/padauk-cli
+          key: ${{ runner.os }}-padauk-cli-${{ hashFiles('padauk/**', 'padauk-cli/**') }}
 
       # 6. Build Framework Assets
       # This runs your script to generate 'padauk-core.aar' and moves it to CLI assets
       - name: Generate Framework AAR
+        if: steps.cache-padauk.outputs.cache-hit != 'true'
         run: |
           cd padauk
           chmod +x script/build-android-release.sh
@@ -56,13 +67,26 @@ jobs:
       # 7. Build the Padauk CLI
       # We use --features embed-assets to bake the AAR into the binary
       - name: Build Padauk CLI
+        if: steps.cache-padauk.outputs.cache-hit != 'true'
         run: |
-          cd ../padauk-cli
+          cd ./../padauk-cli
           chmod +x script/build.sh
           ./script/build.sh
+         
+      # 8. Add CLI to System Path
+      # Runs every time (restores path to the binary, whether cached or built)
+      - name: Add CLI to System Path
+        run: |
+          # Rename the binary from package name (padauk-cli) to command name (padauk) if needed
+          if [ -f "padauk-cli/target/release/padauk-cli" ]; then
+            mv padauk-cli/target/release/padauk-cli padauk-cli/target/release/padauk
+          fi
           
-          # 8. Add CLI to System Path
-          echo "$(pwd)/target/release" >> $GITHUB_PATH
+          # Add the release directory to PATH so we can call 'padauk' directly
+          echo "$(pwd)/padauk-cli/target/release" >> $GITHUB_PATH
+          
+          # Ensure binary is executable
+          chmod +x padauk-cli/target/release/padauk || true
 
       # 9. Emulator Test
       # This action creates an AVD, boots it, and runs our custom script
