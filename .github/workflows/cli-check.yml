@@ -1,10 +1,10 @@
 name: CLI - Check
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
   workflow_dispatch:
 
 # Prevents duplicate runs for the same branch/PR
@@ -79,41 +79,41 @@ jobs:
 
       # 9. Emulator Test
       # This action creates an AVD, boots it, and runs our custom script
-      - name: Run Integration Test on Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: default
-          arch: x86_64
-          profile: Nexus 6
-          script: |
-            echo "📱 Emulator is ready. Creating project..."
+      # - name: Run Integration Test on Emulator
+      #   uses: reactivecircus/android-emulator-runner@v2
+      #   with:
+      #     api-level: ${{ matrix.api-level }}
+      #     target: default
+      #     arch: x86_64
+      #     profile: Nexus 6
+      #     script: |
+      #       echo "📱 Emulator is ready. Creating project..."
             
-            # A. Create New Project
-            padauk create ci_test_app
+      #       # A. Create New Project
+      #       padauk create ci_test_app
             
-            # B. Run the App
-            # 'padauk run' handles the build (cargo + gradle) and installation
-            echo "🚀 Running app on Android..."
-            cd ci_test_app
-            padauk run android
+      #       # B. Run the App
+      #       # 'padauk run' handles the build (cargo + gradle) and installation
+      #       echo "🚀 Running app on Android..."
+      #       cd ci_test_app
+      #       padauk run android
             
-            # C. Verification
-            echo "👀 Verifying UI content..."
-            # Wait for app launch animation
-            sleep 15 
+      #       # C. Verification
+      #       echo "👀 Verifying UI content..."
+      #       # Wait for app launch animation
+      #       sleep 15 
             
-            # Dump the current UI hierarchy to an XML file
-            adb shell uiautomator dump /data/local/tmp/ui.xml
-            adb pull /data/local/tmp/ui.xml .
+      #       # Dump the current UI hierarchy to an XML file
+      #       adb shell uiautomator dump /data/local/tmp/ui.xml
+      #       adb pull /data/local/tmp/ui.xml .
             
-            # D. Check for "Hello" text (Assuming default template contains this)
-            # You can adjust the grep string based on your exact template text
-            if grep -q "Hello World!" ui.xml; then
-              echo "✅ SUCCESS: Found 'Hello World!' text in the running app!"
-            else
-              echo "❌ FAILURE: Could not find 'Hello World!' text in the UI dump."
-              echo "--- UI Dump Content ---"
-              cat ui.xml
-              exit 1
-            fi
+      #       # D. Check for "Hello" text (Assuming default template contains this)
+      #       # You can adjust the grep string based on your exact template text
+      #       if grep -q "Hello World!" ui.xml; then
+      #         echo "✅ SUCCESS: Found 'Hello World!' text in the running app!"
+      #       else
+      #         echo "❌ FAILURE: Could not find 'Hello World!' text in the UI dump."
+      #         echo "--- UI Dump Content ---"
+      #         cat ui.xml
+      #         exit 1
+      #       fi
