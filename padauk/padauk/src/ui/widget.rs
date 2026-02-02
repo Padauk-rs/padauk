@@ -4,7 +4,7 @@ pub use crate::native::android_ui_node::AndroidUiNode;
 #[cfg(target_os = "ios")]
 pub use crate::native::ios_ui_node::IosUiNode;
 
-use crate::{impl_modifiers, ui::modifier::Modifiers};
+use crate::{impl_modifiers, prelude::Navigator, ui::modifier::Modifiers};
 
 // --------------------------------------------------------
 // THE SWITCH: Choose the definition based on the OS
@@ -69,6 +69,27 @@ impl_modifiers!(Scaffold);
 
 impl Widget for Scaffold {
     fn build(&self) -> UiNode {
+        // 1. Build the AppBar Node first
+        let mut app_bar_nodes: Vec<UiNode> = Vec::new();
+
+        if let Some(bar) = &self.app_bar {
+            let mut node = bar.build();
+
+            // 2. Logic: Inject Back Button if Global Navigator says we can pop
+            if Navigator::can_pop() {
+                if let UiNode::AppBar { leading, .. } = &mut node {
+                    // Create a Back Button
+                    let back_btn = Button::new("<", || {
+                        Navigator::pop();
+                    });
+
+                    // Inject into the 'leading' slot of the AppBar node
+                    leading.push(back_btn.build());
+                }
+            }
+            app_bar_nodes.push(node);
+        }
+
         // Helper to convert Option<Box<Widget>> -> Vec<UiNode>
         let to_vec = |opt: &Option<Box<dyn Widget>>| -> Vec<UiNode> {
             match opt {
@@ -115,6 +136,7 @@ impl Widget for AppBar {
     fn build(&self) -> UiNode {
         UiNode::AppBar {
             title: self.title.clone(),
+            leading: vec![], // Default empty, populated by Scaffold if needed
             modifiers: self.modifiers.clone(),
         }
     }
@@ -177,7 +199,7 @@ pub fn text(content: &str) -> Text {
 
 pub struct Button {
     pub label: String,
-    pub action_id: String, // The UUID from the Registry
+    pub action_id: String,
     pub modifiers: Modifiers,
 }
 
@@ -224,26 +246,22 @@ impl Widget for Button {
 
 impl Button {
     // Standard constructor
-    pub fn new(label: impl Into<String>, action_id: String) -> Self {
+    pub fn new(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+
+        // Register the closure in our static map
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+
         Self {
             label: label.into(),
-            action_id,
+            action_id: action_id,
             modifiers: Modifiers::default(),
         }
     }
 }
 
-pub fn button(label: impl Into<String>, action: impl Fn() + Send + Sync + 'static) -> Button {
-    let id = Uuid::new_v4().to_string();
-
-    // Register the closure in our static map
-    crate::ui::event_registry::register_action(id.clone(), action);
-
-    Button {
-        label: label.into(),
-        modifiers: Modifiers::default(),
-        action_id: id,
-    }
+pub fn button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+    Button::new(label, on_click)
 }
 
 pub struct Column {

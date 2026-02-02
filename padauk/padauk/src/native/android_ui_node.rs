@@ -31,6 +31,7 @@ pub enum AndroidUiNode {
     },
     AppBar {
         title: String,
+        leading: Vec<AndroidUiNode>,
         // Future: actions: Vec<UiNode>,
         modifiers: Modifiers,
     },

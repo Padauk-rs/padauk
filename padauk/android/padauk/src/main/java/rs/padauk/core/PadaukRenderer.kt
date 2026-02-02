@@ -64,7 +64,13 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                ),
+                navigationIcon = {
+                    // Render the Back Button if present
+                    if (widget.leading.isNotEmpty()) {
+                        PadaukRenderer(widget.leading.first())
+                    }
+                }
             )
         }
 

@@ -1140,6 +1140,7 @@ sealed class AndroidUiNode {
     
     data class AppBar(
         val `title`: kotlin.String, 
+        val `leading`: List<AndroidUiNode>, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1212,6 +1213,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 )
             5 -> AndroidUiNode.AppBar(
                 FfiConverterString.read(buf),
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             6 -> AndroidUiNode.Text(
@@ -1273,6 +1275,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`title`)
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`leading`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1336,6 +1339,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             is AndroidUiNode.AppBar -> {
                 buf.putInt(5)
                 FfiConverterString.write(value.`title`, buf)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
