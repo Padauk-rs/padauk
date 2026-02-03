@@ -1,4 +1,4 @@
-use crate::ui::widget::Widget;
+use crate::ui::{render_callback::request_redraw, widget::Widget};
 use std::sync::{Arc, Mutex, OnceLock}; // Assuming State is available in lib.rs
 
 // A Route is a named builder for a Widget (Page)
@@ -47,7 +47,7 @@ impl Navigator {
         if let Some(mutex) = NAVIGATOR_STATE.get() {
             if let Ok(mut state) = mutex.lock() {
                 state.stack.push(route);
-                // In a future update: Signal the native side to re-render
+                request_redraw();
             }
         }
     }
@@ -58,7 +58,7 @@ impl Navigator {
             if let Ok(mut state) = mutex.lock() {
                 if state.stack.len() > 1 {
                     state.stack.pop();
-                    // In a future update: Signal the native side to re-render
+                    request_redraw();
                 }
             }
         }
