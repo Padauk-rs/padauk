@@ -4,7 +4,11 @@ pub use crate::native::android_ui_node::AndroidUiNode;
 #[cfg(target_os = "ios")]
 pub use crate::native::ios_ui_node::IosUiNode;
 
-use crate::{impl_modifiers, prelude::Navigator, ui::modifier::Modifiers};
+use crate::{
+    impl_modifiers,
+    prelude::Navigator,
+    ui::{app_bar::AppBarStyle, modifier::Modifiers},
+};
 use log::debug;
 
 // --------------------------------------------------------
@@ -120,6 +124,7 @@ pub fn scaffold(body: impl Widget + 'static) -> Scaffold {
 
 pub struct AppBar {
     pub title: String,
+    pub style: AppBarStyle,
     pub modifiers: Modifiers,
 }
 
@@ -127,8 +132,14 @@ impl AppBar {
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
+            style: AppBarStyle::Small,
             modifiers: Modifiers::default(),
         }
+    }
+
+    pub fn style(mut self, style: AppBarStyle) -> Self {
+        self.style = style;
+        self
     }
 }
 
@@ -139,6 +150,7 @@ impl Widget for AppBar {
         UiNode::AppBar {
             title: self.title.clone(),
             leading: vec![], // Default empty, populated by Scaffold if needed
+            style: self.style,
             modifiers: self.modifiers.clone(),
         }
     }
@@ -146,6 +158,18 @@ impl Widget for AppBar {
 
 pub fn app_bar(title: impl Into<String>) -> AppBar {
     AppBar::new(title)
+}
+
+pub fn app_bar_center_aligned(title: impl Into<String>) -> AppBar {
+    AppBar::new(title).style(AppBarStyle::CenterAligned)
+}
+
+pub fn app_bar_medium(title: impl Into<String>) -> AppBar {
+    AppBar::new(title).style(AppBarStyle::Medium)
+}
+
+pub fn app_bar_large(title: impl Into<String>) -> AppBar {
+    AppBar::new(title).style(AppBarStyle::Large)
 }
 
 // --- Primitives ---

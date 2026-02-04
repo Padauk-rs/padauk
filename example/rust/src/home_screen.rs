@@ -4,6 +4,7 @@ use padauk::{
     prelude::{Navigator, Route},
 };
 
+use crate::app_bars::menu::AppBarsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 
 pub struct HomeScreen;
@@ -14,6 +15,9 @@ impl Widget for HomeScreen {
             text("Examples"),
             button("Navigation", || {
                 Navigator::push(Route::new("nav_demo", || NavigationMenu {}));
+            }),
+            button("App bars", || {
+                Navigator::push(Route::new("app_bars", || AppBarsMenu {}));
             }),
         ]))
         .app_bar(app_bar("Home"))

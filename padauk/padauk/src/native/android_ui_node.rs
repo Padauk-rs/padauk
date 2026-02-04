@@ -1,4 +1,5 @@
 use crate::ui::{
+    app_bar::AppBarStyle,
     image::{BoxFit, ImageSource},
     modifier::Modifiers,
 };
@@ -32,6 +33,7 @@ pub enum AndroidUiNode {
     AppBar {
         title: String,
         leading: Vec<AndroidUiNode>,
+        style: AppBarStyle,
         // Future: actions: Vec<UiNode>,
         modifiers: Modifiers,
     },

@@ -1215,6 +1215,7 @@ sealed class AndroidUiNode {
     data class AppBar(
         val `title`: kotlin.String, 
         val `leading`: List<AndroidUiNode>, 
+        val `style`: AppBarStyle, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1288,6 +1289,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             5 -> AndroidUiNode.AppBar(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeAppBarStyle.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             6 -> AndroidUiNode.Text(
@@ -1350,6 +1352,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`title`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`leading`)
+                + FfiConverterTypeAppBarStyle.allocationSize(value.`style`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1414,6 +1417,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(5)
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
+                FfiConverterTypeAppBarStyle.write(value.`style`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
@@ -1439,6 +1443,38 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class AppBarStyle {
+    
+    SMALL,
+    CENTER_ALIGNED,
+    MEDIUM,
+    LARGE;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAppBarStyle: FfiConverterRustBuffer<AppBarStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        AppBarStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: AppBarStyle) = 4UL
+
+    override fun write(value: AppBarStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 
