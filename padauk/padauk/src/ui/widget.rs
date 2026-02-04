@@ -101,7 +101,7 @@ impl Widget for Scaffold {
         };
 
         UiNode::Scaffold {
-            app_bar: to_vec(&self.app_bar),
+            app_bar: app_bar_nodes,
             body: vec![self.body.build()],
             floating_action_button: to_vec(&self.fab),
             modifiers: self.modifiers.clone(),

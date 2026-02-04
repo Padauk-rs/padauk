@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -69,7 +73,18 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 navigationIcon = {
                     // Render the Back Button if present
                     if (widget.leading.isNotEmpty()) {
-                        PadaukRenderer(widget.leading.first())
+                        val leading = widget.leading.first()
+                        val backActionId = extractBackActionId(leading)
+                        if (backActionId != null) {
+                            IconButton(onClick = { padaukDispatchAction(backActionId) }) {
+                                Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        } else {
+                            PadaukRenderer(leading)
+                        }
                     }
                 }
             )
@@ -108,7 +123,7 @@ fun PadaukRenderer(widget: AndroidUiNode) {
             Button(
                 modifier = widget.modifiers.toCompose(),
                 onClick = {
-                    android.util.Log.d("Padauk", "Button click: ${widget.actionId}")
+                    Log.d("Padauk", "Button click: ${widget.actionId}")
                     padaukDispatchAction(widget.actionId)
                 }) {
                 PadaukRenderer(widget.content.first())
@@ -134,4 +149,14 @@ fun PadaukRenderer(widget: AndroidUiNode) {
 //            )
 //        }
     }
+}
+
+private fun extractBackActionId(node: AndroidUiNode): String? {
+    if (node is AndroidUiNode.Button) {
+        val first = node.content.firstOrNull()
+        if (first is AndroidUiNode.Text && first.text == "<") {
+            return node.actionId
+        }
+    }
+    return null
 }

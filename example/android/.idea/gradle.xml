@@ -14,6 +14,17 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../../padauk/android" />
+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../../padauk/android" />
+            <option value="$PROJECT_DIR$/../../padauk/android/padauk" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>
