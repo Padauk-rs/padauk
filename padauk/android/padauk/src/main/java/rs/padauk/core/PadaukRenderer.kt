@@ -3,6 +3,7 @@ package rs.padauk.core
 import android.annotation.SuppressLint
 import android.graphics.Color.*
 import android.graphics.RenderNode
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,7 @@ import rs.padauk.core.widget.toCompose
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? = null) {
+fun PadaukRenderer(widget: AndroidUiNode) {
     when (widget) {
         is AndroidUiNode.Scaffold -> {
             Scaffold(
@@ -79,19 +80,19 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = widget.modifiers.toCompose()
             ) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
         is AndroidUiNode.Row -> {
             Row(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
         is AndroidUiNode.Stack -> {
             Box(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
@@ -106,7 +107,10 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
         is AndroidUiNode.Button -> {
             Button(
                 modifier = widget.modifiers.toCompose(),
-                onClick = { onEvent?.invoke(widget.actionId, null) }) {
+                onClick = {
+                    android.util.Log.d("Padauk", "Button click: ${widget.actionId}")
+                    padaukDispatchAction(widget.actionId)
+                }) {
                 PadaukRenderer(widget.content.first())
             }
         }

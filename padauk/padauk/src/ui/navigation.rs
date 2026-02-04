@@ -1,4 +1,5 @@
 use crate::ui::{render_callback::request_redraw, widget::Widget};
+use log::{debug, info, warn};
 use std::sync::{Arc, Mutex, OnceLock}; // Assuming State is available in lib.rs
 
 // A Route is a named builder for a Widget (Page)
@@ -39,16 +40,23 @@ impl Navigator {
             stack: vec![initial_route],
         };
         // We ignore the error if it's already initialized
-        let _ = NAVIGATOR_STATE.set(Mutex::new(state));
+        match NAVIGATOR_STATE.set(Mutex::new(state)) {
+            Ok(()) => info!("Navigator initialized with root route."),
+            Err(_) => warn!("Navigator init skipped: already initialized."),
+        }
     }
 
     /// Push a new route onto the stack
     pub fn push(route: Route) {
         if let Some(mutex) = NAVIGATOR_STATE.get() {
             if let Ok(mut state) = mutex.lock() {
+                debug!("Navigator push: {}", route.name);
                 state.stack.push(route);
                 request_redraw();
+                debug!("Navigator stack size after push: {}", state.stack.len());
             }
+        } else {
+            warn!("Navigator push called before init.");
         }
     }
 
@@ -57,10 +65,16 @@ impl Navigator {
         if let Some(mutex) = NAVIGATOR_STATE.get() {
             if let Ok(mut state) = mutex.lock() {
                 if state.stack.len() > 1 {
-                    state.stack.pop();
+                    let popped = state.stack.pop();
+                    if let Some(route) = popped {
+                        debug!("Navigator pop: {}", route.name);
+                    }
                     request_redraw();
+                    debug!("Navigator stack size after pop: {}", state.stack.len());
                 }
             }
+        } else {
+            warn!("Navigator pop called before init.");
         }
     }
 
@@ -79,9 +93,12 @@ impl Navigator {
         if let Some(mutex) = NAVIGATOR_STATE.get() {
             if let Ok(state) = mutex.lock() {
                 if let Some(route) = state.stack.last() {
+                    debug!("Navigator render_current: {}", route.name);
                     return Some((route.builder)());
                 }
             }
+        } else {
+            warn!("Navigator render_current called before init.");
         }
         None
     }

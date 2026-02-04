@@ -5,6 +5,7 @@ pub use crate::native::android_ui_node::AndroidUiNode;
 pub use crate::native::ios_ui_node::IosUiNode;
 
 use crate::{impl_modifiers, prelude::Navigator, ui::modifier::Modifiers};
+use log::debug;
 
 // --------------------------------------------------------
 // THE SWITCH: Choose the definition based on the OS
@@ -77,6 +78,7 @@ impl Widget for Scaffold {
 
             // 2. Logic: Inject Back Button if Global Navigator says we can pop
             if Navigator::can_pop() {
+                debug!("Scaffold: injecting back button into AppBar.");
                 if let UiNode::AppBar { leading, .. } = &mut node {
                     // Create a Back Button
                     let back_btn = Button::new("<", || {
@@ -248,6 +250,7 @@ impl Button {
     // Standard constructor
     pub fn new(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
+        debug!("Button created with action id: {}", action_id);
 
         // Register the closure in our static map
         crate::ui::event_registry::register_action(action_id.clone(), on_click);

@@ -47,6 +47,7 @@ pub fn padauk_render_root() -> UiNode {
     } else {
         // 2. Fallback to the App's manual render() method if Navigator isn't initialized
         // APP_INSTANCE.get().map(|app| app.render().build())
+        log::warn!("padauk_render_root: Navigator isn't initialized.");
         text("Navigator isn't initialized.").build()
     }
 }
