@@ -3,6 +3,7 @@ package rs.padauk.core
 import android.annotation.SuppressLint
 import android.graphics.Color.*
 import android.graphics.RenderNode
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,7 +35,7 @@ import rs.padauk.core.widget.toCompose
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? = null) {
+fun PadaukRenderer(widget: AndroidUiNode) {
     when (widget) {
         is AndroidUiNode.Scaffold -> {
             Scaffold(
@@ -64,7 +69,24 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                ),
+                navigationIcon = {
+                    // Render the Back Button if present
+                    if (widget.leading.isNotEmpty()) {
+                        val leading = widget.leading.first()
+                        val backActionId = extractBackActionId(leading)
+                        if (backActionId != null) {
+                            IconButton(onClick = { padaukDispatchAction(backActionId) }) {
+                                Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        } else {
+                            PadaukRenderer(leading)
+                        }
+                    }
+                }
             )
         }
 
@@ -73,19 +95,19 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = widget.modifiers.toCompose()
             ) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
         is AndroidUiNode.Row -> {
             Row(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
         is AndroidUiNode.Stack -> {
             Box(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it, onEvent) }
+                widget.children.forEach { PadaukRenderer(it) }
             }
         }
 
@@ -100,7 +122,10 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
         is AndroidUiNode.Button -> {
             Button(
                 modifier = widget.modifiers.toCompose(),
-                onClick = { onEvent?.invoke(widget.actionId, null) }) {
+                onClick = {
+                    Log.d("Padauk", "Button click: ${widget.actionId}")
+                    padaukDispatchAction(widget.actionId)
+                }) {
                 PadaukRenderer(widget.content.first())
             }
         }
@@ -124,4 +149,14 @@ fun PadaukRenderer(widget: AndroidUiNode, onEvent: ((String, String?) -> Unit)? 
 //            )
 //        }
     }
+}
+
+private fun extractBackActionId(node: AndroidUiNode): String? {
+    if (node is AndroidUiNode.Button) {
+        val first = node.content.firstOrNull()
+        if (first is AndroidUiNode.Text && first.text == "<") {
+            return node.actionId
+        }
+    }
+    return null
 }

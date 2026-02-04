@@ -610,8 +610,30 @@ internal open class UniffiForeignFutureResultVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultVoid.UniffiByValue,)
 }
+internal interface UniffiCallbackInterfaceRenderCallbackMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceResourceLoaderMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`name`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceRenderCallback(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
+    ): UniffiVTableCallbackInterfaceRenderCallback(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRenderCallback) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "loadRawResource")
 internal open class UniffiVTableCallbackInterfaceResourceLoader(
@@ -659,9 +681,17 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_padauk_checksum_func_padauk_dispatch_action(
     ): Short
+    external fun uniffi_padauk_checksum_func_padauk_nav_can_pop(
+    ): Short
+    external fun uniffi_padauk_checksum_func_padauk_nav_pop(
+    ): Short
     external fun uniffi_padauk_checksum_func_padauk_render_root(
     ): Short
+    external fun uniffi_padauk_checksum_func_register_render_callback(
+    ): Short
     external fun uniffi_padauk_checksum_func_register_resource_loader(
+    ): Short
+    external fun uniffi_padauk_checksum_method_rendercallback_on_update(
     ): Short
     external fun uniffi_padauk_checksum_method_resourceloader_load_raw_resource(
     ): Short
@@ -676,17 +706,26 @@ internal object UniffiLib {
 
     init {
         Native.register(UniffiLib::class.java, findLibraryName(componentName = "padauk"))
+        uniffiCallbackInterfaceRenderCallback.register(this)
         uniffiCallbackInterfaceResourceLoader.register(this)
         
     }
+    external fun uniffi_padauk_fn_init_callback_vtable_rendercallback(`vtable`: UniffiVTableCallbackInterfaceRenderCallback,
+    ): Unit
     external fun uniffi_padauk_fn_init_callback_vtable_resourceloader(`vtable`: UniffiVTableCallbackInterfaceResourceLoader,
     ): Unit
     external fun uniffi_padauk_fn_func_init_logging(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_dispatch_action(`id`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_padauk_fn_func_padauk_nav_can_pop(uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_padauk_fn_func_padauk_nav_pop(uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     external fun uniffi_padauk_fn_func_padauk_render_root(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    external fun uniffi_padauk_fn_func_register_render_callback(`callback`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     external fun uniffi_padauk_fn_func_register_resource_loader(`loader`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun ffi_padauk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -814,10 +853,22 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action() != 6256.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 5074.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_can_pop() != 9472.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_pop() != 12885.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 49349.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_func_register_render_callback() != 17765.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_padauk_checksum_func_register_resource_loader() != 36297.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_method_rendercallback_on_update() != 50468.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_padauk_checksum_method_resourceloader_load_raw_resource() != 54703.toShort()) {
@@ -967,6 +1018,29 @@ public object FfiConverterFloat: FfiConverter<Float, Float> {
 
     override fun write(value: Float, buf: ByteBuffer) {
         buf.putFloat(value)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1UL
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
     }
 }
 
@@ -1140,6 +1214,7 @@ sealed class AndroidUiNode {
     
     data class AppBar(
         val `title`: kotlin.String, 
+        val `leading`: List<AndroidUiNode>, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1212,6 +1287,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 )
             5 -> AndroidUiNode.AppBar(
                 FfiConverterString.read(buf),
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             6 -> AndroidUiNode.Text(
@@ -1273,6 +1349,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`title`)
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`leading`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1336,6 +1413,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             is AndroidUiNode.AppBar -> {
                 buf.putInt(5)
                 FfiConverterString.write(value.`title`, buf)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
@@ -1765,6 +1843,65 @@ public object FfiConverterTypePlatformError : FfiConverterRustBuffer<PlatformExc
 
 
 
+public interface RenderCallback {
+    
+    fun `onUpdate`()
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceRenderCallback {
+    internal object `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0 {
+        override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeRenderCallback.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeRenderCallback.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeRenderCallback.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceRenderCallback.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_padauk_fn_init_callback_vtable_rendercallback(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeRenderCallback: FfiConverterCallbackInterface<RenderCallback>()
+
+
+
+
+
 public interface ResourceLoader {
     
     /**
@@ -1899,38 +2036,6 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeAndroidUiNode: FfiConverterRustBuffer<AndroidUiNode?> {
-    override fun read(buf: ByteBuffer): AndroidUiNode? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeAndroidUiNode.read(buf)
-    }
-
-    override fun allocationSize(value: AndroidUiNode?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeAndroidUiNode.allocationSize(value)
-        }
-    }
-
-    override fun write(value: AndroidUiNode?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeAndroidUiNode.write(value, buf)
-        }
-    }
-}
-
-
-
-
-/**
- * @suppress
- */
 public object FfiConverterSequenceTypeAndroidUiNode: FfiConverterRustBuffer<List<AndroidUiNode>> {
     override fun read(buf: ByteBuffer): List<AndroidUiNode> {
         val len = buf.getInt()
@@ -1997,8 +2102,27 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
 }
     
     
- fun `padaukRenderRoot`(): AndroidUiNode? {
-            return FfiConverterOptionalTypeAndroidUiNode.lift(
+ fun `padaukNavCanPop`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_padauk_nav_can_pop(
+    
+        _status)
+}
+    )
+    }
+    
+ fun `padaukNavPop`()
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_padauk_nav_pop(
+    
+        _status)
+}
+    
+    
+ fun `padaukRenderRoot`(): AndroidUiNode {
+            return FfiConverterTypeAndroidUiNode.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_padauk_fn_func_padauk_render_root(
     
@@ -2006,6 +2130,15 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
 }
     )
     }
+    
+ fun `registerRenderCallback`(`callback`: RenderCallback)
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_register_render_callback(
+    
+        FfiConverterTypeRenderCallback.lower(`callback`),_status)
+}
+    
     
  fun `registerResourceLoader`(`loader`: ResourceLoader)
         = 
