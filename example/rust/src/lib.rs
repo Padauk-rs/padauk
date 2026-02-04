@@ -1,6 +1,7 @@
 use crate::example_app::ExampleApp;
 
 mod example_app;
+mod app_bars;
 mod generated;
 mod home_screen;
 mod navigator;

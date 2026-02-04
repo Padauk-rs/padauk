@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -63,31 +66,54 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         }
 
         is AndroidUiNode.AppBar -> {
-            TopAppBar(
-                title = { Text(text = widget.title) },
-                modifier = widget.modifiers.toCompose(),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
-                navigationIcon = {
-                    // Render the Back Button if present
-                    if (widget.leading.isNotEmpty()) {
-                        val leading = widget.leading.first()
-                        val backActionId = extractBackActionId(leading)
-                        if (backActionId != null) {
-                            IconButton(onClick = { padaukDispatchAction(backActionId) }) {
-                                Icon(
+            val navIcon: @Composable () -> Unit = {
+                if (widget.leading.isNotEmpty()) {
+                    val leading = widget.leading.first()
+                    val backActionId = extractBackActionId(leading)
+                    if (backActionId != null) {
+                        IconButton(onClick = { padaukDispatchAction(backActionId) }) {
+                            Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        } else {
-                            PadaukRenderer(leading)
+                                contentDescription = "Back"
+                            )
                         }
+                    } else {
+                        PadaukRenderer(leading)
                     }
                 }
+            }
+
+            val colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             )
+
+            when (widget.style) {
+                AppBarStyle.SMALL -> TopAppBar(
+                    title = { Text(text = widget.title) },
+                    modifier = widget.modifiers.toCompose(),
+                    colors = colors,
+                    navigationIcon = navIcon
+                )
+                AppBarStyle.CENTER_ALIGNED -> CenterAlignedTopAppBar(
+                    title = { Text(text = widget.title) },
+                    modifier = widget.modifiers.toCompose(),
+                    colors = colors,
+                    navigationIcon = navIcon
+                )
+                AppBarStyle.MEDIUM -> MediumTopAppBar(
+                    title = { Text(text = widget.title) },
+                    modifier = widget.modifiers.toCompose(),
+                    colors = colors,
+                    navigationIcon = navIcon
+                )
+                AppBarStyle.LARGE -> LargeTopAppBar(
+                    title = { Text(text = widget.title) },
+                    modifier = widget.modifiers.toCompose(),
+                    colors = colors,
+                    navigationIcon = navIcon
+                )
+            }
         }
 
         is AndroidUiNode.Column -> {

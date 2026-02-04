@@ -8,8 +8,11 @@ pub mod ui;
 pub mod prelude {
     pub use crate::PadaukApp;
     pub use crate::native::log;
+    pub use crate::ui::app_bar::AppBarStyle;
     pub use crate::ui::navigation::{Navigator, Route};
-    pub use crate::ui::widget::scaffold;
+    pub use crate::ui::widget::{
+        app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, scaffold,
+    };
     pub use crate::ui::widget::*;
 }
 
