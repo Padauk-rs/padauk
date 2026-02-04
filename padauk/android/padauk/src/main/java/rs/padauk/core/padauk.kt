@@ -681,6 +681,10 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_padauk_checksum_func_padauk_dispatch_action(
     ): Short
+    external fun uniffi_padauk_checksum_func_padauk_nav_can_pop(
+    ): Short
+    external fun uniffi_padauk_checksum_func_padauk_nav_pop(
+    ): Short
     external fun uniffi_padauk_checksum_func_padauk_render_root(
     ): Short
     external fun uniffi_padauk_checksum_func_register_render_callback(
@@ -713,6 +717,10 @@ internal object UniffiLib {
     external fun uniffi_padauk_fn_func_init_logging(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_dispatch_action(`id`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_padauk_fn_func_padauk_nav_can_pop(uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_padauk_fn_func_padauk_nav_pop(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_render_root(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -843,6 +851,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action() != 6256.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_can_pop() != 9472.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_pop() != 12885.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 49349.toShort()) {
@@ -1004,6 +1018,29 @@ public object FfiConverterFloat: FfiConverter<Float, Float> {
 
     override fun write(value: Float, buf: ByteBuffer) {
         buf.putFloat(value)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1UL
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
     }
 }
 
@@ -2062,6 +2099,25 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
     UniffiLib.uniffi_padauk_fn_func_padauk_dispatch_action(
     
         FfiConverterString.lower(`id`),_status)
+}
+    
+    
+ fun `padaukNavCanPop`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_padauk_nav_can_pop(
+    
+        _status)
+}
+    )
+    }
+    
+ fun `padaukNavPop`()
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_padauk_nav_pop(
+    
+        _status)
 }
     
     

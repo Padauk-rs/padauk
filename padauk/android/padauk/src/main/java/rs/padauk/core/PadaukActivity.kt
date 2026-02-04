@@ -3,6 +3,7 @@ package rs.padauk.core
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Text
@@ -60,6 +61,13 @@ open class PadaukActivity : ComponentActivity() {
         setContent {
             // Read value to subscribe to updates
             val trigger = refreshTrigger.intValue
+
+            // Intercept system back to pop navigator stack when possible.
+            val canPop = padaukNavCanPop()
+            BackHandler(enabled = canPop) {
+                Log.d("Padauk", "System back -> Navigator.pop()")
+                padaukNavPop()
+            }
 
 
             // Fetch the latest tree from Rust

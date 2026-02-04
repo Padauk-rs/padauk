@@ -103,3 +103,14 @@ impl Navigator {
         None
     }
 }
+
+// --- Android back handling helpers (exported via UniFFI) ---
+#[uniffi::export]
+pub fn padauk_nav_can_pop() -> bool {
+    Navigator::can_pop()
+}
+
+#[uniffi::export]
+pub fn padauk_nav_pop() {
+    Navigator::pop();
+}
