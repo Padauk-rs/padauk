@@ -1,19 +1,21 @@
 use padauk::Widget;
 use padauk::{
-    app_bar, button, children, column,
+    app_bar, button, children, column, scaffold, text,
     prelude::{Navigator, Route},
-    scaffold,
 };
 
-use crate::navigator::first_screen::FirstScreen;
+use crate::navigator::navigation_menu::NavigationMenu;
 
 pub struct HomeScreen;
 
 impl Widget for HomeScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![button("Navigation", || {
-            Navigator::push(Route::new("screen_a", || FirstScreen {}));
-        })]))
+        scaffold(column(children![
+            text("Examples"),
+            button("Navigation", || {
+                Navigator::push(Route::new("nav_demo", || NavigationMenu {}));
+            }),
+        ]))
         .app_bar(app_bar("Home"))
         .build()
     }

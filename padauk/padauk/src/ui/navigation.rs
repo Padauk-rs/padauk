@@ -60,6 +60,23 @@ impl Navigator {
         }
     }
 
+    /// Replace the current route with a new one
+    pub fn replace(route: Route) {
+        if let Some(mutex) = NAVIGATOR_STATE.get() {
+            if let Ok(mut state) = mutex.lock() {
+                debug!("Navigator replace with: {}", route.name);
+                if !state.stack.is_empty() {
+                    state.stack.pop();
+                }
+                state.stack.push(route);
+                request_redraw();
+                debug!("Navigator stack size after replace: {}", state.stack.len());
+            }
+        } else {
+            warn!("Navigator replace called before init.");
+        }
+    }
+
     /// Pop the top route from the stack
     pub fn pop() {
         if let Some(mutex) = NAVIGATOR_STATE.get() {
@@ -86,6 +103,80 @@ impl Navigator {
             }
         }
         false
+    }
+
+    /// Pop routes until the top matches `name` (keeps the matching route).
+    pub fn pop_until(name: &str) {
+        if let Some(mutex) = NAVIGATOR_STATE.get() {
+            if let Ok(mut state) = mutex.lock() {
+                let mut changed = false;
+                while state.stack.len() > 1 {
+                    let top_matches = state.stack.last().map(|r| r.name == name).unwrap_or(false);
+                    if top_matches {
+                        break;
+                    }
+                    let popped = state.stack.pop();
+                    if let Some(route) = popped {
+                        debug!("Navigator pop_until popped: {}", route.name);
+                    }
+                    changed = true;
+                }
+                if changed {
+                    request_redraw();
+                    debug!("Navigator stack size after pop_until: {}", state.stack.len());
+                }
+            }
+        } else {
+            warn!("Navigator pop_until called before init.");
+        }
+    }
+
+    /// Pop routes until `name` is removed from the stack.
+    pub fn pop_til(name: &str) {
+        if let Some(mutex) = NAVIGATOR_STATE.get() {
+            if let Ok(mut state) = mutex.lock() {
+                let mut changed = false;
+                while state.stack.len() > 1 {
+                    let top_matches = state.stack.last().map(|r| r.name == name).unwrap_or(false);
+                    let popped = state.stack.pop();
+                    if let Some(route) = popped {
+                        debug!("Navigator pop_til popped: {}", route.name);
+                    }
+                    changed = true;
+                    if top_matches {
+                        break;
+                    }
+                }
+                if changed {
+                    request_redraw();
+                    debug!("Navigator stack size after pop_til: {}", state.stack.len());
+                }
+            }
+        } else {
+            warn!("Navigator pop_til called before init.");
+        }
+    }
+
+    /// Pop back to the first route.
+    pub fn pop_to_first() {
+        if let Some(mutex) = NAVIGATOR_STATE.get() {
+            if let Ok(mut state) = mutex.lock() {
+                let mut changed = false;
+                while state.stack.len() > 1 {
+                    let popped = state.stack.pop();
+                    if let Some(route) = popped {
+                        debug!("Navigator pop_to_first popped: {}", route.name);
+                    }
+                    changed = true;
+                }
+                if changed {
+                    request_redraw();
+                    debug!("Navigator stack size after pop_to_first: {}", state.stack.len());
+                }
+            }
+        } else {
+            warn!("Navigator pop_to_first called before init.");
+        }
     }
 
     /// Render the currently active route
