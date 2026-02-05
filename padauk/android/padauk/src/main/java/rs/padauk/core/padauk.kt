@@ -1001,6 +1001,29 @@ public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: Ffi
 /**
  * @suppress
  */
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
+
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
+
+    override fun allocationSize(value: UByte) = 1UL
+
+    override fun write(value: UByte, buf: ByteBuffer) {
+        buf.put(value.toByte())
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterFloat: FfiConverter<Float, Float> {
     override fun lift(value: Float): Float {
         return value
@@ -1122,6 +1145,327 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
+data class AppBarStyleOptions (
+    var `containerColor`: ColorValue?
+    , 
+    var `titleColor`: ColorValue?
+    , 
+    var `navIconColor`: ColorValue?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAppBarStyleOptions: FfiConverterRustBuffer<AppBarStyleOptions> {
+    override fun read(buf: ByteBuffer): AppBarStyleOptions {
+        return AppBarStyleOptions(
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AppBarStyleOptions) = (
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`titleColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`navIconColor`)
+    )
+
+    override fun write(value: AppBarStyleOptions, buf: ByteBuffer) {
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`titleColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`navIconColor`, buf)
+    }
+}
+
+
+
+data class ButtonStyleOptions (
+    var `enabled`: kotlin.Boolean
+    , 
+    var `shape`: ButtonShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `contentColor`: ColorValue?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `elevation`: kotlin.Float?
+    , 
+    var `contentPadding`: kotlin.Float?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeButtonStyleOptions: FfiConverterRustBuffer<ButtonStyleOptions> {
+    override fun read(buf: ByteBuffer): ButtonStyleOptions {
+        return ButtonStyleOptions(
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeButtonShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ButtonStyleOptions) = (
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterTypeButtonShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`contentColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalFloat.allocationSize(value.`elevation`) +
+            FfiConverterOptionalFloat.allocationSize(value.`contentPadding`)
+    )
+
+    override fun write(value: ButtonStyleOptions, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterTypeButtonShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`contentColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalFloat.write(value.`elevation`, buf)
+            FfiConverterOptionalFloat.write(value.`contentPadding`, buf)
+    }
+}
+
+
+
+data class CardStyleOptions (
+    var `enabled`: kotlin.Boolean
+    , 
+    var `shape`: CardShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `elevation`: kotlin.Float?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardStyleOptions: FfiConverterRustBuffer<CardStyleOptions> {
+    override fun read(buf: ByteBuffer): CardStyleOptions {
+        return CardStyleOptions(
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeCardShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CardStyleOptions) = (
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterTypeCardShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalFloat.allocationSize(value.`elevation`)
+    )
+
+    override fun write(value: CardStyleOptions, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterTypeCardShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalFloat.write(value.`elevation`, buf)
+    }
+}
+
+
+
+data class ChipStyleOptions (
+    var `enabled`: kotlin.Boolean
+    , 
+    var `shape`: ChipShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `labelColor`: ColorValue?
+    , 
+    var `iconColor`: ColorValue?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `elevation`: kotlin.Float?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeChipStyleOptions: FfiConverterRustBuffer<ChipStyleOptions> {
+    override fun read(buf: ByteBuffer): ChipStyleOptions {
+        return ChipStyleOptions(
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeChipShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ChipStyleOptions) = (
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterTypeChipShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`labelColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`iconColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalFloat.allocationSize(value.`elevation`)
+    )
+
+    override fun write(value: ChipStyleOptions, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterTypeChipShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`labelColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`iconColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalFloat.write(value.`elevation`, buf)
+    }
+}
+
+
+
+data class FabOptions (
+    var `shape`: ButtonShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `contentColor`: ColorValue?
+    , 
+    var `elevation`: kotlin.Float?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFabOptions: FfiConverterRustBuffer<FabOptions> {
+    override fun read(buf: ByteBuffer): FabOptions {
+        return FabOptions(
+            FfiConverterTypeButtonShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FabOptions) = (
+            FfiConverterTypeButtonShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`contentColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`elevation`)
+    )
+
+    override fun write(value: FabOptions, buf: ByteBuffer) {
+            FfiConverterTypeButtonShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`contentColor`, buf)
+            FfiConverterOptionalFloat.write(value.`elevation`, buf)
+    }
+}
+
+
+
+data class IconButtonOptions (
+    var `enabled`: kotlin.Boolean
+    , 
+    var `shape`: ButtonShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `contentColor`: ColorValue?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeIconButtonOptions: FfiConverterRustBuffer<IconButtonOptions> {
+    override fun read(buf: ByteBuffer): IconButtonOptions {
+        return IconButtonOptions(
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeButtonShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: IconButtonOptions) = (
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterTypeButtonShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`contentColor`)
+    )
+
+    override fun write(value: IconButtonOptions, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterTypeButtonShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`contentColor`, buf)
+    }
+}
+
+
+
 data class Modifiers (
     var `padding`: kotlin.Float
     , 
@@ -1216,6 +1560,7 @@ sealed class AndroidUiNode {
         val `title`: kotlin.String, 
         val `leading`: List<AndroidUiNode>, 
         val `style`: AppBarStyle, 
+        val `options`: AppBarStyleOptions, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1238,6 +1583,80 @@ sealed class AndroidUiNode {
     data class Button(
         val `actionId`: kotlin.String, 
         val `content`: List<AndroidUiNode>, 
+        val `style`: ButtonStyle, 
+        val `options`: ButtonStyleOptions, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class IconButton(
+        val `actionId`: kotlin.String, 
+        val `icon`: IconType, 
+        val `style`: IconButtonStyle, 
+        val `options`: IconButtonOptions, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Card(
+        val `children`: List<AndroidUiNode>, 
+        val `style`: CardStyle, 
+        val `actionId`: kotlin.String?, 
+        val `options`: CardStyleOptions, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Checkbox(
+        val `checked`: kotlin.Boolean, 
+        val `actionId`: kotlin.String, 
+        val `enabled`: kotlin.Boolean, 
+        val `colorChecked`: ColorValue?, 
+        val `colorUnchecked`: ColorValue?, 
+        val `colorCheckmark`: ColorValue?, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Chip(
+        val `label`: kotlin.String, 
+        val `style`: ChipStyle, 
+        val `selected`: kotlin.Boolean, 
+        val `actionId`: kotlin.String, 
+        val `leadingIcon`: IconType?, 
+        val `trailingIcon`: IconType?, 
+        val `closeActionId`: kotlin.String?, 
+        val `options`: ChipStyleOptions, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Fab(
+        val `actionId`: kotlin.String, 
+        val `icon`: IconType, 
+        val `style`: FabStyle, 
+        val `label`: kotlin.String?, 
+        val `options`: FabOptions, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1290,6 +1709,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeAppBarStyle.read(buf),
+                FfiConverterTypeAppBarStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             6 -> AndroidUiNode.Text(
@@ -1300,9 +1720,53 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             7 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeButtonStyle.read(buf),
+                FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            8 -> AndroidUiNode.Image(
+            8 -> AndroidUiNode.IconButton(
+                FfiConverterString.read(buf),
+                FfiConverterTypeIconType.read(buf),
+                FfiConverterTypeIconButtonStyle.read(buf),
+                FfiConverterTypeIconButtonOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            9 -> AndroidUiNode.Card(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeCardStyle.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeCardStyleOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            10 -> AndroidUiNode.Checkbox(
+                FfiConverterBoolean.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            11 -> AndroidUiNode.Chip(
+                FfiConverterString.read(buf),
+                FfiConverterTypeChipStyle.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterOptionalTypeIconType.read(buf),
+                FfiConverterOptionalTypeIconType.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeChipStyleOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            12 -> AndroidUiNode.Fab(
+                FfiConverterString.read(buf),
+                FfiConverterTypeIconType.read(buf),
+                FfiConverterTypeFabStyle.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeFabOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            13 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1353,6 +1817,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterString.allocationSize(value.`title`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`leading`)
                 + FfiConverterTypeAppBarStyle.allocationSize(value.`style`)
+                + FfiConverterTypeAppBarStyleOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1371,6 +1836,70 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`actionId`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`content`)
+                + FfiConverterTypeButtonStyle.allocationSize(value.`style`)
+                + FfiConverterTypeButtonStyleOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.IconButton -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterTypeIconType.allocationSize(value.`icon`)
+                + FfiConverterTypeIconButtonStyle.allocationSize(value.`style`)
+                + FfiConverterTypeIconButtonOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Card -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeCardStyle.allocationSize(value.`style`)
+                + FfiConverterOptionalString.allocationSize(value.`actionId`)
+                + FfiConverterTypeCardStyleOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Checkbox -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`checked`)
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterBoolean.allocationSize(value.`enabled`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorChecked`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorUnchecked`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorCheckmark`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Chip -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`label`)
+                + FfiConverterTypeChipStyle.allocationSize(value.`style`)
+                + FfiConverterBoolean.allocationSize(value.`selected`)
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterOptionalTypeIconType.allocationSize(value.`leadingIcon`)
+                + FfiConverterOptionalTypeIconType.allocationSize(value.`trailingIcon`)
+                + FfiConverterOptionalString.allocationSize(value.`closeActionId`)
+                + FfiConverterTypeChipStyleOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Fab -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterTypeIconType.allocationSize(value.`icon`)
+                + FfiConverterTypeFabStyle.allocationSize(value.`style`)
+                + FfiConverterOptionalString.allocationSize(value.`label`)
+                + FfiConverterTypeFabOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1418,6 +1947,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeAppBarStyle.write(value.`style`, buf)
+                FfiConverterTypeAppBarStyleOptions.write(value.`options`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
@@ -1432,11 +1962,65 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(7)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
+                FfiConverterTypeButtonStyle.write(value.`style`, buf)
+                FfiConverterTypeButtonStyleOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.IconButton -> {
+                buf.putInt(8)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterTypeIconType.write(value.`icon`, buf)
+                FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
+                FfiConverterTypeIconButtonOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Card -> {
+                buf.putInt(9)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
+                FfiConverterTypeCardStyle.write(value.`style`, buf)
+                FfiConverterOptionalString.write(value.`actionId`, buf)
+                FfiConverterTypeCardStyleOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Checkbox -> {
+                buf.putInt(10)
+                FfiConverterBoolean.write(value.`checked`, buf)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterBoolean.write(value.`enabled`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorChecked`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorUnchecked`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorCheckmark`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Chip -> {
+                buf.putInt(11)
+                FfiConverterString.write(value.`label`, buf)
+                FfiConverterTypeChipStyle.write(value.`style`, buf)
+                FfiConverterBoolean.write(value.`selected`, buf)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterOptionalTypeIconType.write(value.`leadingIcon`, buf)
+                FfiConverterOptionalTypeIconType.write(value.`trailingIcon`, buf)
+                FfiConverterOptionalString.write(value.`closeActionId`, buf)
+                FfiConverterTypeChipStyleOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Fab -> {
+                buf.putInt(12)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterTypeIconType.write(value.`icon`, buf)
+                FfiConverterTypeFabStyle.write(value.`style`, buf)
+                FfiConverterOptionalString.write(value.`label`, buf)
+                FfiConverterTypeFabOptions.write(value.`options`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(8)
+                buf.putInt(13)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -1509,6 +2093,382 @@ public object FfiConverterTypeBoxFit: FfiConverterRustBuffer<BoxFit> {
     override fun allocationSize(value: BoxFit) = 4UL
 
     override fun write(value: BoxFit, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ButtonShape {
+    
+    DEFAULT,
+    ROUNDED,
+    PILL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeButtonShape: FfiConverterRustBuffer<ButtonShape> {
+    override fun read(buf: ByteBuffer) = try {
+        ButtonShape.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ButtonShape) = 4UL
+
+    override fun write(value: ButtonShape, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ButtonStyle {
+    
+    FILLED,
+    FILLED_TONAL,
+    ELEVATED,
+    OUTLINED,
+    TEXT;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeButtonStyle: FfiConverterRustBuffer<ButtonStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        ButtonStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ButtonStyle) = 4UL
+
+    override fun write(value: ButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class CardShape {
+    
+    DEFAULT,
+    ROUNDED,
+    PILL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardShape: FfiConverterRustBuffer<CardShape> {
+    override fun read(buf: ByteBuffer) = try {
+        CardShape.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: CardShape) = 4UL
+
+    override fun write(value: CardShape, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class CardStyle {
+    
+    FILLED,
+    ELEVATED,
+    OUTLINED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardStyle: FfiConverterRustBuffer<CardStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        CardStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: CardStyle) = 4UL
+
+    override fun write(value: CardStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ChipShape {
+    
+    DEFAULT,
+    PILL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeChipShape: FfiConverterRustBuffer<ChipShape> {
+    override fun read(buf: ByteBuffer) = try {
+        ChipShape.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ChipShape) = 4UL
+
+    override fun write(value: ChipShape, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ChipStyle {
+    
+    ASSIST,
+    FILTER,
+    INPUT,
+    SUGGESTION;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeChipStyle: FfiConverterRustBuffer<ChipStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        ChipStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ChipStyle) = 4UL
+
+    override fun write(value: ChipStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+sealed class ColorValue {
+    
+    data class Rgb(
+        val `r`: kotlin.UByte, 
+        val `g`: kotlin.UByte, 
+        val `b`: kotlin.UByte, 
+        val `a`: kotlin.UByte) : ColorValue()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Hex(
+        val `value`: kotlin.String) : ColorValue()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeColorValue : FfiConverterRustBuffer<ColorValue>{
+    override fun read(buf: ByteBuffer): ColorValue {
+        return when(buf.getInt()) {
+            1 -> ColorValue.Rgb(
+                FfiConverterUByte.read(buf),
+                FfiConverterUByte.read(buf),
+                FfiConverterUByte.read(buf),
+                FfiConverterUByte.read(buf),
+                )
+            2 -> ColorValue.Hex(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ColorValue) = when(value) {
+        is ColorValue.Rgb -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUByte.allocationSize(value.`r`)
+                + FfiConverterUByte.allocationSize(value.`g`)
+                + FfiConverterUByte.allocationSize(value.`b`)
+                + FfiConverterUByte.allocationSize(value.`a`)
+            )
+        }
+        is ColorValue.Hex -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: ColorValue, buf: ByteBuffer) {
+        when(value) {
+            is ColorValue.Rgb -> {
+                buf.putInt(1)
+                FfiConverterUByte.write(value.`r`, buf)
+                FfiConverterUByte.write(value.`g`, buf)
+                FfiConverterUByte.write(value.`b`, buf)
+                FfiConverterUByte.write(value.`a`, buf)
+                Unit
+            }
+            is ColorValue.Hex -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class FabStyle {
+    
+    SMALL,
+    NORMAL,
+    LARGE,
+    EXTENDED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFabStyle: FfiConverterRustBuffer<FabStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        FabStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: FabStyle) = 4UL
+
+    override fun write(value: FabStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class IconButtonStyle {
+    
+    STANDARD,
+    FILLED,
+    FILLED_TONAL,
+    OUTLINED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeIconButtonStyle: FfiConverterRustBuffer<IconButtonStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        IconButtonStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: IconButtonStyle) = 4UL
+
+    override fun write(value: IconButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class IconType {
+    
+    ADD,
+    CLOSE,
+    MENU,
+    FAVORITE,
+    SEARCH,
+    PERSON;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeIconType: FfiConverterRustBuffer<IconType> {
+    override fun read(buf: ByteBuffer) = try {
+        IconType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: IconType) = 4UL
+
+    override fun write(value: IconType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -2062,6 +3022,70 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
         } else {
             buf.put(1)
             FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeColorValue: FfiConverterRustBuffer<ColorValue?> {
+    override fun read(buf: ByteBuffer): ColorValue? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeColorValue.read(buf)
+    }
+
+    override fun allocationSize(value: ColorValue?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeColorValue.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ColorValue?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeColorValue.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeIconType: FfiConverterRustBuffer<IconType?> {
+    override fun read(buf: ByteBuffer): IconType? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIconType.read(buf)
+    }
+
+    override fun allocationSize(value: IconType?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIconType.allocationSize(value)
+        }
+    }
+
+    override fun write(value: IconType?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIconType.write(value, buf)
         }
     }
 }

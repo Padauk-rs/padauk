@@ -8,10 +8,48 @@ pub mod ui;
 pub mod prelude {
     pub use crate::PadaukApp;
     pub use crate::native::log;
-    pub use crate::ui::app_bar::AppBarStyle;
+    pub use crate::ui::app_bar::{AppBarStyle, AppBarStyleOptions};
+    pub use crate::ui::button::{
+        ButtonShape,
+        ButtonStyle,
+        ButtonStyleOptions,
+        FabOptions,
+        FabStyle,
+        IconButtonOptions,
+        IconButtonStyle,
+        IconType,
+    };
+    pub use crate::ui::card::{CardShape, CardStyle, CardStyleOptions};
+    pub use crate::ui::chip::{ChipShape, ChipStyle, ChipStyleOptions};
+    pub use crate::ui::color::{ColorValue, color_hex, color_rgb, color_rgba};
     pub use crate::ui::navigation::{Navigator, Route};
     pub use crate::ui::widget::{
-        app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, scaffold,
+        app_bar,
+        app_bar_center_aligned,
+        app_bar_large,
+        app_bar_medium,
+        fab,
+        fab_extended,
+        fab_large,
+        fab_small,
+        filled_button,
+        filled_icon_button,
+        filled_tonal_button,
+        filled_tonal_icon_button,
+        icon_button,
+        card,
+        elevated_card,
+        outlined_card,
+        checkbox,
+        assist_chip,
+        filter_chip,
+        input_chip,
+        suggestion_chip,
+        outlined_button,
+        outlined_icon_button,
+        scaffold,
+        text_button,
+        elevated_button,
     };
     pub use crate::ui::widget::*;
 }
