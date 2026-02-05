@@ -1238,6 +1238,32 @@ sealed class AndroidUiNode {
     data class Button(
         val `actionId`: kotlin.String, 
         val `content`: List<AndroidUiNode>, 
+        val `style`: ButtonStyle, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class IconButton(
+        val `actionId`: kotlin.String, 
+        val `icon`: IconType, 
+        val `style`: IconButtonStyle, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Fab(
+        val `actionId`: kotlin.String, 
+        val `icon`: IconType, 
+        val `style`: FabStyle, 
+        val `label`: kotlin.String?, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1300,9 +1326,23 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             7 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            8 -> AndroidUiNode.Image(
+            8 -> AndroidUiNode.IconButton(
+                FfiConverterString.read(buf),
+                FfiConverterTypeIconType.read(buf),
+                FfiConverterTypeIconButtonStyle.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            9 -> AndroidUiNode.Fab(
+                FfiConverterString.read(buf),
+                FfiConverterTypeIconType.read(buf),
+                FfiConverterTypeFabStyle.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            10 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1371,6 +1411,28 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`actionId`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`content`)
+                + FfiConverterTypeButtonStyle.allocationSize(value.`style`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.IconButton -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterTypeIconType.allocationSize(value.`icon`)
+                + FfiConverterTypeIconButtonStyle.allocationSize(value.`style`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Fab -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterTypeIconType.allocationSize(value.`icon`)
+                + FfiConverterTypeFabStyle.allocationSize(value.`style`)
+                + FfiConverterOptionalString.allocationSize(value.`label`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1432,11 +1494,29 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(7)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
+                FfiConverterTypeButtonStyle.write(value.`style`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.IconButton -> {
+                buf.putInt(8)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterTypeIconType.write(value.`icon`, buf)
+                FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Fab -> {
+                buf.putInt(9)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterTypeIconType.write(value.`icon`, buf)
+                FfiConverterTypeFabStyle.write(value.`style`, buf)
+                FfiConverterOptionalString.write(value.`label`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(8)
+                buf.putInt(10)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -1509,6 +1589,136 @@ public object FfiConverterTypeBoxFit: FfiConverterRustBuffer<BoxFit> {
     override fun allocationSize(value: BoxFit) = 4UL
 
     override fun write(value: BoxFit, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class ButtonStyle {
+    
+    FILLED,
+    FILLED_TONAL,
+    ELEVATED,
+    OUTLINED,
+    TEXT;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeButtonStyle: FfiConverterRustBuffer<ButtonStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        ButtonStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ButtonStyle) = 4UL
+
+    override fun write(value: ButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class FabStyle {
+    
+    SMALL,
+    NORMAL,
+    LARGE,
+    EXTENDED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFabStyle: FfiConverterRustBuffer<FabStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        FabStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: FabStyle) = 4UL
+
+    override fun write(value: FabStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class IconButtonStyle {
+    
+    STANDARD,
+    FILLED,
+    FILLED_TONAL,
+    OUTLINED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeIconButtonStyle: FfiConverterRustBuffer<IconButtonStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        IconButtonStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: IconButtonStyle) = 4UL
+
+    override fun write(value: IconButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class IconType {
+    
+    ADD,
+    CLOSE,
+    MENU,
+    FAVORITE,
+    SEARCH;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeIconType: FfiConverterRustBuffer<IconType> {
+    override fun read(buf: ByteBuffer) = try {
+        IconType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: IconType) = 4UL
+
+    override fun write(value: IconType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

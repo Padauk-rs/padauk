@@ -13,11 +13,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
@@ -146,13 +162,88 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         }
 
         is AndroidUiNode.Button -> {
-            Button(
-                modifier = widget.modifiers.toCompose(),
-                onClick = {
-                    Log.d("Padauk", "Button click: ${widget.actionId}")
-                    padaukDispatchAction(widget.actionId)
-                }) {
-                PadaukRenderer(widget.content.first())
+            val onClick = {
+                Log.d("Padauk", "Button click: ${widget.actionId}")
+                padaukDispatchAction(widget.actionId)
+            }
+            when (widget.style) {
+                ButtonStyle.FILLED -> Button(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { PadaukRenderer(widget.content.first()) }
+                ButtonStyle.FILLED_TONAL -> FilledTonalButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { PadaukRenderer(widget.content.first()) }
+                ButtonStyle.ELEVATED -> ElevatedButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { PadaukRenderer(widget.content.first()) }
+                ButtonStyle.OUTLINED -> OutlinedButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { PadaukRenderer(widget.content.first()) }
+                ButtonStyle.TEXT -> TextButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { PadaukRenderer(widget.content.first()) }
+            }
+        }
+
+        is AndroidUiNode.IconButton -> {
+            val onClick = {
+                Log.d("Padauk", "Icon button click: ${widget.actionId}")
+                padaukDispatchAction(widget.actionId)
+            }
+            val icon = iconVector(widget.icon)
+            when (widget.style) {
+                IconButtonStyle.STANDARD -> IconButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                IconButtonStyle.FILLED -> FilledIconButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                IconButtonStyle.FILLED_TONAL -> FilledTonalIconButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                IconButtonStyle.OUTLINED -> OutlinedIconButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+            }
+        }
+
+        is AndroidUiNode.Fab -> {
+            val onClick = {
+                Log.d("Padauk", "FAB click: ${widget.actionId}")
+                padaukDispatchAction(widget.actionId)
+            }
+            val icon = iconVector(widget.icon)
+            when (widget.style) {
+                FabStyle.SMALL -> SmallFloatingActionButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                FabStyle.NORMAL -> FloatingActionButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                FabStyle.LARGE -> LargeFloatingActionButton(
+                    modifier = widget.modifiers.toCompose(),
+                    onClick = onClick
+                ) { Icon(icon, contentDescription = null) }
+                FabStyle.EXTENDED -> {
+                    val label = widget.label ?: ""
+                    ExtendedFloatingActionButton(
+                        modifier = widget.modifiers.toCompose(),
+                        onClick = onClick,
+                        icon = { Icon(icon, contentDescription = null) },
+                        text = { Text(label) }
+                    )
+                }
             }
         }
 
@@ -175,6 +266,14 @@ fun PadaukRenderer(widget: AndroidUiNode) {
 //            )
 //        }
     }
+}
+
+private fun iconVector(icon: IconType) = when (icon) {
+    IconType.ADD -> Icons.Filled.Add
+    IconType.CLOSE -> Icons.Filled.Close
+    IconType.MENU -> Icons.Filled.Menu
+    IconType.FAVORITE -> Icons.Filled.Favorite
+    IconType.SEARCH -> Icons.Filled.Search
 }
 
 private fun extractBackActionId(node: AndroidUiNode): String? {

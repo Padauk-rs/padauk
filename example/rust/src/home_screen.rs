@@ -5,6 +5,7 @@ use padauk::{
 };
 
 use crate::app_bars::menu::AppBarsMenu;
+use crate::buttons::menu::ButtonsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 
 pub struct HomeScreen;
@@ -18,6 +19,9 @@ impl Widget for HomeScreen {
             }),
             button("App bars", || {
                 Navigator::push(Route::new("app_bars", || AppBarsMenu {}));
+            }),
+            button("Buttons", || {
+                Navigator::push(Route::new("buttons", || ButtonsMenu {}));
             }),
         ]))
         .app_bar(app_bar("Home"))

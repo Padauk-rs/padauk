@@ -7,7 +7,11 @@ pub use crate::native::ios_ui_node::IosUiNode;
 use crate::{
     impl_modifiers,
     prelude::Navigator,
-    ui::{app_bar::AppBarStyle, modifier::Modifiers},
+    ui::{
+        app_bar::AppBarStyle,
+        button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
+        modifier::Modifiers,
+    },
 };
 use log::debug;
 
@@ -226,6 +230,7 @@ pub fn text(content: &str) -> Text {
 pub struct Button {
     pub label: String,
     pub action_id: String,
+    pub style: ButtonStyle,
     pub modifiers: Modifiers,
 }
 
@@ -264,6 +269,7 @@ impl Widget for Button {
                 action_id: self.action_id.clone(),
                 // FIX: Wrap in Arc::new
                 content: vec![child_node],
+                style: self.style,
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -282,9 +288,200 @@ impl Button {
         Self {
             label: label.into(),
             action_id: action_id,
+            style: ButtonStyle::Filled,
             modifiers: Modifiers::default(),
         }
     }
+
+    pub fn style(mut self, style: ButtonStyle) -> Self {
+        self.style = style;
+        self
+    }
+}
+
+pub fn filled_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+    Button::new(label, on_click).style(ButtonStyle::Filled)
+}
+
+pub fn filled_tonal_button(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Button {
+    Button::new(label, on_click).style(ButtonStyle::FilledTonal)
+}
+
+pub fn elevated_button(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Button {
+    Button::new(label, on_click).style(ButtonStyle::Elevated)
+}
+
+pub fn outlined_button(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Button {
+    Button::new(label, on_click).style(ButtonStyle::Outlined)
+}
+
+pub fn text_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+    Button::new(label, on_click).style(ButtonStyle::Text)
+}
+
+pub struct IconButton {
+    pub icon: IconType,
+    pub style: IconButtonStyle,
+    pub action_id: String,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(IconButton);
+
+impl Widget for IconButton {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            // TODO: iOS icon buttons
+            UiNode::Label {
+                title: "Icon".to_string(),
+                pt_size: 16.0,
+                attributes: Modifiers::default(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::IconButton {
+                action_id: self.action_id.clone(),
+                icon: self.icon,
+                style: self.style,
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl IconButton {
+    pub fn new(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+        Self {
+            icon,
+            style: IconButtonStyle::Standard,
+            action_id,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn style(mut self, style: IconButtonStyle) -> Self {
+        self.style = style;
+        self
+    }
+}
+
+pub fn icon_button(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> IconButton {
+    IconButton::new(icon, on_click)
+}
+
+pub fn filled_icon_button(
+    icon: IconType,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> IconButton {
+    IconButton::new(icon, on_click).style(IconButtonStyle::Filled)
+}
+
+pub fn filled_tonal_icon_button(
+    icon: IconType,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> IconButton {
+    IconButton::new(icon, on_click).style(IconButtonStyle::FilledTonal)
+}
+
+pub fn outlined_icon_button(
+    icon: IconType,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> IconButton {
+    IconButton::new(icon, on_click).style(IconButtonStyle::Outlined)
+}
+
+pub struct Fab {
+    pub icon: IconType,
+    pub style: FabStyle,
+    pub label: Option<String>,
+    pub action_id: String,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(Fab);
+
+impl Widget for Fab {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "FAB".to_string(),
+                pt_size: 16.0,
+                attributes: Modifiers::default(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Fab {
+                action_id: self.action_id.clone(),
+                icon: self.icon,
+                style: self.style,
+                label: self.label.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl Fab {
+    pub fn new(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+        Self {
+            icon,
+            style: FabStyle::Normal,
+            label: None,
+            action_id,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn style(mut self, style: FabStyle) -> Self {
+        self.style = style;
+        self
+    }
+
+    pub fn label(mut self, label: impl Into<String>) -> Self {
+        self.label = Some(label.into());
+        self
+    }
+}
+
+pub fn fab(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Fab {
+    Fab::new(icon, on_click).style(FabStyle::Normal)
+}
+
+pub fn fab_small(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Fab {
+    Fab::new(icon, on_click).style(FabStyle::Small)
+}
+
+pub fn fab_large(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Fab {
+    Fab::new(icon, on_click).style(FabStyle::Large)
+}
+
+pub fn fab_extended(
+    icon: IconType,
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Fab {
+    Fab::new(icon, on_click)
+        .style(FabStyle::Extended)
+        .label(label)
 }
 
 pub fn button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {

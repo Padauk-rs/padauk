@@ -1,5 +1,6 @@
 use crate::ui::{
     app_bar::AppBarStyle,
+    button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
     image::{BoxFit, ImageSource},
     modifier::Modifiers,
 };
@@ -47,6 +48,20 @@ pub enum AndroidUiNode {
     Button {
         action_id: String,
         content: Vec<AndroidUiNode>, // Using Vec as workaround to avoid uniffi error in Box/Arc
+        style: ButtonStyle,
+        modifiers: Modifiers,
+    },
+    IconButton {
+        action_id: String,
+        icon: IconType,
+        style: IconButtonStyle,
+        modifiers: Modifiers,
+    },
+    Fab {
+        action_id: String,
+        icon: IconType,
+        style: FabStyle,
+        label: Option<String>,
         modifiers: Modifiers,
     },
     Image {
