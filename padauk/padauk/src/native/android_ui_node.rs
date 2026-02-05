@@ -1,5 +1,5 @@
 use crate::ui::{
-    app_bar::AppBarStyle,
+    app_bar::{AppBarStyle, AppBarStyleOptions},
     button::{
         ButtonShape,
         ButtonStyle,
@@ -46,6 +46,7 @@ pub enum AndroidUiNode {
         title: String,
         leading: Vec<AndroidUiNode>,
         style: AppBarStyle,
+        options: AppBarStyleOptions,
         // Future: actions: Vec<UiNode>,
         modifiers: Modifiers,
     },

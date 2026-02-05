@@ -8,7 +8,7 @@ pub mod ui;
 pub mod prelude {
     pub use crate::PadaukApp;
     pub use crate::native::log;
-    pub use crate::ui::app_bar::AppBarStyle;
+    pub use crate::ui::app_bar::{AppBarStyle, AppBarStyleOptions};
     pub use crate::ui::button::{
         ButtonShape,
         ButtonStyle,

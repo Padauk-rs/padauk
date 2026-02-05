@@ -8,7 +8,7 @@ use crate::{
     impl_modifiers,
     prelude::Navigator,
     ui::{
-        app_bar::AppBarStyle,
+        app_bar::{AppBarStyle, AppBarStyleOptions},
         button::{
             ButtonShape,
             ButtonStyle,
@@ -140,6 +140,7 @@ pub fn scaffold(body: impl Widget + 'static) -> Scaffold {
 pub struct AppBar {
     pub title: String,
     pub style: AppBarStyle,
+    pub options: AppBarStyleOptions,
     pub modifiers: Modifiers,
 }
 
@@ -148,12 +149,18 @@ impl AppBar {
         Self {
             title: title.into(),
             style: AppBarStyle::Small,
+            options: AppBarStyleOptions::default(),
             modifiers: Modifiers::default(),
         }
     }
 
     pub fn style(mut self, style: AppBarStyle) -> Self {
         self.style = style;
+        self
+    }
+
+    pub fn options(mut self, options: AppBarStyleOptions) -> Self {
+        self.options = options;
         self
     }
 }
@@ -166,6 +173,7 @@ impl Widget for AppBar {
             title: self.title.clone(),
             leading: vec![], // Default empty, populated by Scaffold if needed
             style: self.style,
+            options: self.options.clone(),
             modifiers: self.modifiers.clone(),
         }
     }

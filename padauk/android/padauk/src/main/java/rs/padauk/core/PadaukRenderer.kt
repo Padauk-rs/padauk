@@ -117,8 +117,12 @@ fun PadaukRenderer(widget: AndroidUiNode) {
             }
 
             val colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = widget.options.containerColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = widget.options.titleColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onPrimaryContainer,
+                navigationIconContentColor = widget.options.navIconColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             when (widget.style) {

@@ -1145,6 +1145,47 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
+data class AppBarStyleOptions (
+    var `containerColor`: ColorValue?
+    , 
+    var `titleColor`: ColorValue?
+    , 
+    var `navIconColor`: ColorValue?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAppBarStyleOptions: FfiConverterRustBuffer<AppBarStyleOptions> {
+    override fun read(buf: ByteBuffer): AppBarStyleOptions {
+        return AppBarStyleOptions(
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AppBarStyleOptions) = (
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`titleColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`navIconColor`)
+    )
+
+    override fun write(value: AppBarStyleOptions, buf: ByteBuffer) {
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`titleColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`navIconColor`, buf)
+    }
+}
+
+
+
 data class ButtonStyleOptions (
     var `enabled`: kotlin.Boolean
     , 
@@ -1519,6 +1560,7 @@ sealed class AndroidUiNode {
         val `title`: kotlin.String, 
         val `leading`: List<AndroidUiNode>, 
         val `style`: AppBarStyle, 
+        val `options`: AppBarStyleOptions, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1667,6 +1709,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeAppBarStyle.read(buf),
+                FfiConverterTypeAppBarStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             6 -> AndroidUiNode.Text(
@@ -1774,6 +1817,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterString.allocationSize(value.`title`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`leading`)
                 + FfiConverterTypeAppBarStyle.allocationSize(value.`style`)
+                + FfiConverterTypeAppBarStyleOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1903,6 +1947,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeAppBarStyle.write(value.`style`, buf)
+                FfiConverterTypeAppBarStyleOptions.write(value.`options`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
