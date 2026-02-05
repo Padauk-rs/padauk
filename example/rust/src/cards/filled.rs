@@ -1,13 +1,24 @@
-use padauk::{app_bar, card, children, column, scaffold, text, Widget};
+use padauk::{app_bar, card, column, scaffold, text, Widget};
+use padauk::prelude::{CardShape, CardStyleOptions, color_hex};
 
 pub struct FilledCardScreen;
 
 impl Widget for FilledCardScreen {
     fn build(&self) -> padauk::UiNode {
-        let c = card(children![
-            text("Filled card"),
-            text("Cards provide flexible containers for content."),
+        let options = CardStyleOptions {
+            enabled: true,
+            shape: CardShape::Rounded,
+            container_color: Some(color_hex("#FFF3E0")),
+            border_color: Some(color_hex("#FFB74D")),
+            border_width: Some(1.0),
+            elevation: Some(2.0),
+        };
+
+        let c = card(vec![
+            Box::new(text("Filled card")),
+            Box::new(text("Cards provide flexible containers for content.")),
         ])
+        .options(options)
         .on_click(|| {});
 
         scaffold(column(vec![Box::new(c)]))

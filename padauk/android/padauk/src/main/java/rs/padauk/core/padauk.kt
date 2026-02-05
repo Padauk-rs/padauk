@@ -1145,6 +1145,62 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
+data class CardStyleOptions (
+    var `enabled`: kotlin.Boolean
+    , 
+    var `shape`: CardShape
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `elevation`: kotlin.Float?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardStyleOptions: FfiConverterRustBuffer<CardStyleOptions> {
+    override fun read(buf: ByteBuffer): CardStyleOptions {
+        return CardStyleOptions(
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeCardShape.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CardStyleOptions) = (
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterTypeCardShape.allocationSize(value.`shape`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalFloat.allocationSize(value.`elevation`)
+    )
+
+    override fun write(value: CardStyleOptions, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterTypeCardShape.write(value.`shape`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalFloat.write(value.`elevation`, buf)
+    }
+}
+
+
+
 data class ChipStyleOptions (
     var `enabled`: kotlin.Boolean
     , 
@@ -1352,6 +1408,7 @@ sealed class AndroidUiNode {
         val `children`: List<AndroidUiNode>, 
         val `style`: CardStyle, 
         val `actionId`: kotlin.String?, 
+        val `options`: CardStyleOptions, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1472,6 +1529,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
+                FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             10 -> AndroidUiNode.Checkbox(
@@ -1591,6 +1649,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
                 + FfiConverterTypeCardStyle.allocationSize(value.`style`)
                 + FfiConverterOptionalString.allocationSize(value.`actionId`)
+                + FfiConverterTypeCardStyleOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1708,6 +1767,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
+                FfiConverterTypeCardStyleOptions.write(value.`options`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
@@ -1851,6 +1911,37 @@ public object FfiConverterTypeButtonStyle: FfiConverterRustBuffer<ButtonStyle> {
     override fun allocationSize(value: ButtonStyle) = 4UL
 
     override fun write(value: ButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class CardShape {
+    
+    DEFAULT,
+    ROUNDED,
+    PILL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardShape: FfiConverterRustBuffer<CardShape> {
+    override fun read(buf: ByteBuffer) = try {
+        CardShape.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: CardShape) = 4UL
+
+    override fun write(value: CardShape, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

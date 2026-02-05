@@ -10,7 +10,7 @@ use crate::{
     ui::{
         app_bar::AppBarStyle,
         button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
-        card::CardStyle,
+        card::{CardShape, CardStyle, CardStyleOptions},
         chip::{ChipStyle, ChipStyleOptions},
         modifier::Modifiers,
     },
@@ -410,6 +410,7 @@ pub struct Card {
     pub children: Vec<Box<dyn Widget>>,
     pub style: CardStyle,
     pub action_id: Option<String>,
+    pub options: CardStyleOptions,
     pub modifiers: Modifiers,
 }
 
@@ -432,6 +433,7 @@ impl Widget for Card {
                 children: self.children.iter().map(|c| c.build()).collect(),
                 style: self.style,
                 action_id: self.action_id.clone(),
+                options: self.options.clone(),
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -444,6 +446,7 @@ impl Card {
             children,
             style: CardStyle::Filled,
             action_id: None,
+            options: CardStyleOptions::default(),
             modifiers: Modifiers::default(),
         }
     }
@@ -457,6 +460,11 @@ impl Card {
         let action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
         self.action_id = Some(action_id);
+        self
+    }
+
+    pub fn options(mut self, options: CardStyleOptions) -> Self {
+        self.options = options;
         self
     }
 }

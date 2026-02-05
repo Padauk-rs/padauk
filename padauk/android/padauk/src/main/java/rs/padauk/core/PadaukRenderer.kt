@@ -1,18 +1,12 @@
 package rs.padauk.core
 
-import android.annotation.SuppressLint
-import android.graphics.Color.*
-import android.graphics.RenderNode
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -53,19 +47,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.CardDefaults
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import rs.padauk.core.widget.PadaukImage
@@ -251,22 +242,49 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     padaukDispatchAction(id)
                 }
             }
+            val shape = when (widget.options.shape) {
+                CardShape.DEFAULT -> null
+                CardShape.ROUNDED -> RoundedCornerShape(12.dp)
+                CardShape.PILL -> RoundedCornerShape(50)
+            }
+
+            val border = if (widget.options.borderColor != null && widget.options.borderWidth != null) {
+                BorderStroke(
+                    widget.options.borderWidth!!.dp,
+                    widget.options.borderColor!!.toComposeColor()
+                )
+            } else {
+                null
+            }
+
+            val colors = CardDefaults.cardColors(
+                containerColor = widget.options.containerColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            val elevation = widget.options.elevation?.let {
+                CardDefaults.cardElevation(defaultElevation = it.dp)
+            } ?: CardDefaults.cardElevation()
+
             when (widget.style) {
                 CardStyle.FILLED -> {
                     if (onClick != null) {
                         Card(
                             modifier = widget.modifiers.toCompose(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                            onClick = onClick
+                            colors = colors,
+                            shape = shape ?: CardDefaults.shape,
+                            border = border,
+                            elevation = elevation,
+                            onClick = onClick,
+                            enabled = widget.options.enabled
                         ) { content() }
                     } else {
                         Card(
                             modifier = widget.modifiers.toCompose(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
+                            colors = colors,
+                            shape = shape ?: CardDefaults.shape,
+                            border = border,
+                            elevation = elevation,
                         ) { content() }
                     }
                 }
@@ -274,11 +292,18 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     if (onClick != null) {
                         ElevatedCard(
                             modifier = widget.modifiers.toCompose(),
-                            onClick = onClick
+                            shape = shape ?: CardDefaults.shape,
+                            elevation = elevation,
+                            colors = colors,
+                            onClick = onClick,
+                            enabled = widget.options.enabled
                         ) { content() }
                     } else {
                         ElevatedCard(
-                            modifier = widget.modifiers.toCompose()
+                            modifier = widget.modifiers.toCompose(),
+                            shape = shape ?: CardDefaults.shape,
+                            elevation = elevation,
+                            colors = colors,
                         ) { content() }
                     }
                 }
@@ -286,11 +311,20 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     if (onClick != null) {
                         OutlinedCard(
                             modifier = widget.modifiers.toCompose(),
-                            onClick = onClick
+                            shape = shape ?: CardDefaults.shape,
+                            border = border ?: CardDefaults.outlinedCardBorder(),
+                            elevation = elevation,
+                            colors = colors,
+                            onClick = onClick,
+                            enabled = widget.options.enabled
                         ) { content() }
                     } else {
                         OutlinedCard(
-                            modifier = widget.modifiers.toCompose()
+                            modifier = widget.modifiers.toCompose(),
+                            shape = shape ?: CardDefaults.shape,
+                            border = border ?: CardDefaults.outlinedCardBorder(),
+                            elevation = elevation,
+                            colors = colors,
                         ) { content() }
                     }
                 }

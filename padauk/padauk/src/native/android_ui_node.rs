@@ -1,7 +1,7 @@
 use crate::ui::{
     app_bar::AppBarStyle,
     button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
-    card::CardStyle,
+    card::{CardShape, CardStyle, CardStyleOptions},
     chip::{ChipStyle, ChipStyleOptions},
     image::{BoxFit, ImageSource},
     modifier::Modifiers,
@@ -63,6 +63,7 @@ pub enum AndroidUiNode {
         children: Vec<AndroidUiNode>,
         style: CardStyle,
         action_id: Option<String>,
+        options: CardStyleOptions,
         modifiers: Modifiers,
     },
     Checkbox {
