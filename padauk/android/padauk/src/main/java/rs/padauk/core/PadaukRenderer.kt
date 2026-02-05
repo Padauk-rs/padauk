@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -28,6 +29,9 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.AssistChip
@@ -54,9 +58,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import rs.padauk.core.widget.PadaukImage
@@ -177,26 +183,124 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 Log.d("Padauk", "Button click: ${widget.actionId}")
                 padaukDispatchAction(widget.actionId)
             }
+            val shape = when (widget.options.shape) {
+                ButtonShape.DEFAULT -> null
+                ButtonShape.ROUNDED -> RoundedCornerShape(12.dp)
+                ButtonShape.PILL -> RoundedCornerShape(50)
+            }
+            val border = if (widget.options.borderColor != null && widget.options.borderWidth != null) {
+                BorderStroke(
+                    widget.options.borderWidth!!.dp,
+                    widget.options.borderColor!!.toComposeColor()
+                )
+            } else {
+                null
+            }
+            val contentPadding = widget.options.contentPadding?.let { PaddingValues(it.dp) }
+            val colorsFilled = if (widget.options.containerColor == null && widget.options.contentColor == null) {
+                ButtonDefaults.buttonColors()
+            } else {
+                ButtonDefaults.buttonColors(
+                    containerColor = widget.options.containerColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.primary,
+                    contentColor = widget.options.contentColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            val colorsTonal = if (widget.options.containerColor == null && widget.options.contentColor == null) {
+                ButtonDefaults.filledTonalButtonColors()
+            } else {
+                ButtonDefaults.filledTonalButtonColors(
+                    containerColor = widget.options.containerColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = widget.options.contentColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            val colorsElevated = if (widget.options.containerColor == null && widget.options.contentColor == null) {
+                ButtonDefaults.elevatedButtonColors()
+            } else {
+                ButtonDefaults.elevatedButtonColors(
+                    containerColor = widget.options.containerColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.surface,
+                    contentColor = widget.options.contentColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.primary
+                )
+            }
+            val colorsOutlined = if (widget.options.containerColor == null && widget.options.contentColor == null) {
+                ButtonDefaults.outlinedButtonColors()
+            } else {
+                ButtonDefaults.outlinedButtonColors(
+                    containerColor = widget.options.containerColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.surface,
+                    contentColor = widget.options.contentColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.primary
+                )
+            }
+            val colorsText = if (widget.options.containerColor == null && widget.options.contentColor == null) {
+                ButtonDefaults.textButtonColors()
+            } else {
+                ButtonDefaults.textButtonColors(
+                    containerColor = widget.options.containerColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.surface,
+                    contentColor = widget.options.contentColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.primary
+                )
+            }
+            val elevation = widget.options.elevation?.let {
+                ButtonDefaults.buttonElevation(defaultElevation = it.dp)
+            }
+            val elevationElevated = widget.options.elevation?.let {
+                ButtonDefaults.elevatedButtonElevation(defaultElevation = it.dp)
+            } ?: ButtonDefaults.elevatedButtonElevation()
             when (widget.style) {
                 ButtonStyle.FILLED -> Button(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsFilled,
+                    shape = shape ?: ButtonDefaults.shape,
+                    border = border,
+                    elevation = elevation,
+                    contentPadding = contentPadding ?: ButtonDefaults.ContentPadding
                 ) { PadaukRenderer(widget.content.first()) }
                 ButtonStyle.FILLED_TONAL -> FilledTonalButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsTonal,
+                    shape = shape ?: ButtonDefaults.shape,
+                    border = border,
+                    elevation = elevation,
+                    contentPadding = contentPadding ?: ButtonDefaults.ContentPadding
                 ) { PadaukRenderer(widget.content.first()) }
                 ButtonStyle.ELEVATED -> ElevatedButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsElevated,
+                    shape = shape ?: ButtonDefaults.shape,
+                    border = border,
+                    elevation = elevationElevated,
+                    contentPadding = contentPadding ?: ButtonDefaults.ContentPadding
                 ) { PadaukRenderer(widget.content.first()) }
                 ButtonStyle.OUTLINED -> OutlinedButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsOutlined,
+                    shape = shape ?: ButtonDefaults.shape,
+                    border = border ?: ButtonDefaults.outlinedButtonBorder,
+                    contentPadding = contentPadding ?: ButtonDefaults.ContentPadding
                 ) { PadaukRenderer(widget.content.first()) }
                 ButtonStyle.TEXT -> TextButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsText,
+                    shape = shape ?: ButtonDefaults.shape,
+                    border = border,
+                    contentPadding = contentPadding ?: ButtonDefaults.ContentPadding
                 ) { PadaukRenderer(widget.content.first()) }
             }
         }
@@ -207,22 +311,62 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 padaukDispatchAction(widget.actionId)
             }
             val icon = iconVector(widget.icon)
+            val shape = when (widget.options.shape) {
+                ButtonShape.DEFAULT -> null
+                ButtonShape.ROUNDED -> RoundedCornerShape(12.dp)
+                ButtonShape.PILL -> RoundedCornerShape(50)
+            }
+            val modifier = if (shape != null) {
+                widget.modifiers.toCompose().then(Modifier.clip(shape))
+            } else {
+                widget.modifiers.toCompose()
+            }
+            val colorsStandard = IconButtonDefaults.iconButtonColors(
+                contentColor = widget.options.contentColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.primary
+            )
+            val colorsFilled = IconButtonDefaults.filledIconButtonColors(
+                containerColor = widget.options.containerColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.primaryContainer,
+                contentColor = widget.options.contentColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            val colorsTonal = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = widget.options.containerColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = widget.options.contentColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            val colorsOutlined = IconButtonDefaults.outlinedIconButtonColors(
+                containerColor = widget.options.containerColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.surface,
+                contentColor = widget.options.contentColor?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.primary
+            )
             when (widget.style) {
                 IconButtonStyle.STANDARD -> IconButton(
-                    modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    modifier = modifier,
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsStandard
                 ) { Icon(icon, contentDescription = null) }
                 IconButtonStyle.FILLED -> FilledIconButton(
-                    modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    modifier = modifier,
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsFilled
                 ) { Icon(icon, contentDescription = null) }
                 IconButtonStyle.FILLED_TONAL -> FilledTonalIconButton(
-                    modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    modifier = modifier,
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsTonal
                 ) { Icon(icon, contentDescription = null) }
                 IconButtonStyle.OUTLINED -> OutlinedIconButton(
-                    modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    modifier = modifier,
+                    onClick = onClick,
+                    enabled = widget.options.enabled,
+                    colors = colorsOutlined
                 ) { Icon(icon, contentDescription = null) }
             }
         }
@@ -494,24 +638,52 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 padaukDispatchAction(widget.actionId)
             }
             val icon = iconVector(widget.icon)
+            val shape = when (widget.options.shape) {
+                ButtonShape.DEFAULT -> null
+                ButtonShape.ROUNDED -> RoundedCornerShape(12.dp)
+                ButtonShape.PILL -> RoundedCornerShape(50)
+            }
+            val container = widget.options.containerColor?.toComposeColor()
+                ?: FloatingActionButtonDefaults.containerColor
+            val content = widget.options.contentColor?.toComposeColor()
+                ?: contentColorFor(container)
+            val elevation = widget.options.elevation?.let {
+                FloatingActionButtonDefaults.elevation(defaultElevation = it.dp)
+            } ?: FloatingActionButtonDefaults.elevation()
             when (widget.style) {
                 FabStyle.SMALL -> SmallFloatingActionButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    shape = shape ?: FloatingActionButtonDefaults.shape,
+                    containerColor = container,
+                    contentColor = content,
+                    elevation = elevation,
                 ) { Icon(icon, contentDescription = null) }
                 FabStyle.NORMAL -> FloatingActionButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    shape = shape ?: FloatingActionButtonDefaults.shape,
+                    containerColor = container,
+                    contentColor = content,
+                    elevation = elevation,
                 ) { Icon(icon, contentDescription = null) }
                 FabStyle.LARGE -> LargeFloatingActionButton(
                     modifier = widget.modifiers.toCompose(),
-                    onClick = onClick
+                    onClick = onClick,
+                    shape = shape ?: FloatingActionButtonDefaults.shape,
+                    containerColor = container,
+                    contentColor = content,
+                    elevation = elevation,
                 ) { Icon(icon, contentDescription = null) }
                 FabStyle.EXTENDED -> {
                     val label = widget.label ?: ""
                     ExtendedFloatingActionButton(
                         modifier = widget.modifiers.toCompose(),
                         onClick = onClick,
+                        shape = shape ?: FloatingActionButtonDefaults.shape,
+                        containerColor = container,
+                        contentColor = content,
+                        elevation = elevation,
                         icon = { Icon(icon, contentDescription = null) },
                         text = { Text(label) }
                     )

@@ -1,6 +1,15 @@
 use crate::ui::{
     app_bar::AppBarStyle,
-    button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
+    button::{
+        ButtonShape,
+        ButtonStyle,
+        ButtonStyleOptions,
+        FabOptions,
+        FabStyle,
+        IconButtonOptions,
+        IconButtonStyle,
+        IconType,
+    },
     card::{CardShape, CardStyle, CardStyleOptions},
     chip::{ChipStyle, ChipStyleOptions},
     image::{BoxFit, ImageSource},
@@ -51,12 +60,14 @@ pub enum AndroidUiNode {
         action_id: String,
         content: Vec<AndroidUiNode>, // Using Vec as workaround to avoid uniffi error in Box/Arc
         style: ButtonStyle,
+        options: ButtonStyleOptions,
         modifiers: Modifiers,
     },
     IconButton {
         action_id: String,
         icon: IconType,
         style: IconButtonStyle,
+        options: IconButtonOptions,
         modifiers: Modifiers,
     },
     Card {
@@ -91,6 +102,7 @@ pub enum AndroidUiNode {
         icon: IconType,
         style: FabStyle,
         label: Option<String>,
+        options: FabOptions,
         modifiers: Modifiers,
     },
     Image {

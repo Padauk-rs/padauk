@@ -9,7 +9,16 @@ use crate::{
     prelude::Navigator,
     ui::{
         app_bar::AppBarStyle,
-        button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
+        button::{
+            ButtonShape,
+            ButtonStyle,
+            ButtonStyleOptions,
+            FabOptions,
+            FabStyle,
+            IconButtonOptions,
+            IconButtonStyle,
+            IconType,
+        },
         card::{CardShape, CardStyle, CardStyleOptions},
         chip::{ChipStyle, ChipStyleOptions},
         modifier::Modifiers,
@@ -233,6 +242,7 @@ pub struct Button {
     pub label: String,
     pub action_id: String,
     pub style: ButtonStyle,
+    pub options: ButtonStyleOptions,
     pub modifiers: Modifiers,
 }
 
@@ -272,6 +282,7 @@ impl Widget for Button {
                 // FIX: Wrap in Arc::new
                 content: vec![child_node],
                 style: self.style,
+                options: self.options.clone(),
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -291,6 +302,7 @@ impl Button {
             label: label.into(),
             action_id: action_id,
             style: ButtonStyle::Filled,
+            options: ButtonStyleOptions::default(),
             modifiers: Modifiers::default(),
         }
     }
@@ -299,6 +311,12 @@ impl Button {
         self.style = style;
         self
     }
+
+    pub fn options(mut self, options: ButtonStyleOptions) -> Self {
+        self.options = options;
+        self
+    }
+
 }
 
 pub fn filled_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
@@ -334,6 +352,7 @@ pub struct IconButton {
     pub icon: IconType,
     pub style: IconButtonStyle,
     pub action_id: String,
+    pub options: IconButtonOptions,
     pub modifiers: Modifiers,
 }
 
@@ -357,6 +376,7 @@ impl Widget for IconButton {
                 action_id: self.action_id.clone(),
                 icon: self.icon,
                 style: self.style,
+                options: self.options.clone(),
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -371,12 +391,23 @@ impl IconButton {
             icon,
             style: IconButtonStyle::Standard,
             action_id,
+            options: IconButtonOptions::default(),
             modifiers: Modifiers::default(),
         }
     }
 
     pub fn style(mut self, style: IconButtonStyle) -> Self {
         self.style = style;
+        self
+    }
+
+    pub fn options(mut self, options: IconButtonOptions) -> Self {
+        self.options = options;
+        self
+    }
+
+    pub fn enabled(mut self, enabled: bool) -> Self {
+        self.options.enabled = enabled;
         self
     }
 }
@@ -678,6 +709,7 @@ pub struct Fab {
     pub style: FabStyle,
     pub label: Option<String>,
     pub action_id: String,
+    pub options: FabOptions,
     pub modifiers: Modifiers,
 }
 
@@ -701,6 +733,7 @@ impl Widget for Fab {
                 icon: self.icon,
                 style: self.style,
                 label: self.label.clone(),
+                options: self.options.clone(),
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -716,6 +749,7 @@ impl Fab {
             style: FabStyle::Normal,
             label: None,
             action_id,
+            options: FabOptions::default(),
             modifiers: Modifiers::default(),
         }
     }
@@ -729,6 +763,12 @@ impl Fab {
         self.label = Some(label.into());
         self
     }
+
+    pub fn options(mut self, options: FabOptions) -> Self {
+        self.options = options;
+        self
+    }
+
 }
 
 pub fn fab(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Fab {
