@@ -35,6 +35,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.InputChip
@@ -297,13 +298,23 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         }
 
         is AndroidUiNode.Checkbox -> {
+            val colors = CheckboxDefaults.colors(
+                checkedColor = widget.colorChecked?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.primary,
+                uncheckedColor = widget.colorUnchecked?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                checkmarkColor = widget.colorCheckmark?.toComposeColor()
+                    ?: MaterialTheme.colorScheme.onPrimary
+            )
             Checkbox(
                 modifier = widget.modifiers.toCompose(),
                 checked = widget.checked,
                 onCheckedChange = {
                     Log.d("Padauk", "Checkbox toggle: ${widget.actionId}")
                     padaukDispatchAction(widget.actionId)
-                }
+                },
+                enabled = widget.enabled,
+                colors = colors
             )
         }
 

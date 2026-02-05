@@ -476,6 +476,10 @@ pub fn outlined_card(children: Vec<Box<dyn Widget>>) -> Card {
 pub struct Checkbox {
     pub checked: bool,
     pub action_id: String,
+    pub enabled: bool,
+    pub color_checked: Option<crate::ui::color::ColorValue>,
+    pub color_unchecked: Option<crate::ui::color::ColorValue>,
+    pub color_checkmark: Option<crate::ui::color::ColorValue>,
     pub modifiers: Modifiers,
 }
 
@@ -497,6 +501,10 @@ impl Widget for Checkbox {
             UiNode::Checkbox {
                 checked: self.checked,
                 action_id: self.action_id.clone(),
+                enabled: self.enabled,
+                color_checked: self.color_checked.clone(),
+                color_unchecked: self.color_unchecked.clone(),
+                color_checkmark: self.color_checkmark.clone(),
                 modifiers: self.modifiers.clone(),
             }
         }
@@ -510,12 +518,33 @@ impl Checkbox {
         Self {
             checked,
             action_id,
+            enabled: true,
+            color_checked: None,
+            color_unchecked: None,
+            color_checkmark: None,
             modifiers: Modifiers::default(),
         }
     }
 
     pub fn checked(mut self, checked: bool) -> Self {
         self.checked = checked;
+        self
+    }
+
+    pub fn enabled(mut self, enabled: bool) -> Self {
+        self.enabled = enabled;
+        self
+    }
+
+    pub fn colors(
+        mut self,
+        checked: Option<crate::ui::color::ColorValue>,
+        unchecked: Option<crate::ui::color::ColorValue>,
+        checkmark: Option<crate::ui::color::ColorValue>,
+    ) -> Self {
+        self.color_checked = checked;
+        self.color_unchecked = unchecked;
+        self.color_checkmark = checkmark;
         self
     }
 }

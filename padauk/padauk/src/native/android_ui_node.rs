@@ -68,6 +68,10 @@ pub enum AndroidUiNode {
     Checkbox {
         checked: bool,
         action_id: String,
+        enabled: bool,
+        color_checked: Option<crate::ui::color::ColorValue>,
+        color_unchecked: Option<crate::ui::color::ColorValue>,
+        color_checkmark: Option<crate::ui::color::ColorValue>,
         modifiers: Modifiers,
     },
     Chip {

@@ -1363,6 +1363,10 @@ sealed class AndroidUiNode {
     data class Checkbox(
         val `checked`: kotlin.Boolean, 
         val `actionId`: kotlin.String, 
+        val `enabled`: kotlin.Boolean, 
+        val `colorChecked`: ColorValue?, 
+        val `colorUnchecked`: ColorValue?, 
+        val `colorCheckmark`: ColorValue?, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1473,6 +1477,10 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             10 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
+                FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             11 -> AndroidUiNode.Chip(
@@ -1592,6 +1600,10 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterBoolean.allocationSize(value.`checked`)
                 + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterBoolean.allocationSize(value.`enabled`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorChecked`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorUnchecked`)
+                + FfiConverterOptionalTypeColorValue.allocationSize(value.`colorCheckmark`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1703,6 +1715,10 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(10)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterBoolean.write(value.`enabled`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorChecked`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorUnchecked`, buf)
+                FfiConverterOptionalTypeColorValue.write(value.`colorCheckmark`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
