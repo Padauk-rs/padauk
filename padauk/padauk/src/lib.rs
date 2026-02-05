@@ -29,6 +29,7 @@ pub mod prelude {
         card,
         elevated_card,
         outlined_card,
+        checkbox,
         outlined_button,
         outlined_icon_button,
         scaffold,

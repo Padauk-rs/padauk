@@ -1271,6 +1271,17 @@ sealed class AndroidUiNode {
         companion object
     }
     
+    data class Checkbox(
+        val `checked`: kotlin.Boolean, 
+        val `actionId`: kotlin.String, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Fab(
         val `actionId`: kotlin.String, 
         val `icon`: IconType, 
@@ -1353,14 +1364,19 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            10 -> AndroidUiNode.Fab(
+            10 -> AndroidUiNode.Checkbox(
+                FfiConverterBoolean.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            11 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            11 -> AndroidUiNode.Image(
+            12 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1453,6 +1469,15 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
+        is AndroidUiNode.Checkbox -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`checked`)
+                + FfiConverterString.allocationSize(value.`actionId`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
         is AndroidUiNode.Fab -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1542,8 +1567,15 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Fab -> {
+            is AndroidUiNode.Checkbox -> {
                 buf.putInt(10)
+                FfiConverterBoolean.write(value.`checked`, buf)
+                FfiConverterString.write(value.`actionId`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Fab -> {
+                buf.putInt(11)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -1552,7 +1584,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(11)
+                buf.putInt(12)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)

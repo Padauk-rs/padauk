@@ -472,6 +472,57 @@ pub fn outlined_card(children: Vec<Box<dyn Widget>>) -> Card {
     Card::new(children).style(CardStyle::Outlined)
 }
 
+pub struct Checkbox {
+    pub checked: bool,
+    pub action_id: String,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(Checkbox);
+
+impl Widget for Checkbox {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "Checkbox".to_string(),
+                pt_size: 16.0,
+                attributes: Modifiers::default(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Checkbox {
+                checked: self.checked,
+                action_id: self.action_id.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl Checkbox {
+    pub fn new(checked: bool, on_toggle: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_toggle);
+        Self {
+            checked,
+            action_id,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn checked(mut self, checked: bool) -> Self {
+        self.checked = checked;
+        self
+    }
+}
+
+pub fn checkbox(checked: bool, on_toggle: impl Fn() + Send + Sync + 'static) -> Checkbox {
+    Checkbox::new(checked, on_toggle)
+}
+
 pub struct Fab {
     pub icon: IconType,
     pub style: FabStyle,

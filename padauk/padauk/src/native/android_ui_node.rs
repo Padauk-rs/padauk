@@ -64,6 +64,11 @@ pub enum AndroidUiNode {
         action_id: Option<String>,
         modifiers: Modifiers,
     },
+    Checkbox {
+        checked: bool,
+        action_id: String,
+        modifiers: Modifiers,
+    },
     Fab {
         action_id: String,
         icon: IconType,

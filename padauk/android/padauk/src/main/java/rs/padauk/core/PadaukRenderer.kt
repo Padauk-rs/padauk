@@ -31,6 +31,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -279,6 +280,17 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     }
                 }
             }
+        }
+
+        is AndroidUiNode.Checkbox -> {
+            Checkbox(
+                modifier = widget.modifiers.toCompose(),
+                checked = widget.checked,
+                onCheckedChange = {
+                    Log.d("Padauk", "Checkbox toggle: ${widget.actionId}")
+                    padaukDispatchAction(widget.actionId)
+                }
+            )
         }
 
         is AndroidUiNode.Fab -> {
