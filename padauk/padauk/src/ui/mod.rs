@@ -5,6 +5,7 @@ pub mod macros;
 pub mod modifier;
 pub mod app_bar;
 pub mod button;
+pub mod card;
 pub mod navigation;
 pub mod render_callback;
 pub mod widget;

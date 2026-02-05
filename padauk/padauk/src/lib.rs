@@ -10,6 +10,7 @@ pub mod prelude {
     pub use crate::native::log;
     pub use crate::ui::app_bar::AppBarStyle;
     pub use crate::ui::button::{ButtonStyle, FabStyle, IconButtonStyle, IconType};
+    pub use crate::ui::card::CardStyle;
     pub use crate::ui::navigation::{Navigator, Route};
     pub use crate::ui::widget::{
         app_bar,
@@ -25,6 +26,9 @@ pub mod prelude {
         filled_tonal_button,
         filled_tonal_icon_button,
         icon_button,
+        card,
+        elevated_card,
+        outlined_card,
         outlined_button,
         outlined_icon_button,
         scaffold,

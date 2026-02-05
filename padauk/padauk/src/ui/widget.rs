@@ -10,6 +10,7 @@ use crate::{
     ui::{
         app_bar::AppBarStyle,
         button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
+        card::CardStyle,
         modifier::Modifiers,
     },
 };
@@ -402,6 +403,73 @@ pub fn outlined_icon_button(
     on_click: impl Fn() + Send + Sync + 'static,
 ) -> IconButton {
     IconButton::new(icon, on_click).style(IconButtonStyle::Outlined)
+}
+
+pub struct Card {
+    pub children: Vec<Box<dyn Widget>>,
+    pub style: CardStyle,
+    pub action_id: Option<String>,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(Card);
+
+impl Widget for Card {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "Card".to_string(),
+                pt_size: 16.0,
+                attributes: Modifiers::default(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Card {
+                children: self.children.iter().map(|c| c.build()).collect(),
+                style: self.style,
+                action_id: self.action_id.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl Card {
+    pub fn new(children: Vec<Box<dyn Widget>>) -> Self {
+        Self {
+            children,
+            style: CardStyle::Filled,
+            action_id: None,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn style(mut self, style: CardStyle) -> Self {
+        self.style = style;
+        self
+    }
+
+    pub fn on_click(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+        self.action_id = Some(action_id);
+        self
+    }
+}
+
+pub fn card(children: Vec<Box<dyn Widget>>) -> Card {
+    Card::new(children)
+}
+
+pub fn elevated_card(children: Vec<Box<dyn Widget>>) -> Card {
+    Card::new(children).style(CardStyle::Elevated)
+}
+
+pub fn outlined_card(children: Vec<Box<dyn Widget>>) -> Card {
+    Card::new(children).style(CardStyle::Outlined)
 }
 
 pub struct Fab {

@@ -1259,6 +1259,18 @@ sealed class AndroidUiNode {
         companion object
     }
     
+    data class Card(
+        val `children`: List<AndroidUiNode>, 
+        val `style`: CardStyle, 
+        val `actionId`: kotlin.String?, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Fab(
         val `actionId`: kotlin.String, 
         val `icon`: IconType, 
@@ -1335,14 +1347,20 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            9 -> AndroidUiNode.Fab(
+            9 -> AndroidUiNode.Card(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeCardStyle.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            10 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            10 -> AndroidUiNode.Image(
+            11 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1422,6 +1440,16 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterString.allocationSize(value.`actionId`)
                 + FfiConverterTypeIconType.allocationSize(value.`icon`)
                 + FfiConverterTypeIconButtonStyle.allocationSize(value.`style`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Card -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeCardStyle.allocationSize(value.`style`)
+                + FfiConverterOptionalString.allocationSize(value.`actionId`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1506,8 +1534,16 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Fab -> {
+            is AndroidUiNode.Card -> {
                 buf.putInt(9)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
+                FfiConverterTypeCardStyle.write(value.`style`, buf)
+                FfiConverterOptionalString.write(value.`actionId`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Fab -> {
+                buf.putInt(10)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -1516,7 +1552,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -1622,6 +1658,37 @@ public object FfiConverterTypeButtonStyle: FfiConverterRustBuffer<ButtonStyle> {
     override fun allocationSize(value: ButtonStyle) = 4UL
 
     override fun write(value: ButtonStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class CardStyle {
+    
+    FILLED,
+    ELEVATED,
+    OUTLINED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCardStyle: FfiConverterRustBuffer<CardStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        CardStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: CardStyle) = 4UL
+
+    override fun write(value: CardStyle, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

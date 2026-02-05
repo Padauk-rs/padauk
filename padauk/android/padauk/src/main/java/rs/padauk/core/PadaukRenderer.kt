@@ -41,6 +41,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -213,6 +217,67 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     modifier = widget.modifiers.toCompose(),
                     onClick = onClick
                 ) { Icon(icon, contentDescription = null) }
+            }
+        }
+
+        is AndroidUiNode.Card -> {
+            val content: @Composable () -> Unit = {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    widget.children.forEach { PadaukRenderer(it) }
+                }
+            }
+            val onClick = widget.actionId?.let { id ->
+                {
+                    Log.d("Padauk", "Card click: $id")
+                    padaukDispatchAction(id)
+                }
+            }
+            when (widget.style) {
+                CardStyle.FILLED -> {
+                    if (onClick != null) {
+                        Card(
+                            modifier = widget.modifiers.toCompose(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            onClick = onClick
+                        ) { content() }
+                    } else {
+                        Card(
+                            modifier = widget.modifiers.toCompose(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) { content() }
+                    }
+                }
+                CardStyle.ELEVATED -> {
+                    if (onClick != null) {
+                        ElevatedCard(
+                            modifier = widget.modifiers.toCompose(),
+                            onClick = onClick
+                        ) { content() }
+                    } else {
+                        ElevatedCard(
+                            modifier = widget.modifiers.toCompose()
+                        ) { content() }
+                    }
+                }
+                CardStyle.OUTLINED -> {
+                    if (onClick != null) {
+                        OutlinedCard(
+                            modifier = widget.modifiers.toCompose(),
+                            onClick = onClick
+                        ) { content() }
+                    } else {
+                        OutlinedCard(
+                            modifier = widget.modifiers.toCompose()
+                        ) { content() }
+                    }
+                }
             }
         }
 

@@ -1,6 +1,7 @@
 use crate::ui::{
     app_bar::AppBarStyle,
     button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
+    card::CardStyle,
     image::{BoxFit, ImageSource},
     modifier::Modifiers,
 };
@@ -55,6 +56,12 @@ pub enum AndroidUiNode {
         action_id: String,
         icon: IconType,
         style: IconButtonStyle,
+        modifiers: Modifiers,
+    },
+    Card {
+        children: Vec<AndroidUiNode>,
+        style: CardStyle,
+        action_id: Option<String>,
         modifiers: Modifiers,
     },
     Fab {
