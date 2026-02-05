@@ -30,4 +30,5 @@ pub enum IconType {
     Menu,
     Favorite,
     Search,
+    Person,
 }

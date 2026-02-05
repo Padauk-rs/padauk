@@ -5,11 +5,13 @@ import android.graphics.Color.*
 import android.graphics.RenderNode
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -32,6 +35,10 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -46,6 +53,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import rs.padauk.core.widget.PadaukImage
 import rs.padauk.core.widget.toCompose
+import rs.padauk.core.widget.toComposeColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -293,6 +307,142 @@ fun PadaukRenderer(widget: AndroidUiNode) {
             )
         }
 
+        is AndroidUiNode.Chip -> {
+            val onClick = {
+                Log.d("Padauk", "Chip click: ${widget.actionId}")
+                padaukDispatchAction(widget.actionId)
+            }
+            val leading: (@Composable () -> Unit)? = widget.leadingIcon?.let { icon ->
+                { Icon(iconVector(icon), contentDescription = null) }
+            }
+            val trailing: (@Composable () -> Unit)? = widget.trailingIcon?.let { icon ->
+                {
+                    val closeId = widget.closeActionId
+                    val base = Modifier.size(18.dp)
+                    val modifier = if (closeId != null) {
+                        base.clickable { padaukDispatchAction(closeId) }
+                    } else {
+                        base
+                    }
+                    Icon(
+                        imageVector = iconVector(icon),
+                        contentDescription = null,
+                        modifier = modifier
+                    )
+                }
+            }
+
+            val shape = when (widget.options.shape) {
+                ChipShape.DEFAULT -> null
+                ChipShape.PILL -> RoundedCornerShape(50)
+            }
+
+            val border = if (widget.options.borderColor != null && widget.options.borderWidth != null) {
+                BorderStroke(
+                    widget.options.borderWidth!!.dp,
+                    widget.options.borderColor!!.toComposeColor()
+                )
+            } else {
+                null
+            }
+
+            val fallbackContainer = MaterialTheme.colorScheme.surfaceVariant
+            val fallbackLabel = MaterialTheme.colorScheme.onSurfaceVariant
+            val fallbackIcon = MaterialTheme.colorScheme.onSurfaceVariant
+
+            when (widget.style) {
+                ChipStyle.ASSIST -> AssistChip(
+                    onClick = onClick,
+                    label = { Text(widget.label) },
+                    leadingIcon = leading,
+                    trailingIcon = trailing,
+                    enabled = widget.options.enabled,
+                    shape = shape ?: AssistChipDefaults.shape,
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = widget.options.containerColor?.toComposeColor()
+                            ?: fallbackContainer,
+                        labelColor = widget.options.labelColor?.toComposeColor()
+                            ?: fallbackLabel,
+                        leadingIconContentColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon,
+                        trailingIconContentColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon
+                    ),
+                    elevation = widget.options.elevation?.let {
+                        AssistChipDefaults.assistChipElevation(elevation = it.dp)
+                    },
+                    border = border,
+                    modifier = widget.modifiers.toCompose()
+                )
+                ChipStyle.FILTER -> FilterChip(
+                    selected = widget.selected,
+                    onClick = onClick,
+                    label = { Text(widget.label) },
+                    leadingIcon = leading,
+                    trailingIcon = trailing,
+                    enabled = widget.options.enabled,
+                    shape = shape ?: FilterChipDefaults.shape,
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = widget.options.containerColor?.toComposeColor()
+                            ?: fallbackContainer,
+                        labelColor = widget.options.labelColor?.toComposeColor()
+                            ?: fallbackLabel,
+                        iconColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon,
+                    ),
+                    elevation = widget.options.elevation?.let {
+                        FilterChipDefaults.filterChipElevation(elevation = it.dp)
+                    },
+                    border = border,
+                    modifier = widget.modifiers.toCompose()
+                )
+                ChipStyle.INPUT -> InputChip(
+                    selected = widget.selected,
+                    onClick = onClick,
+                    label = { Text(widget.label) },
+                    leadingIcon = leading,
+                    trailingIcon = trailing,
+                    enabled = widget.options.enabled,
+                    shape = shape ?: InputChipDefaults.shape,
+                    colors = InputChipDefaults.inputChipColors(
+                        containerColor = widget.options.containerColor?.toComposeColor()
+                            ?: fallbackContainer,
+                        labelColor = widget.options.labelColor?.toComposeColor()
+                            ?: fallbackLabel,
+                        leadingIconColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon,
+                        trailingIconColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon
+                    ),
+                    elevation = widget.options.elevation?.let {
+                        InputChipDefaults.inputChipElevation(elevation = it.dp)
+                    },
+                    border = border,
+                    modifier = widget.modifiers.toCompose()
+                )
+                ChipStyle.SUGGESTION -> SuggestionChip(
+                    onClick = onClick,
+                    label = { Text(widget.label) },
+                    icon = leading,
+                    enabled = widget.options.enabled,
+                    shape = shape ?: SuggestionChipDefaults.shape,
+                    colors = SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = widget.options.containerColor?.toComposeColor()
+                            ?: fallbackContainer,
+                        labelColor = widget.options.labelColor?.toComposeColor()
+                            ?: fallbackLabel,
+                        iconContentColor = widget.options.iconColor?.toComposeColor()
+                            ?: fallbackIcon
+                    ),
+                    elevation = widget.options.elevation?.let {
+                        SuggestionChipDefaults.suggestionChipElevation(elevation = it.dp)
+                    },
+                    border = border,
+                    modifier = widget.modifiers.toCompose()
+                )
+            }
+        }
+
         is AndroidUiNode.Fab -> {
             val onClick = {
                 Log.d("Padauk", "FAB click: ${widget.actionId}")
@@ -351,6 +501,7 @@ private fun iconVector(icon: IconType) = when (icon) {
     IconType.MENU -> Icons.Filled.Menu
     IconType.FAVORITE -> Icons.Filled.Favorite
     IconType.SEARCH -> Icons.Filled.Search
+    IconType.PERSON -> Icons.Filled.Person
 }
 
 private fun extractBackActionId(node: AndroidUiNode): String? {

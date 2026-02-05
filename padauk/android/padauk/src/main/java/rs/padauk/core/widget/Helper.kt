@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import rs.padauk.core.Modifiers
+import rs.padauk.core.ColorValue
 
 
 @SuppressLint("ModifierFactoryExtensionFunction")
@@ -32,5 +33,17 @@ fun String.toComposeColor(): Color {
         Color(parseColor(this))
     } catch (e: Exception) {
         Color.Black
+    }
+}
+
+fun ColorValue.toComposeColor(): Color {
+    return when (this) {
+        is ColorValue.Rgb -> Color(
+            this.r.toInt(),
+            this.g.toInt(),
+            this.b.toInt(),
+            this.a.toInt()
+        )
+        is ColorValue.Hex -> this.value.toComposeColor()
     }
 }

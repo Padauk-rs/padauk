@@ -2,6 +2,7 @@ use crate::ui::{
     app_bar::AppBarStyle,
     button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
     card::CardStyle,
+    chip::{ChipStyle, ChipStyleOptions},
     image::{BoxFit, ImageSource},
     modifier::Modifiers,
 };
@@ -67,6 +68,17 @@ pub enum AndroidUiNode {
     Checkbox {
         checked: bool,
         action_id: String,
+        modifiers: Modifiers,
+    },
+    Chip {
+        label: String,
+        style: ChipStyle,
+        selected: bool,
+        action_id: String,
+        leading_icon: Option<IconType>,
+        trailing_icon: Option<IconType>,
+        close_action_id: Option<String>,
+        options: ChipStyleOptions,
         modifiers: Modifiers,
     },
     Fab {

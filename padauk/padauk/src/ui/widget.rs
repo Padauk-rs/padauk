@@ -11,6 +11,7 @@ use crate::{
         app_bar::AppBarStyle,
         button::{ButtonStyle, FabStyle, IconButtonStyle, IconType},
         card::CardStyle,
+        chip::{ChipStyle, ChipStyleOptions},
         modifier::Modifiers,
     },
 };
@@ -521,6 +522,118 @@ impl Checkbox {
 
 pub fn checkbox(checked: bool, on_toggle: impl Fn() + Send + Sync + 'static) -> Checkbox {
     Checkbox::new(checked, on_toggle)
+}
+
+pub struct Chip {
+    pub label: String,
+    pub style: ChipStyle,
+    pub selected: bool,
+    pub action_id: String,
+    pub leading_icon: Option<IconType>,
+    pub trailing_icon: Option<IconType>,
+    pub close_action_id: Option<String>,
+    pub options: ChipStyleOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(Chip);
+
+impl Widget for Chip {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "Chip".to_string(),
+                pt_size: 16.0,
+                attributes: Modifiers::default(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Chip {
+                label: self.label.clone(),
+                style: self.style,
+                selected: self.selected,
+                action_id: self.action_id.clone(),
+                leading_icon: self.leading_icon,
+                trailing_icon: self.trailing_icon,
+                close_action_id: self.close_action_id.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl Chip {
+    pub fn new(label: impl Into<String>, style: ChipStyle, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+        Self {
+            label: label.into(),
+            style,
+            selected: false,
+            action_id,
+            leading_icon: None,
+            trailing_icon: None,
+            close_action_id: None,
+            options: ChipStyleOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn selected(mut self, selected: bool) -> Self {
+        self.selected = selected;
+        self
+    }
+
+    pub fn leading_icon(mut self, icon: IconType) -> Self {
+        self.leading_icon = Some(icon);
+        self
+    }
+
+    pub fn trailing_icon(mut self, icon: IconType) -> Self {
+        self.trailing_icon = Some(icon);
+        self
+    }
+
+    pub fn close_action(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+        let action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+        self.close_action_id = Some(action_id);
+        self
+    }
+
+    pub fn enabled(mut self, enabled: bool) -> Self {
+        self.options.enabled = enabled;
+        self
+    }
+
+    pub fn options(mut self, options: ChipStyleOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn assist_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
+    Chip::new(label, ChipStyle::Assist, on_click)
+}
+
+pub fn filter_chip(
+    label: impl Into<String>,
+    selected: bool,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Chip {
+    Chip::new(label, ChipStyle::Filter, on_click).selected(selected)
+}
+
+pub fn input_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
+    Chip::new(label, ChipStyle::Input, on_click)
+}
+
+pub fn suggestion_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
+    Chip::new(label, ChipStyle::Suggestion, on_click)
 }
 
 pub struct Fab {

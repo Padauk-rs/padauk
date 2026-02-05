@@ -5,6 +5,7 @@ mod app_bars;
 mod buttons;
 mod cards;
 mod checkboxes;
+mod chips;
 mod generated;
 mod home_screen;
 mod navigator;

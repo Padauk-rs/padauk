@@ -11,6 +11,8 @@ pub mod prelude {
     pub use crate::ui::app_bar::AppBarStyle;
     pub use crate::ui::button::{ButtonStyle, FabStyle, IconButtonStyle, IconType};
     pub use crate::ui::card::CardStyle;
+    pub use crate::ui::chip::{ChipShape, ChipStyle, ChipStyleOptions};
+    pub use crate::ui::color::{ColorValue, color_hex, color_rgb, color_rgba};
     pub use crate::ui::navigation::{Navigator, Route};
     pub use crate::ui::widget::{
         app_bar,
@@ -30,6 +32,10 @@ pub mod prelude {
         elevated_card,
         outlined_card,
         checkbox,
+        assist_chip,
+        filter_chip,
+        input_chip,
+        suggestion_chip,
         outlined_button,
         outlined_icon_button,
         scaffold,

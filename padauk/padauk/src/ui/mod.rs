@@ -6,6 +6,8 @@ pub mod modifier;
 pub mod app_bar;
 pub mod button;
 pub mod card;
+pub mod chip;
+pub mod color;
 pub mod navigation;
 pub mod render_callback;
 pub mod widget;
