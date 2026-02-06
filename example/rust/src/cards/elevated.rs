@@ -2,7 +2,10 @@ use padauk::{app_bar, children, column, elevated_card, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("elevated.rs");
+const CODE: &str = r#"elevated_card(children![
+    text("Elevated card"),
+    text("Use elevation to emphasize content."),
+]);"#;
 
 pub struct ElevatedCardScreen;
 

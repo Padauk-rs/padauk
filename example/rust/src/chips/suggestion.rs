@@ -3,7 +3,8 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("suggestion.rs");
+const CODE: &str = r#"suggestion_chip("Suggestion", || {})
+    .leading_icon(IconType::Search);"#;
 
 pub struct SuggestionChipScreen;
 

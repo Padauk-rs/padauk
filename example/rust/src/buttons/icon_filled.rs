@@ -3,7 +3,7 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("icon_filled.rs");
+const CODE: &str = r#"filled_icon_button(IconType::Favorite, || {});"#;
 
 pub struct IconButtonFilledScreen;
 

@@ -3,7 +3,7 @@ use padauk::prelude::AppBarStyle;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("small.rs");
+const CODE: &str = r#"app_bar("Small").style(AppBarStyle::Small)"#;
 
 pub struct SmallAppBarScreen;
 

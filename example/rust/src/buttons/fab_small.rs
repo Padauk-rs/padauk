@@ -3,7 +3,7 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen_with_fab;
 
-const CODE: &str = include_str!("fab_small.rs");
+const CODE: &str = r#"scaffold(content).fab(fab_small(IconType::Add, || {}));"#;
 
 pub struct FabSmallScreen;
 

@@ -1,28 +1,34 @@
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
 
 use padauk::{app_bar, checkbox, column, text, Widget};
-use padauk::prelude::{color_hex, color_rgb};
-use padauk::prelude::{Navigator, Route};
+use padauk::prelude::{color_hex, color_rgb, state, State};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("demo.rs");
+const CODE: &str = r##"let checked = checked_state().get();
+checkbox(checked, || checked_state().update(|v| *v = !*v))
+    .colors(
+        Some(color_hex("#1E88E5")),
+        Some(color_rgb(180, 180, 180)),
+        Some(color_hex("#FFFFFF")),
+    )
+    .enabled(true);"##;
 
-static CHECKED: AtomicBool = AtomicBool::new(false);
+static CHECKED: OnceLock<State<bool>> = OnceLock::new();
 
-fn toggle() {
-    let next = !CHECKED.load(Ordering::SeqCst);
-    CHECKED.store(next, Ordering::SeqCst);
-    Navigator::replace(Route::new("checkbox_demo", || CheckboxDemo {}));
+fn checked_state() -> &'static State<bool> {
+    CHECKED.get_or_init(|| state(false))
 }
 
 pub struct CheckboxDemo;
 
 impl Widget for CheckboxDemo {
     fn build(&self) -> padauk::UiNode {
-        let checked = CHECKED.load(Ordering::SeqCst);
+        let checked = checked_state().get();
 
-        let cb = checkbox(checked, || toggle())
+        let cb = checkbox(checked, || {
+            checked_state().update(|v| *v = !*v);
+        })
             .colors(
                 Some(color_hex("#1E88E5")),
                 Some(color_rgb(180, 180, 180)),

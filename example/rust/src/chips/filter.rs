@@ -1,26 +1,28 @@
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
 
 use padauk::{app_bar, column, filter_chip, text, Widget};
-use padauk::prelude::{IconType, Navigator, Route};
+use padauk::prelude::{IconType, State, state};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("filter.rs");
+const CODE: &str = r#"let selected = filter_state().get();
+filter_chip("Selected", selected, || filter_state().update(|v| *v = !*v))
+    .leading_icon(IconType::Favorite);"#;
 
-static FILTER_SELECTED: AtomicBool = AtomicBool::new(false);
+static FILTER_SELECTED: OnceLock<State<bool>> = OnceLock::new();
 
-fn toggle_filter() {
-    let next = !FILTER_SELECTED.load(Ordering::SeqCst);
-    FILTER_SELECTED.store(next, Ordering::SeqCst);
-    Navigator::replace(Route::new("chip_filter", || FilterChipScreen {}));
+fn filter_state() -> &'static State<bool> {
+    FILTER_SELECTED.get_or_init(|| state(false))
 }
 
 pub struct FilterChipScreen;
 
 impl Widget for FilterChipScreen {
     fn build(&self) -> padauk::UiNode {
-        let selected = FILTER_SELECTED.load(Ordering::SeqCst);
-        let chip = filter_chip("Selected", selected, || toggle_filter())
+        let selected = filter_state().get();
+        let chip = filter_chip("Selected", selected, || {
+            filter_state().update(|v| *v = !*v);
+        })
             .leading_icon(IconType::Favorite);
 
         let t = text(if selected { "Selected" } else { "Not selected" });

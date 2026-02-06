@@ -3,7 +3,10 @@ use padauk::prelude::{CardShape, CardStyleOptions, color_hex};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("filled.rs");
+const CODE: &str = r##"card(vec![
+    Box::new(text("Filled card")),
+    Box::new(text("Cards provide flexible containers for content.")),
+]).options(options);"##;
 
 pub struct FilledCardScreen;
 

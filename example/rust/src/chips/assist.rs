@@ -4,7 +4,9 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("assist.rs");
+const CODE: &str = r##"assist_chip("Assist", || {})
+    .leading_icon(IconType::Search)
+    .options(options);"##;
 
 pub struct AssistChipScreen;
 
