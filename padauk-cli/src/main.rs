@@ -30,6 +30,15 @@ enum Commands {
     },
     /// Run the app on a device
     Run,
+    /// Build an APK for Android
+    Build {
+        platform: String,
+        /// Comma-separated ABI list (e.g., arm64-v8a,x86_64). Defaults: release=arm64-v8a, debug=arm64-v8a,x86_64
+        #[arg(long)]
+        abi: Option<String>,
+        #[arg(long)]
+        release: bool,
+    },
     // Generate Assets Constant
     Generate,
 }
@@ -43,6 +52,17 @@ fn main() {
         }
         Commands::Run => {
             run_auto().unwrap();
+        }
+        Commands::Build {
+            platform,
+            release,
+            abi,
+        } => {
+            if platform == "android" {
+                build_android(*release, abi.as_deref()).unwrap();
+            } else {
+                eprintln!("❌ Unsupported platform: {}", platform);
+            }
         }
         Commands::Generate => {
             sync_and_generate_assets().unwrap();
@@ -136,7 +156,7 @@ fn run_android(device_serial: Option<String>) {
     if status.success() {
         // 4. Sync assets (we pass the detected abi so we know which jniLibs folder to use)
         sync_from_crate_source();
-        sync_assets(rust_target, &abi);
+        sync_assets(rust_target, &abi, "debug");
 
         // 5. Run on the specific device
         println!("📲 Installing on {}...", device_serial);
@@ -170,32 +190,6 @@ fn run_android(device_serial: Option<String>) {
             .status()
             .unwrap();
     }
-}
-
-fn handle_run_ios() -> anyhow::Result<()> {
-    let project_root = std::env::current_dir().unwrap();
-    let devices = get_available_simulators()?;
-
-    let selected_device: &Device;
-
-    if devices.is_empty() {
-        anyhow::bail!("No available iOS simulators found.");
-    } else if devices.len() == 1 {
-        selected_device = &devices[0];
-    } else {
-        let selection = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("Select a device to run on")
-            .items(&devices.iter().map(|d| &d.name).collect::<Vec<_>>())
-            .default(0)
-            .interact()?;
-        selected_device = &devices[selection];
-    }
-
-    // Sync framework and run
-    // deploy_ios_framework(project_root)?; // Zipped extraction we discussed
-    run_ios(&project_root, selected_device)?;
-
-    Ok(())
 }
 
 fn run_auto() -> anyhow::Result<()> {
@@ -304,7 +298,7 @@ pub fn run_ios(project_root: &PathBuf, device: &Device) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn sync_assets(rust_target: &str, abi: &str) {
+fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
     let project_root = std::env::current_dir().unwrap();
     let so_name = "librust.so";
 
@@ -312,7 +306,7 @@ fn sync_assets(rust_target: &str, abi: &str) {
     let so_path = project_root
         .join("rust/target")
         .join(rust_target)
-        .join("debug")
+        .join(profile)
         .join(&so_name);
 
     // Correct Android JNI folder (e.g., jniLibs/arm64-v8a)
@@ -328,6 +322,153 @@ fn sync_assets(rust_target: &str, abi: &str) {
 
     // Generate bindings using the embedded logic
     run_internal_bindgen(dst_so.to_path_buf(), kotlin_out.to_path_buf());
+}
+
+fn build_android(release: bool, abi_list: Option<&str>) -> anyhow::Result<()> {
+    prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
+
+    let profile = if release { "release" } else { "debug" };
+    let gradle_task = if release {
+        "assembleRelease"
+    } else {
+        "assembleDebug"
+    };
+
+    sync_from_crate_source();
+
+    let abi_targets = resolve_abi_targets(release, abi_list)?;
+    let abi_targets = filter_installed_targets(abi_targets, abi_list.is_some())?;
+
+    for (abi, rust_target) in abi_targets {
+        println!("🏗️  Building Rust for {} ({})...", rust_target, abi);
+        let mut args = vec!["build", "--target", rust_target];
+        if release {
+            args.push("--release");
+        }
+
+        let status = Command::new("cargo")
+            .args(args)
+            .current_dir("./rust")
+            .status()
+            .expect("Failed to build Rust library");
+
+        if !status.success() {
+            anyhow::bail!("Rust build failed for target {}", rust_target);
+        }
+
+        sync_assets(rust_target, abi.as_str(), profile);
+    }
+
+    println!("📦 Building Android APK...");
+    Command::new("./gradlew")
+        .args([gradle_task])
+        .current_dir("./android")
+        .status()
+        .expect("Failed to build Android APK");
+
+    let project_root = std::env::current_dir().unwrap();
+    let apk_path = project_root
+        .join("android/app/build/outputs/apk")
+        .join(profile)
+        .join(format!("app-{}.apk", profile));
+
+    println!("✅ APK generated at: {}", apk_path.display());
+
+    Ok(())
+}
+
+fn resolve_abi_targets(
+    release: bool,
+    abi_list: Option<&str>,
+) -> anyhow::Result<Vec<(String, &'static str)>> {
+    let default_abis = if release {
+        "arm64-v8a"
+    } else {
+        "arm64-v8a,x86_64"
+    };
+
+    let abis = abi_list.unwrap_or(default_abis);
+    let mut targets = Vec::new();
+
+    for abi in abis.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        let target = match abi {
+            "arm64-v8a" => "aarch64-linux-android",
+            "x86_64" => "x86_64-linux-android",
+            "armeabi-v7a" => "armv7-linux-androideabi",
+            "x86" => "i686-linux-android",
+            _ => anyhow::bail!(
+                "Unsupported ABI '{}'. Supported: arm64-v8a, x86_64, armeabi-v7a, x86",
+                abi
+            ),
+        };
+        targets.push((abi.to_string(), target));
+    }
+
+    if targets.is_empty() {
+        anyhow::bail!("No ABIs selected. Provide --abi or use defaults.");
+    }
+
+    Ok(targets)
+}
+
+fn filter_installed_targets(
+    targets: Vec<(String, &'static str)>,
+    strict: bool,
+) -> anyhow::Result<Vec<(String, &'static str)>> {
+    let output = Command::new("rustup")
+        .args(["target", "list", "--installed"])
+        .output();
+
+    let installed: Vec<String> = match output {
+        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout)
+            .lines()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
+        _ => Vec::new(),
+    };
+
+    if installed.is_empty() {
+        // rustup not available; fall back to attempting all targets.
+        return Ok(targets);
+    }
+
+    let mut filtered = Vec::new();
+    let mut skipped = Vec::new();
+
+    for (abi, target) in targets {
+        if installed.iter().any(|t| t == target) {
+            filtered.push((abi, target));
+        } else {
+            skipped.push((abi, target));
+        }
+    }
+
+    if strict && !skipped.is_empty() {
+        let mut msg = String::from("Missing Rust targets for selected ABIs:\n");
+        for (abi, target) in &skipped {
+            msg.push_str(&format!(
+                "- {} (install: rustup target add {})\n",
+                abi, target
+            ));
+        }
+        anyhow::bail!("{}", msg.trim_end());
+    }
+
+    for (abi, target) in skipped {
+        eprintln!(
+            "⚠️  Skipping ABI {} (missing Rust target {}). Install with: rustup target add {}",
+            abi, target, target
+        );
+    }
+
+    if filtered.is_empty() {
+        anyhow::bail!(
+            "No installed Rust targets for the selected ABIs. Install targets via rustup."
+        );
+    }
+
+    Ok(filtered)
 }
 
 fn sync_from_crate_source() {
