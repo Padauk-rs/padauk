@@ -1,4 +1,8 @@
-use padauk::{app_bar, children, column, outlined_card, scaffold, text, Widget};
+use padauk::{app_bar, children, column, outlined_card, text, Widget};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("outlined.rs");
 
 pub struct OutlinedCardScreen;
 
@@ -10,8 +14,6 @@ impl Widget for OutlinedCardScreen {
         ])
         .on_click(|| {});
 
-        scaffold(column(vec![Box::new(c)]))
-            .app_bar(app_bar("Outlined Card"))
-            .build()
+        example_screen(app_bar("Outlined Card"), column(vec![Box::new(c)]), CODE)
     }
 }

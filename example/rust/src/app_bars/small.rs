@@ -1,15 +1,21 @@
-use padauk::{app_bar, children, column, scaffold, text, Widget};
+use padauk::{app_bar, children, column, text, Widget};
 use padauk::prelude::AppBarStyle;
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("small.rs");
 
 pub struct SmallAppBarScreen;
 
 impl Widget for SmallAppBarScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Small app bar"),
-            text("Use for compact screens and short content."),
-        ]))
-        .app_bar(app_bar("Small").style(AppBarStyle::Small))
-        .build()
+        example_screen(
+            app_bar("Small").style(AppBarStyle::Small),
+            column(children![
+                text("Small app bar"),
+                text("Use for compact screens and short content."),
+            ]),
+            CODE,
+        )
     }
 }

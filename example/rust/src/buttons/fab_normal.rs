@@ -1,15 +1,19 @@
-use padauk::{app_bar, children, column, fab, scaffold, text, Widget};
+use padauk::{app_bar, children, column, fab, text, Widget};
 use padauk::prelude::IconType;
+
+use crate::example_layout::example_screen_with_fab;
+
+const CODE: &str = include_str!("fab_normal.rs");
 
 pub struct FabNormalScreen;
 
 impl Widget for FabNormalScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Default FAB"),
-        ]))
-        .fab(fab(IconType::Add, || {}))
-        .app_bar(app_bar("FAB"))
-        .build()
+        example_screen_with_fab(
+            app_bar("FAB"),
+            column(children![text("Default FAB"),]),
+            fab(IconType::Add, || {}),
+            CODE,
+        )
     }
 }

@@ -1,8 +1,12 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use padauk::{app_bar, checkbox, children, column, scaffold, text, Widget};
+use padauk::{app_bar, checkbox, column, text, Widget};
 use padauk::prelude::{color_hex, color_rgb};
 use padauk::prelude::{Navigator, Route};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("demo.rs");
 
 static CHECKED: AtomicBool = AtomicBool::new(false);
 
@@ -26,12 +30,14 @@ impl Widget for CheckboxDemo {
             )
             .enabled(true);
 
-        scaffold(column(vec![
-            Box::new(text("Checkbox")),
-            Box::new(cb),
-            Box::new(text(if checked { "Checked" } else { "Unchecked" })),
-        ]))
-        .app_bar(app_bar("Checkbox"))
-        .build()
+        example_screen(
+            app_bar("Checkbox"),
+            column(vec![
+                Box::new(text("Checkbox")),
+                Box::new(cb),
+                Box::new(text(if checked { "Checked" } else { "Unchecked" })),
+            ]),
+            CODE,
+        )
     }
 }

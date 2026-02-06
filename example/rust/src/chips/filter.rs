@@ -1,7 +1,11 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use padauk::{app_bar, column, filter_chip, scaffold, text, Widget};
+use padauk::{app_bar, column, filter_chip, text, Widget};
 use padauk::prelude::{IconType, Navigator, Route};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("filter.rs");
 
 static FILTER_SELECTED: AtomicBool = AtomicBool::new(false);
 
@@ -20,8 +24,10 @@ impl Widget for FilterChipScreen {
             .leading_icon(IconType::Favorite);
 
         let t = text(if selected { "Selected" } else { "Not selected" });
-        scaffold(column(vec![Box::new(chip), Box::new(t)]))
-            .app_bar(app_bar("Filter Chip"))
-            .build()
+        example_screen(
+            app_bar("Filter Chip"),
+            column(vec![Box::new(chip), Box::new(t)]),
+            CODE,
+        )
     }
 }

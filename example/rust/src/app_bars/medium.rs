@@ -1,14 +1,20 @@
-use padauk::{app_bar_medium, children, column, scaffold, text, Widget};
+use padauk::{app_bar_medium, children, column, text, Widget};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("medium.rs");
 
 pub struct MediumAppBarScreen;
 
 impl Widget for MediumAppBarScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Medium app bar"),
-            text("Use when scrolling content needs a taller bar."),
-        ]))
-        .app_bar(app_bar_medium("Medium"))
-        .build()
+        example_screen(
+            app_bar_medium("Medium"),
+            column(children![
+                text("Medium app bar"),
+                text("Use when scrolling content needs a taller bar."),
+            ]),
+            CODE,
+        )
     }
 }

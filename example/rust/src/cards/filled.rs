@@ -1,5 +1,9 @@
-use padauk::{app_bar, card, column, scaffold, text, Widget};
+use padauk::{app_bar, card, column, text, Widget};
 use padauk::prelude::{CardShape, CardStyleOptions, color_hex};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("filled.rs");
 
 pub struct FilledCardScreen;
 
@@ -21,8 +25,6 @@ impl Widget for FilledCardScreen {
         .options(options)
         .on_click(|| {});
 
-        scaffold(column(vec![Box::new(c)]))
-            .app_bar(app_bar("Filled Card"))
-            .build()
+        example_screen(app_bar("Filled Card"), column(vec![Box::new(c)]), CODE)
     }
 }

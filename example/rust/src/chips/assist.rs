@@ -1,6 +1,10 @@
-use padauk::{app_bar, assist_chip, column, scaffold, text, Widget};
+use padauk::{app_bar, assist_chip, column, text, Widget};
 use padauk::prelude::{ChipShape, ChipStyleOptions, color_hex};
 use padauk::prelude::IconType;
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("assist.rs");
 
 pub struct AssistChipScreen;
 
@@ -21,8 +25,10 @@ impl Widget for AssistChipScreen {
             .options(options);
 
         let t = text("Use assist chips for contextual actions.");
-        scaffold(column(vec![Box::new(c), Box::new(t)]))
-            .app_bar(app_bar("Assist Chip"))
-            .build()
+        example_screen(
+            app_bar("Assist Chip"),
+            column(vec![Box::new(c), Box::new(t)]),
+            CODE,
+        )
     }
 }
