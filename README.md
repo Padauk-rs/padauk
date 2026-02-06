@@ -138,6 +138,12 @@ padauk run android
 padauk run ios
 ```
 
+### 📱 Example APK
+
+Download the latest example app build:
+
+- [Example Android APK](temp/padauk-example-release.apk)
+
 ### 📂 Project Structure
 
 A created Padauk project looks like this:

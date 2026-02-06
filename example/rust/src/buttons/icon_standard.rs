@@ -3,7 +3,7 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("icon_standard.rs");
+const CODE: &str = r#"icon_button(IconType::Search, || {});"#;
 
 pub struct IconButtonStandardScreen;
 

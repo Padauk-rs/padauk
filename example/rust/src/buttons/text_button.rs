@@ -2,7 +2,7 @@ use padauk::{app_bar, children, column, text, text_button, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("text_button.rs");
+const CODE: &str = r#"text_button("Text action", || {});"#;
 
 pub struct TextButtonScreen;
 

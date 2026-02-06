@@ -2,7 +2,7 @@ use padauk::{app_bar_medium, children, column, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("medium.rs");
+const CODE: &str = r#"app_bar_medium("Medium")"#;
 
 pub struct MediumAppBarScreen;
 

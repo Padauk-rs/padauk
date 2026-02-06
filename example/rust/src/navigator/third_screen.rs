@@ -3,7 +3,16 @@ use padauk::prelude::Navigator;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("third_screen.rs");
+const CODE: &str = r#"// Pop variants
+button("Pop To First", || {
+    Navigator::pop_to_first();
+});
+button("Pop Until Demo Root", || {
+    Navigator::pop_until("nav_demo");
+});
+button("Pop Til Demo Root", || {
+    Navigator::pop_til("nav_demo");
+});"#;
 
 pub struct ThirdScreen;
 

@@ -3,7 +3,7 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("icon_filled_tonal.rs");
+const CODE: &str = r#"filled_tonal_icon_button(IconType::Add, || {});"#;
 
 pub struct IconButtonFilledTonalScreen;
 

@@ -2,7 +2,7 @@ use padauk::{app_bar, children, column, outlined_button, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("outlined.rs");
+const CODE: &str = r#"outlined_button("Outlined action", || {});"#;
 
 pub struct OutlinedButtonScreen;
 

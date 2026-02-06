@@ -5,7 +5,20 @@ use crate::example_layout::example_screen;
 use crate::navigator::second_screen::SecondScreen;
 use crate::navigator::third_screen::ThirdScreen;
 
-const CODE: &str = include_str!("first_screen.rs");
+const CODE: &str = r#"// Push
+button("Push Second", || {
+    Navigator::push(Route::new("second", || SecondScreen {}));
+});
+
+// Push another
+button("Push Third", || {
+    Navigator::push(Route::new("third", || ThirdScreen {}));
+});
+
+// Replace
+button("Replace with Third", || {
+    Navigator::replace(Route::new("third", || ThirdScreen {}));
+});"#;
 
 pub struct FirstScreen;
 

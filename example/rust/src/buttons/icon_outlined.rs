@@ -3,7 +3,7 @@ use padauk::prelude::IconType;
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("icon_outlined.rs");
+const CODE: &str = r#"outlined_icon_button(IconType::Menu, || {});"#;
 
 pub struct IconButtonOutlinedScreen;
 

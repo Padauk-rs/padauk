@@ -2,7 +2,7 @@ use padauk::{app_bar_center_aligned, children, column, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("center_aligned.rs");
+const CODE: &str = r#"app_bar_center_aligned("Center Aligned")"#;
 
 pub struct CenterAlignedAppBarScreen;
 

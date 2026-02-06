@@ -2,7 +2,7 @@ use padauk::{app_bar, children, column, elevated_button, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("elevated.rs");
+const CODE: &str = r#"elevated_button("Elevated action", || {});"#;
 
 pub struct ElevatedButtonScreen;
 

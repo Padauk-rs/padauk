@@ -2,7 +2,7 @@ use padauk::{app_bar_large, children, column, text, Widget};
 
 use crate::example_layout::example_screen;
 
-const CODE: &str = include_str!("large.rs");
+const CODE: &str = r#"app_bar_large("Large")"#;
 
 pub struct LargeAppBarScreen;
 
