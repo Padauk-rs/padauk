@@ -1,15 +1,19 @@
-use padauk::{app_bar, children, column, fab_small, scaffold, text, Widget};
+use padauk::{app_bar, children, column, fab_small, text, Widget};
 use padauk::prelude::IconType;
+
+use crate::example_layout::example_screen_with_fab;
+
+const CODE: &str = include_str!("fab_small.rs");
 
 pub struct FabSmallScreen;
 
 impl Widget for FabSmallScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Small FAB"),
-        ]))
-        .fab(fab_small(IconType::Add, || {}))
-        .app_bar(app_bar("FAB Small"))
-        .build()
+        example_screen_with_fab(
+            app_bar("FAB Small"),
+            column(children![text("Small FAB"),]),
+            fab_small(IconType::Add, || {}),
+            CODE,
+        )
     }
 }

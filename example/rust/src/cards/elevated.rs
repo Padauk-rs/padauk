@@ -1,4 +1,8 @@
-use padauk::{app_bar, children, column, elevated_card, scaffold, text, Widget};
+use padauk::{app_bar, children, column, elevated_card, text, Widget};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("elevated.rs");
 
 pub struct ElevatedCardScreen;
 
@@ -10,8 +14,6 @@ impl Widget for ElevatedCardScreen {
         ])
         .on_click(|| {});
 
-        scaffold(column(vec![Box::new(c)]))
-            .app_bar(app_bar("Elevated Card"))
-            .build()
+        example_screen(app_bar("Elevated Card"), column(vec![Box::new(c)]), CODE)
     }
 }

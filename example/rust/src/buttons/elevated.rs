@@ -1,14 +1,20 @@
-use padauk::{app_bar, children, column, elevated_button, scaffold, text, Widget};
+use padauk::{app_bar, children, column, elevated_button, text, Widget};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("elevated.rs");
 
 pub struct ElevatedButtonScreen;
 
 impl Widget for ElevatedButtonScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Elevated button"),
-            elevated_button("Elevated action", || {}),
-        ]))
-        .app_bar(app_bar("Elevated"))
-        .build()
+        example_screen(
+            app_bar("Elevated"),
+            column(children![
+                text("Elevated button"),
+                elevated_button("Elevated action", || {}),
+            ]),
+            CODE,
+        )
     }
 }

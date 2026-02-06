@@ -1,7 +1,11 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use padauk::{app_bar, column, input_chip, scaffold, text, Widget};
+use padauk::{app_bar, column, input_chip, text, Widget};
 use padauk::prelude::{IconType, Navigator, Route};
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("input.rs");
 
 static INPUT_PRESENT: AtomicBool = AtomicBool::new(true);
 
@@ -39,8 +43,6 @@ impl Widget for InputChipScreen {
             input_chip("Reset", || reset_chip()).leading_icon(IconType::Add),
         ));
 
-        scaffold(column(widgets))
-            .app_bar(app_bar("Input Chip"))
-            .build()
+        example_screen(app_bar("Input Chip"), column(widgets), CODE)
     }
 }

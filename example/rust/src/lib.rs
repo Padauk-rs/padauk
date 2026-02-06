@@ -1,6 +1,7 @@
 use crate::example_app::ExampleApp;
 
 mod example_app;
+mod example_layout;
 mod app_bars;
 mod buttons;
 mod cards;

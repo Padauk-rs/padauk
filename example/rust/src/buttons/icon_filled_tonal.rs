@@ -1,15 +1,21 @@
-use padauk::{app_bar, children, column, filled_tonal_icon_button, scaffold, text, Widget};
+use padauk::{app_bar, children, column, filled_tonal_icon_button, text, Widget};
 use padauk::prelude::IconType;
+
+use crate::example_layout::example_screen;
+
+const CODE: &str = include_str!("icon_filled_tonal.rs");
 
 pub struct IconButtonFilledTonalScreen;
 
 impl Widget for IconButtonFilledTonalScreen {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Filled tonal icon button"),
-            filled_tonal_icon_button(IconType::Add, || {}),
-        ]))
-        .app_bar(app_bar("Icon Tonal"))
-        .build()
+        example_screen(
+            app_bar("Icon Tonal"),
+            column(children![
+                text("Filled tonal icon button"),
+                filled_tonal_icon_button(IconType::Add, || {}),
+            ]),
+            CODE,
+        )
     }
 }
