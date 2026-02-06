@@ -29,9 +29,7 @@ enum Commands {
         name: String,
     },
     /// Run the app on a device
-    Run {
-        platform: String,
-    },
+    Run,
     // Generate Assets Constant
     Generate,
 }
@@ -43,12 +41,8 @@ fn main() {
         Commands::Create { name } => {
             create_project(name);
         }
-        Commands::Run { platform } => {
-            if platform == "android" {
-                run_android();
-            } else if platform == "ios" {
-                handle_run_ios().unwrap();
-            }
+        Commands::Run => {
+            run_auto().unwrap();
         }
         Commands::Generate => {
             sync_and_generate_assets().unwrap();
@@ -118,11 +112,11 @@ pub fn extract_template(target_dir: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_android() {
+fn run_android(device_serial: Option<String>) {
     prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
 
     // 1. Pick the device first
-    let device_serial = pick_android_device();
+    let device_serial = device_serial.unwrap_or_else(pick_android_device);
 
     // 2. Detect the ABI and Map to Rust Target
     let abi = get_device_abi(&device_serial);
@@ -200,6 +194,53 @@ fn handle_run_ios() -> anyhow::Result<()> {
     // Sync framework and run
     // deploy_ios_framework(project_root)?; // Zipped extraction we discussed
     run_ios(&project_root, selected_device)?;
+
+    Ok(())
+}
+
+fn run_auto() -> anyhow::Result<()> {
+    let project_root = std::env::current_dir().unwrap();
+    let mut devices = Vec::new();
+
+    let mut android_devices = get_android_devices();
+    let mut ios_devices = get_available_simulators().unwrap_or_default();
+
+    devices.append(&mut android_devices);
+    devices.append(&mut ios_devices);
+
+    if devices.is_empty() {
+        anyhow::bail!(
+            "No running devices found. Start an Android emulator or boot an iOS simulator, then retry."
+        );
+    }
+
+    let selected_device: &Device;
+
+    if devices.len() == 1 {
+        selected_device = &devices[0];
+    } else {
+        let labels: Vec<String> = devices
+            .iter()
+            .map(|d| {
+                let platform = if d.ios { "iOS" } else { "Android" };
+                format!("{}: {} [{}]", platform, d.name, d.serial)
+            })
+            .collect();
+
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select a device to run on")
+            .items(&labels)
+            .default(0)
+            .interact()?;
+
+        selected_device = &devices[selection];
+    }
+
+    if selected_device.ios {
+        run_ios(&project_root, selected_device)?;
+    } else {
+        run_android(Some(selected_device.serial.clone()));
+    }
 
     Ok(())
 }
@@ -387,6 +428,9 @@ fn get_android_devices() -> Vec<Device> {
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() > 1 {
             let serial = parts[0].to_string();
+            if !serial.starts_with("emulator-") {
+                continue;
+            }
             // Find the part that starts with "model:"
             let name = parts
                 .iter()
@@ -435,7 +479,7 @@ fn pick_android_device() -> String {
     let devices = get_android_devices();
 
     if devices.is_empty() {
-        println!("❌ No devices found. Please connect a phone or start an emulator.");
+        println!("❌ No Android emulators found. Please start an emulator and try again.");
         std::process::exit(1);
     }
 
