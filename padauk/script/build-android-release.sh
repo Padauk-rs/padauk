@@ -22,21 +22,26 @@ cargo run --features=uniffi/cli --bin uniffi-bindgen generate --library "$LIB_PA
 # Fix package naming if necessary (move from uniffi/padauk to com/padauk/core)
 # Assuming uniffi.toml handles the package name 'com.padauk.core'
 
-echo "🔄 Step 3: Compiling Android Archive (.aar)..."
+ASSETS_DIR="$SDK_ROOT/padauk/assets/android"
+ZIP_OUT="$ASSETS_DIR/padauk-android.zip"
+
+echo "🔄 Step 3: Building Android library (verification)..."
 cd "$ANDROID_LIB_DIR"
 ./gradlew assembleRelease
 
-echo "✨ Success! AAR generated at:"
-echo "$ANDROID_LIB_DIR/padauk/build/outputs/aar/padauk-release.aar"
-
-AAR_SOURCE="$ANDROID_LIB_DIR/padauk/build/outputs/aar/padauk-release.aar"
-ASSETS_DIR="$SDK_ROOT/padauk/assets/android"
-
-echo "🚚 Moving AAR to CLI assets..."
+echo "🔄 Step 4: Packaging Android library module..."
 mkdir -p "$ASSETS_DIR"
-cp "$AAR_SOURCE" "$ASSETS_DIR/padauk-release.aar"
+rm -f "$ZIP_OUT"
 
-echo "✅ CLI is now armed with the latest framework AAR."
+(
+  cd "$ANDROID_LIB_DIR"
+  zip -r "$ZIP_OUT" padauk \
+    -x "padauk/build/*" \
+    -x "padauk/.gradle/*"
+)
 
-echo "🔄 Building again to embed generated aar file"
+echo "✅ CLI is now armed with the latest Android module zip:"
+echo "$ZIP_OUT"
+
+echo "🔄 Building again to embed generated Android module zip"
 cargo build -p padauk --release --features embed-assets

@@ -520,21 +520,101 @@ fn sync_from_crate_source() {
         .unwrap()
         .to_path_buf();
 
-    // 3. Copy the pre-baked native files to the Android project
+    // 3. Extract the embedded Android library project into the app's android/ folder
     let native_src = crate_root.join("assets").join("android");
-    let android_dest = PathBuf::from("android").join("app").join("libs");
+    let zip_path = native_src.join("padauk-android.zip");
+    let android_dest = PathBuf::from("android");
+    let android_build_dir = android_dest.join("build").join("padauk");
 
-    fs::create_dir_all(&android_dest).unwrap();
+    if !zip_path.exists() {
+        eprintln!(
+            "❌ Missing embedded Android project zip: {}",
+            zip_path.display()
+        );
+        std::process::exit(1);
+    }
 
-    for entry in fs::read_dir(native_src).unwrap() {
-        let entry = entry.unwrap();
-        fs::copy(entry.path(), android_dest.join(entry.file_name())).unwrap();
+    // Always refresh the module to avoid version mismatches when the crate updates.
+    if android_build_dir.exists() {
+        let _ = fs::remove_dir_all(&android_build_dir);
+    }
+
+    extract_zip_file(&zip_path, &android_build_dir)
+        .expect("Failed to extract Android project module.");
+
+    // Ensure Gradle settings include the padauk module
+    let settings_path = project_root.join("android/settings.gradle.kts");
+    if let Ok(settings) = fs::read_to_string(&settings_path) {
+        if !settings.contains("include(\":padauk\")") {
+            let mut updated = settings;
+            if !updated.ends_with('\n') {
+                updated.push('\n');
+            }
+            updated.push_str(
+                "include(\":padauk\")\nproject(\":padauk\").projectDir = file(\"build/padauk/padauk\")\n",
+            );
+            let _ = fs::write(&settings_path, updated);
+        }
+    }
+
+    // Ensure app module depends on padauk (and remove AAR fileTree dependency)
+    let app_build = project_root.join("android/app/build.gradle.kts");
+    if let Ok(content) = fs::read_to_string(&app_build) {
+        let lines: Vec<String> = content
+            .lines()
+            .filter(|l| !l.contains("fileTree(mapOf(\"dir\" to \"libs\""))
+            .map(|l| l.to_string())
+            .collect();
+        let mut updated = lines.join("\n");
+        if !updated.contains("implementation(project(\":padauk\"))") {
+            updated = updated.replace(
+                "dependencies {\n",
+                "dependencies {\n    implementation(project(\":padauk\"))\n",
+            );
+        }
+        let _ = fs::write(&app_build, updated);
     }
 
     println!(
-        "✅ Native Renderers synced from padauk v{}",
+        "✅ Android module synced from padauk v{}",
         padauk_pkg["version"]
     );
+}
+
+fn extract_zip_file(zip_path: &PathBuf, target_dir: &PathBuf) -> anyhow::Result<()> {
+    let reader = std::fs::File::open(zip_path)?;
+    let mut archive = ZipArchive::new(reader)?;
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = match file.enclosed_name() {
+            Some(path) => target_dir.join(path),
+            None => continue,
+        };
+
+        if (*file.name()).ends_with('/') {
+            std::fs::create_dir_all(&outpath)?;
+        } else {
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    std::fs::create_dir_all(p)?;
+                }
+            }
+            let mut outfile = std::fs::File::create(&outpath)?;
+            std::io::copy(&mut file, &mut outfile)?;
+        }
+
+        // On Unix, restore file permissions (useful for scripts)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Some(mode) = file.unix_mode() {
+                std::fs::set_permissions(&outpath, std::fs::Permissions::from_mode(mode))?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[derive(Debug)]
