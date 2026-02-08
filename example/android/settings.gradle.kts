@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "My Application"
 include(":app")
 include(":padauk")
-project(":padauk").projectDir = file("../../padauk/android/padauk")
+project(":padauk").projectDir = file("build/padauk/padauk")

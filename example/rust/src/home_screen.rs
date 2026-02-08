@@ -1,7 +1,8 @@
 use padauk::Widget;
 use padauk::{
-    app_bar, button, children, column, scaffold, text,
+    app_bar, button, children, column,
     prelude::{Navigator, Route},
+    scaffold, text,
 };
 
 use crate::app_bars::menu::AppBarsMenu;

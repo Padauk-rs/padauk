@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "wait-lldb-port",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "for i in {1..50}; do nc -z 127.0.0.1 5039 && exit 0; sleep 0.2; done; echo 'LLDB port 5039 not ready'; exit 1"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

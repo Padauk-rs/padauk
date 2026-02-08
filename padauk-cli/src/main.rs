@@ -29,7 +29,14 @@ enum Commands {
         name: String,
     },
     /// Run the app on a device
-    Run,
+    Run {
+        /// Enable LLDB debugging (Android only)
+        #[arg(long)]
+        debug: bool,
+        /// LLDB server port for Android debug
+        #[arg(long, default_value_t = 5039)]
+        debug_port: u16,
+    },
     /// Build an APK for Android
     Build {
         platform: String,
@@ -50,8 +57,8 @@ fn main() {
         Commands::Create { name } => {
             create_project(name);
         }
-        Commands::Run => {
-            run_auto().unwrap();
+        Commands::Run { debug, debug_port } => {
+            run_auto(*debug, *debug_port).unwrap();
         }
         Commands::Build {
             platform,
@@ -132,11 +139,13 @@ pub fn extract_template(target_dir: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_android(device_serial: Option<String>) {
+fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
     prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
 
     // 1. Pick the device first
     let device_serial = device_serial.unwrap_or_else(pick_android_device);
+    let project_root = std::env::current_dir().unwrap();
+    let app_id = get_android_application_id(&project_root);
 
     // 2. Detect the ABI and Map to Rust Target
     let abi = get_device_abi(&device_serial);
@@ -185,14 +194,18 @@ fn run_android(device_serial: Option<String>) {
                 "am",
                 "start",
                 "-n",
-                "com.example.padauk/com.example.padauk.MainActivity",
+                &format!("{}/{}.MainActivity", app_id, app_id),
             ])
             .status()
             .unwrap();
+
+        if debug {
+            start_android_debugging(&project_root, &device_serial, &abi, &app_id, debug_port);
+        }
     }
 }
 
-fn run_auto() -> anyhow::Result<()> {
+fn run_auto(debug: bool, debug_port: u16) -> anyhow::Result<()> {
     let project_root = std::env::current_dir().unwrap();
     let mut devices = Vec::new();
 
@@ -233,10 +246,427 @@ fn run_auto() -> anyhow::Result<()> {
     if selected_device.ios {
         run_ios(&project_root, selected_device)?;
     } else {
-        run_android(Some(selected_device.serial.clone()));
+        run_android(Some(selected_device.serial.clone()), debug, debug_port);
     }
 
     Ok(())
+}
+
+fn start_android_debugging(
+    project_root: &PathBuf,
+    device_serial: &str,
+    abi: &str,
+    app_id: &str,
+    debug_port: u16,
+) {
+    let adb = get_adb_path();
+
+    let ndk_dir = match find_ndk_dir() {
+        Some(dir) => dir,
+        None => {
+            eprintln!(
+                "❌ Android NDK not found. Set ANDROID_NDK_HOME (or ANDROID_HOME/ANDROID_SDK_ROOT)."
+            );
+            return;
+        }
+    };
+
+    // If the device is 32-bit only, force 32-bit lldb-server.
+    let abilist64 = get_prop(&adb, device_serial, "ro.product.cpu.abilist64");
+    let mut lldb_abi = abi.to_string();
+    if abi == "arm64-v8a" && abilist64.as_deref().unwrap_or("").is_empty() {
+        lldb_abi = "armeabi-v7a".to_string();
+    }
+
+    let remote_path = "/data/local/tmp/lldb-server";
+    let mut lldb_server = find_lldb_server(&ndk_dir, &lldb_abi);
+    if lldb_server.is_none() && lldb_abi != "armeabi-v7a" {
+        lldb_server = find_lldb_server(&ndk_dir, "armeabi-v7a");
+    }
+    let lldb_server = match lldb_server {
+        Some(path) => path,
+        None => {
+            eprintln!(
+                "❌ lldb-server not found in NDK. Ensure LLDB is installed with the NDK."
+            );
+            return;
+        }
+    };
+
+    let primary = push_and_check_lldb_server(&adb, device_serial, &lldb_server, remote_path);
+    if primary.is_err() && lldb_abi != "armeabi-v7a" {
+        if let Some(fallback) = find_lldb_server(&ndk_dir, "armeabi-v7a") {
+            let fallback_res =
+                push_and_check_lldb_server(&adb, device_serial, &fallback, remote_path);
+            if fallback_res.is_ok() {
+                eprintln!(
+                    "⚠️  64-bit lldb-server failed; using 32-bit fallback for debugging."
+                );
+            } else {
+                eprintln!("❌ lldb-server failed to run on device.");
+                if let Err(err) = primary {
+                    eprintln!("{}", err);
+                }
+                if let Err(err) = fallback_res {
+                    eprintln!("{}", err);
+                }
+                return;
+            }
+        } else {
+            eprintln!("❌ lldb-server failed to run on device.");
+            if let Err(err) = primary {
+                eprintln!("{}", err);
+            }
+            return;
+        }
+    } else if let Err(err) = primary {
+        eprintln!("❌ lldb-server failed to run on device.");
+        eprintln!("{}", err);
+        return;
+    }
+
+    // Forward LLDB port
+    let port = debug_port.to_string();
+    let _ = Command::new(&adb)
+        .args([
+            "-s",
+            device_serial,
+            "forward",
+            &format!("tcp:{}", port),
+            &format!("tcp:{}", port),
+        ])
+        .status();
+
+    // Try to fetch PID for attach
+    let pid = wait_for_android_pid(&adb, device_serial, app_id);
+
+    if let Some(pid) = pid {
+        println!("🔎 App PID: {}", pid);
+        // Start lldb-server in gdbserver mode, attached to the app PID.
+        // Prefer running via run-as to avoid exec restrictions on /data/local/tmp.
+        let run_as_ok = Command::new(&adb)
+            .args(["-s", device_serial, "shell", "run-as", app_id, "true"])
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if run_as_ok {
+            let app_lldb_server = format!("/data/user/0/{}/lldb-server", app_id);
+            let copy_ok = Command::new(&adb)
+                .args([
+                    "-s",
+                    device_serial,
+                    "shell",
+                    "run-as",
+                    app_id,
+                    "cp",
+                    remote_path,
+                    &app_lldb_server,
+                ])
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            let chmod_ok = Command::new(&adb)
+                .args([
+                    "-s",
+                    device_serial,
+                    "shell",
+                    "run-as",
+                    app_id,
+                    "chmod",
+                    "755",
+                    &app_lldb_server,
+                ])
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            if !copy_ok || !chmod_ok {
+                eprintln!("❌ Failed to prepare lldb-server in app sandbox.");
+                return;
+            }
+
+            let _ = Command::new(&adb)
+                .args([
+                    "-s",
+                    device_serial,
+                    "shell",
+                    "run-as",
+                    app_id,
+                    &app_lldb_server,
+                    "gdbserver",
+                    "--attach",
+                    &pid,
+                    &format!("127.0.0.1:{}", port),
+                ])
+                .spawn();
+        } else {
+            let _ = Command::new(&adb)
+                .args([
+                    "-s",
+                    device_serial,
+                    "shell",
+                    remote_path,
+                    "gdbserver",
+                    "--attach",
+                    &pid,
+                    &format!("127.0.0.1:{}", port),
+                ])
+                .spawn();
+        }
+    } else {
+        println!("❌ App PID not found. Launch the app and re-run with --debug.");
+        return;
+    }
+
+    println!("🪲 LLDB gdbserver started on device (port {} forwarded).", port);
+    // Give the server a moment to start before connecting.
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    // Check if lldb-server is alive before attaching
+    let server_pid = Command::new(&adb)
+        .args(["-s", device_serial, "shell", "pidof", "-s", "lldb-server"])
+        .output()
+        .ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|s| !s.is_empty());
+    if server_pid.is_none() {
+        let ps_out = Command::new(&adb)
+            .args(["-s", device_serial, "shell", "ps", "-A"])
+            .output()
+            .ok()
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+            .unwrap_or_default();
+        if ps_out.contains("lldb-server") {
+            // Continue; some devices don't support pidof.
+        } else {
+            eprintln!("❌ lldb-server is not running. Try again or check device logs.");
+            return;
+        }
+    }
+
+    println!("🧩 Attaching LLDB...");
+    let so_path = find_android_debug_so(project_root, abi);
+    let so_dir = so_path
+        .as_ref()
+        .and_then(|p| p.parent())
+        .map(|p| p.to_string_lossy().to_string());
+    let mut attached = false;
+    for _ in 0..5 {
+        let mut cmd = Command::new("lldb");
+        if let Some(path) = so_path.as_ref() {
+            cmd.arg("-o").arg(format!("target create {}", path.to_string_lossy()));
+        }
+        if let Some(dir) = so_dir.as_ref() {
+            cmd.arg("-o")
+                .arg(format!("settings set target.exec-search-paths {}", dir));
+        }
+        cmd.arg("-o")
+            .arg(format!("gdb-remote localhost:{}", port))
+            .arg("-o")
+            .arg("process handle SIGSTOP -n true -p true -s false")
+            .arg("-o")
+            .arg("process handle SIGSEGV -n true -p true -s false")
+            .arg("-o")
+            .arg("process handle SIGBUS -n true -p true -s false")
+            .arg("-o")
+            .arg("process continue");
+
+        let status = cmd.status();
+        if let Ok(status) = status {
+            if status.success() {
+                attached = true;
+                break;
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(500));
+    }
+
+    if !attached {
+        eprintln!("❌ Failed to attach LLDB. Ensure the app is debuggable and try again.");
+    }
+}
+
+fn get_android_application_id(project_root: &PathBuf) -> String {
+    let build_file = project_root.join("android/app/build.gradle.kts");
+    if let Ok(content) = fs::read_to_string(&build_file) {
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("applicationId") {
+                if let Some(start) = trimmed.find('"') {
+                    if let Some(end) = trimmed[start + 1..].find('"') {
+                        return trimmed[start + 1..start + 1 + end].to_string();
+                    }
+                }
+            }
+        }
+    }
+    "com.example.padauk".to_string()
+}
+
+fn find_android_debug_so(project_root: &PathBuf, abi: &str) -> Option<PathBuf> {
+    let merged_libs = project_root
+        .join("android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib")
+        .join(abi);
+    let app_jni = project_root
+        .join("android/app/src/main/jniLibs")
+        .join(abi);
+
+    let preferred = vec![
+        merged_libs.join("libpadauk.so"),
+        app_jni.join("libpadauk.so"),
+    ];
+    for path in preferred {
+        if path.exists() {
+            return Some(path);
+        }
+    }
+
+    for dir in [merged_libs, app_jni] {
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Some(ext) = path.extension() {
+                    if ext == "so" {
+                        return Some(path);
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn wait_for_android_pid(adb: &PathBuf, device_serial: &str, app_id: &str) -> Option<String> {
+    for _ in 0..20 {
+        let pid = Command::new(adb)
+            .args(["-s", device_serial, "shell", "pidof", "-s", app_id])
+            .output()
+            .ok()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        if pid.is_some() {
+            return pid;
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(250));
+    }
+
+    None
+}
+
+fn get_prop(adb: &PathBuf, device_serial: &str, key: &str) -> Option<String> {
+    Command::new(adb)
+        .args(["-s", device_serial, "shell", "getprop", key])
+        .output()
+        .ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+fn push_and_check_lldb_server(
+    adb: &PathBuf,
+    device_serial: &str,
+    lldb_server: &PathBuf,
+    remote_path: &str,
+) -> Result<(), String> {
+    let _ = Command::new(adb)
+        .args(["-s", device_serial, "push"])
+        .arg(lldb_server)
+        .arg(remote_path)
+        .status();
+    let _ = Command::new(adb)
+        .args(["-s", device_serial, "shell", "chmod", "755", remote_path])
+        .status();
+
+    // Sanity check: ensure lldb-server can execute on device
+    let check = Command::new(adb)
+        .args(["-s", device_serial, "shell", remote_path, "version"])
+        .output();
+    match check {
+        Ok(out) if out.status.success() => Ok(()),
+        Ok(out) => {
+            let err = String::from_utf8_lossy(&out.stderr);
+            let out_str = String::from_utf8_lossy(&out.stdout);
+            Err(format!(
+                "lldb-server failed to run: {}{}",
+                out_str.trim(),
+                if err.is_empty() { "" } else { "\n" }
+            ) + err.trim())
+        }
+        Err(e) => Err(format!("lldb-server check failed: {}", e)),
+    }
+}
+
+fn find_ndk_dir() -> Option<PathBuf> {
+    for key in ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT", "ANDROID_NDK"] {
+        if let Ok(val) = env::var(key) {
+            let p = PathBuf::from(val);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+    }
+
+    let sdk_root = env::var("ANDROID_HOME")
+        .or_else(|_| env::var("ANDROID_SDK_ROOT"))
+        .ok()
+        .map(PathBuf::from)?;
+
+    let ndk_root = sdk_root.join("ndk");
+    if !ndk_root.exists() {
+        return None;
+    }
+
+    let mut candidates: Vec<PathBuf> = fs::read_dir(ndk_root)
+        .ok()?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.is_dir())
+        .collect();
+
+    candidates.sort();
+    candidates.pop()
+}
+
+fn find_lldb_server(ndk_dir: &PathBuf, abi: &str) -> Option<PathBuf> {
+    let linux_abi = match abi {
+        "arm64-v8a" => "aarch64",
+        "armeabi-v7a" => "arm",
+        "x86_64" => "x86_64",
+        "x86" => "i386",
+        _ => "aarch64",
+    };
+
+    let prebuilt_dir = ndk_dir.join("toolchains/llvm/prebuilt");
+    let host_dir = fs::read_dir(&prebuilt_dir)
+        .ok()?
+        .flatten()
+        .map(|e| e.path())
+        .find(|p| p.is_dir())?;
+
+    // Look for the highest clang version directory
+    let clang_root = host_dir.join("lib/clang");
+    let mut versions: Vec<PathBuf> = fs::read_dir(&clang_root)
+        .ok()?
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.is_dir())
+        .collect();
+    versions.sort();
+    let clang_dir = versions.pop()?;
+
+    let candidate = clang_dir
+        .join("lib/linux")
+        .join(linux_abi)
+        .join("lldb-server");
+
+    if candidate.exists() {
+        return Some(candidate);
+    }
+
+    None
 }
 
 pub fn run_ios(project_root: &PathBuf, device: &Device) -> anyhow::Result<()> {
