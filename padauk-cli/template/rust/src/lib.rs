@@ -3,10 +3,19 @@ use padauk::*;
 uniffi::setup_scaffolding!();
 
 struct CounterApp {}
+struct HomeScreen;
 
 impl PadaukApp for CounterApp {
-    fn render(&self) -> Box<dyn Widget> {
-        column(children![text("Hello World!"),]).into_widget()
+    fn initial_route(&self) -> prelude::Route {
+        prelude::Route::new("home", || HomeScreen)
+    }
+}
+
+impl Widget for HomeScreen {
+    fn build(&self) -> UiNode {
+        scaffold(column(children![text("Hello World!"),]))
+            .app_bar(app_bar("My App"))
+            .build()
     }
 }
 

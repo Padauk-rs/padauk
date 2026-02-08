@@ -37,7 +37,7 @@ It features a robust **Dual-Layer Architecture**:
 
 * **Zero-Boilerplate Entry**: A simple attribute macro #[padauk::main] handles the platform handshake for you.
 
-* **Smart CLI**: padauk run handles the entire toolchain: Rust compilation, FFI binding generation, asset syncing, and Gradle/Xcode builds.
+* **Smart CLI**: `padauk run` auto-selects running emulators/simulators and handles the entire toolchain: Rust compilation, FFI binding generation, asset syncing, and Gradle/Xcode builds. `padauk build android` produces APKs (debug/release).
 
 ### 🚧 Status
 
@@ -126,16 +126,27 @@ fn main() -> impl Widget {
 }
 ```
 
-**3. Run on Android**
+**3. Run (auto-select)**
 
-Ensure an emulator is running or a device is connected.
+Padauk detects running Android emulators and booted iOS simulators.
 ```
-padauk run android
+padauk run
 ```
 
-**4. Run on iOS (macOS only)**
+**4. Build Android APK**
+
 ```
-padauk run ios
+padauk build android
+```
+
+Release build (arm64-v8a by default):
+```
+padauk build android --release
+```
+
+Optional ABI override (comma-separated):
+```
+padauk build android --abi arm64-v8a,x86_64
 ```
 
 ### 📱 Example APK
