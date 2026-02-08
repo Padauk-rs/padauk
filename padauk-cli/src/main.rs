@@ -30,9 +30,18 @@ enum Commands {
     },
     /// Run the app on a device
     Run {
-        /// Enable LLDB debugging (Android only)
+        /// Build and run a debug app (Android only)
         #[arg(long)]
         debug: bool,
+        /// Wait for debugger attach on launch (Android only; implies --debug)
+        #[arg(long)]
+        wait_on_launch: bool,
+        /// LLDB server port for Android debug
+        #[arg(long, default_value_t = 5039)]
+        debug_port: u16,
+    },
+    /// Start LLDB server for an already running Android app
+    Debug {
         /// LLDB server port for Android debug
         #[arg(long, default_value_t = 5039)]
         debug_port: u16,
@@ -57,8 +66,20 @@ fn main() {
         Commands::Create { name } => {
             create_project(name);
         }
-        Commands::Run { debug, debug_port } => {
-            run_auto(*debug, *debug_port).unwrap();
+        Commands::Run {
+            debug,
+            wait_on_launch,
+            debug_port,
+        } => {
+            let mut debug = *debug;
+            if *wait_on_launch && !debug {
+                eprintln!("ℹ️  --wait-on-launch implies --debug; enabling debug build.");
+                debug = true;
+            }
+            run_auto(debug, *wait_on_launch, *debug_port).unwrap();
+        }
+        Commands::Debug { debug_port } => {
+            debug_android(*debug_port).unwrap();
         }
         Commands::Build {
             platform,
@@ -139,7 +160,12 @@ pub fn extract_template(target_dir: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
+fn run_android(
+    device_serial: Option<String>,
+    debug: bool,
+    wait_on_launch: bool,
+    debug_port: u16,
+) {
     prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
 
     // 1. Pick the device first
@@ -154,10 +180,17 @@ fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
 
     println!("🎯 Target detected: {} (Device: {})", rust_target, abi);
 
+    let profile = if debug { "debug" } else { "release" };
+    let gradle_task = if debug { "installDebug" } else { "installRelease" };
+
     // 3. Compile Rust for the SPECIFIC target
     println!("🏗️  Building app for {}...", rust_target);
+    let mut cargo_args = vec!["build", "--target", rust_target];
+    if !debug {
+        cargo_args.push("--release");
+    }
     let status = Command::new("cargo")
-        .args(["build", "--target", rust_target])
+        .args(cargo_args)
         .current_dir("./rust")
         .status()
         .expect("Failed to build Rust library");
@@ -165,7 +198,7 @@ fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
     if status.success() {
         // 4. Sync assets (we pass the detected abi so we know which jniLibs folder to use)
         sync_from_crate_source();
-        sync_assets(rust_target, &abi, "debug");
+        sync_assets(rust_target, &abi, profile);
 
         // 5. Run on the specific device
         println!("📲 Installing on {}...", device_serial);
@@ -173,7 +206,7 @@ fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
         // We can pass the serial to Gradle so it targets the right device
         Command::new("./gradlew")
             .args([
-                "installDebug",
+                gradle_task,
                 &format!(
                     "-Pandroid.testInstrumentationRunnerArguments.serial={}",
                     device_serial
@@ -199,13 +232,20 @@ fn run_android(device_serial: Option<String>, debug: bool, debug_port: u16) {
             .status()
             .unwrap();
 
-        if debug {
-            start_android_debugging(&project_root, &device_serial, &abi, &app_id, debug_port);
+        if debug && wait_on_launch {
+            start_android_debugging(
+                &project_root,
+                &device_serial,
+                &abi,
+                &app_id,
+                debug_port,
+                wait_on_launch,
+            );
         }
     }
 }
 
-fn run_auto(debug: bool, debug_port: u16) -> anyhow::Result<()> {
+fn run_auto(debug: bool, wait_on_launch: bool, debug_port: u16) -> anyhow::Result<()> {
     let project_root = std::env::current_dir().unwrap();
     let mut devices = Vec::new();
 
@@ -246,8 +286,60 @@ fn run_auto(debug: bool, debug_port: u16) -> anyhow::Result<()> {
     if selected_device.ios {
         run_ios(&project_root, selected_device)?;
     } else {
-        run_android(Some(selected_device.serial.clone()), debug, debug_port);
+        run_android(
+            Some(selected_device.serial.clone()),
+            debug,
+            wait_on_launch,
+            debug_port,
+        );
     }
+
+    Ok(())
+}
+
+fn debug_android(debug_port: u16) -> anyhow::Result<()> {
+    let project_root = std::env::current_dir().unwrap();
+    let devices = get_android_devices();
+
+    if devices.is_empty() {
+        anyhow::bail!(
+            "No running Android emulator found. Start an emulator and try again."
+        );
+    }
+
+    let selected_device: &Device;
+    if devices.len() == 1 {
+        selected_device = &devices[0];
+    } else {
+        let labels: Vec<String> = devices
+            .iter()
+            .map(|d| format!("Android: {} [{}]", d.name, d.serial))
+            .collect();
+
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select a device to attach to")
+            .items(&labels)
+            .default(0)
+            .interact()?;
+
+        selected_device = &devices[selection];
+    }
+
+    let app_id = get_android_application_id(&project_root);
+    let abi = get_device_abi(&selected_device.serial);
+    println!(
+        "📱 Attaching to device: {} [{}] (ABI: {})",
+        selected_device.name, selected_device.serial, abi
+    );
+
+    start_android_debugging(
+        &project_root,
+        &selected_device.serial,
+        &abi,
+        &app_id,
+        debug_port,
+        true,
+    );
 
     Ok(())
 }
@@ -258,6 +350,7 @@ fn start_android_debugging(
     abi: &str,
     app_id: &str,
     debug_port: u16,
+    wait_on_launch: bool,
 ) {
     let adb = get_adb_path();
 
@@ -414,11 +507,16 @@ fn start_android_debugging(
                 .spawn();
         }
     } else {
-        println!("❌ App PID not found. Launch the app and re-run with --debug.");
+        println!("❌ App PID not found. Launch the app and re-run this command.");
         return;
     }
 
     println!("🪲 LLDB gdbserver started on device (port {} forwarded).", port);
+
+    if wait_on_launch {
+        println!("🧩 LLDB server ready. Attach with your debugger.");
+        return;
+    }
     // Give the server a moment to start before connecting.
     std::thread::sleep(std::time::Duration::from_millis(500));
 
@@ -738,6 +836,11 @@ fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
         .join(rust_target)
         .join(profile)
         .join(&so_name);
+    let debug_dir = so_path
+        .parent()
+        .expect("Rust target directory should exist")
+        .to_path_buf();
+    let debug_so = debug_dir.join("libpadauk.so");
 
     // Correct Android JNI folder (e.g., jniLibs/arm64-v8a)
     let dst_dir = project_root.join("android/app/src/main/jniLibs").join(abi);
@@ -745,6 +848,8 @@ fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
 
     fs::create_dir_all(&dst_dir).unwrap();
     fs::copy(&so_path, &dst_so).expect("Failed to sync .so binary");
+    // Also place a local libpadauk.so next to librust.so for debugger symbol resolution.
+    let _ = fs::copy(&so_path, &debug_so);
 
     // 2. Path where Kotlin should go
     let kotlin_out = project_root.join("android/app/src/main/kotlin");

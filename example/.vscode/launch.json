@@ -1,15 +1,5 @@
 {
   "version": "0.2.0",
-  "compounds": [
-    {
-      "name": "Padauk Debug (Android)",
-      "configurations": [
-        "Padauk Run (Debug)",
-        "Padauk Attach (Android LLDB)"
-      ],
-      "stopAll": false
-    }
-  ],
   "configurations": [
     {
       "name": "Padauk Run (Debug)",
@@ -19,6 +9,7 @@
       "args": [
         "run",
         "--debug",
+        "--wait-on-launch",
         "--debug-port",
         "5039"
       ],
@@ -34,18 +25,18 @@
       "type": "lldb",
       "request": "custom",
       "noDebug": false,
-      "preLaunchTask": "wait-lldb-port",
       "targetCreateCommands": [
-        "target create ${workspaceFolder}/rust/target/aarch64-linux-android/debug/librust.so",
-        "settings set target.exec-search-paths ${workspaceFolder}/android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a"
+        "target create ${workspaceFolder}/rust/target/aarch64-linux-android/debug/libpadauk.so",
+        "settings set target.exec-search-paths ${workspaceFolder}/android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a ${workspaceFolder}/rust/target/aarch64-linux-android/debug",
+        "target symbols add ${workspaceFolder}/rust/target/aarch64-linux-android/debug/libpadauk.so"
       ],
       "processCreateCommands": [
         "gdb-remote localhost:5039",
-        "gdb-remote localhost:5039",
-        "gdb-remote localhost:5039",
         "process handle SIGSTOP -n true -p true -s false",
         "process handle SIGSEGV -n true -p true -s false",
-        "process handle SIGBUS -n true -p true -s false",
+        "process handle SIGBUS -n true -p true -s false"
+      ],
+      "postRunCommands": [
         "process continue"
       ]
     }
