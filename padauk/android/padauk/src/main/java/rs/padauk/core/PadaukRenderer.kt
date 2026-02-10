@@ -40,6 +40,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -198,6 +199,33 @@ fun PadaukRenderer(widget: AndroidUiNode) {
             Box(modifier = widget.modifiers.toCompose()) {
                 widget.children.forEach { PadaukRenderer(it) }
             }
+        }
+
+        is AndroidUiNode.Dialog -> {
+            AlertDialog(
+                onDismissRequest = {
+                    if (widget.dismissible) {
+                        widget.dismissActionId?.let { padaukDispatchAction(it) }
+                    }
+                },
+                title = widget.title?.let { { Text(text = it) } },
+                text = { Text(text = widget.text) },
+                confirmButton = {
+                    TextButton(onClick = { padaukDispatchAction(widget.confirmActionId) }) {
+                        Text(widget.confirmLabel)
+                    }
+                },
+                dismissButton = if (widget.dismissLabel != null && widget.dismissActionId != null) {
+                    {
+                        TextButton(onClick = { padaukDispatchAction(widget.dismissActionId) }) {
+                            Text(widget.dismissLabel)
+                        }
+                    }
+                } else {
+                    null
+                },
+                modifier = widget.modifiers.toCompose(),
+            )
         }
 
         is AndroidUiNode.Scroll -> {
@@ -759,6 +787,7 @@ private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.Column -> this.modifiers
         is AndroidUiNode.Row -> this.modifiers
         is AndroidUiNode.Stack -> this.modifiers
+        is AndroidUiNode.Dialog -> this.modifiers
         is AndroidUiNode.Scroll -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers

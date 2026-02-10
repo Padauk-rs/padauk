@@ -32,6 +32,16 @@ pub enum AndroidUiNode {
         children: Vec<AndroidUiNode>,
         modifiers: Modifiers,
     },
+    Dialog {
+        title: Option<String>,
+        text: String,
+        confirm_label: String,
+        confirm_action_id: String,
+        dismiss_label: Option<String>,
+        dismiss_action_id: Option<String>,
+        dismissible: bool,
+        modifiers: Modifiers,
+    },
     Scroll {
         child: Vec<AndroidUiNode>,
         modifiers: Modifiers,

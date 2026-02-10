@@ -1619,6 +1619,22 @@ sealed class AndroidUiNode {
         companion object
     }
     
+    data class Dialog(
+        val `title`: kotlin.String?, 
+        val `text`: kotlin.String, 
+        val `confirmLabel`: kotlin.String, 
+        val `confirmActionId`: kotlin.String, 
+        val `dismissLabel`: kotlin.String?, 
+        val `dismissActionId`: kotlin.String?, 
+        val `dismissible`: kotlin.Boolean, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Scroll(
         val `child`: List<AndroidUiNode>, 
         val `modifiers`: Modifiers) : AndroidUiNode()
@@ -1784,50 +1800,60 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            4 -> AndroidUiNode.Scroll(
+            4 -> AndroidUiNode.Dialog(
+                FfiConverterOptionalString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            5 -> AndroidUiNode.Scroll(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            5 -> AndroidUiNode.Scaffold(
+            6 -> AndroidUiNode.Scaffold(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            6 -> AndroidUiNode.AppBar(
+            7 -> AndroidUiNode.AppBar(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeAppBarStyle.read(buf),
                 FfiConverterTypeAppBarStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            7 -> AndroidUiNode.Text(
+            8 -> AndroidUiNode.Text(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            8 -> AndroidUiNode.Button(
+            9 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            9 -> AndroidUiNode.IconButton(
+            10 -> AndroidUiNode.IconButton(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeIconButtonOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            10 -> AndroidUiNode.Card(
+            11 -> AndroidUiNode.Card(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            11 -> AndroidUiNode.Checkbox(
+            12 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -1836,7 +1862,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            12 -> AndroidUiNode.Chip(
+            13 -> AndroidUiNode.Chip(
                 FfiConverterString.read(buf),
                 FfiConverterTypeChipStyle.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -1847,7 +1873,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeChipStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            13 -> AndroidUiNode.Fab(
+            14 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
@@ -1855,7 +1881,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeFabOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            14 -> AndroidUiNode.Image(
+            15 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1886,6 +1912,20 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             (
                 4UL
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Dialog -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalString.allocationSize(value.`title`)
+                + FfiConverterString.allocationSize(value.`text`)
+                + FfiConverterString.allocationSize(value.`confirmLabel`)
+                + FfiConverterString.allocationSize(value.`confirmActionId`)
+                + FfiConverterOptionalString.allocationSize(value.`dismissLabel`)
+                + FfiConverterOptionalString.allocationSize(value.`dismissActionId`)
+                + FfiConverterBoolean.allocationSize(value.`dismissible`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -2031,14 +2071,26 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Scroll -> {
+            is AndroidUiNode.Dialog -> {
                 buf.putInt(4)
+                FfiConverterOptionalString.write(value.`title`, buf)
+                FfiConverterString.write(value.`text`, buf)
+                FfiConverterString.write(value.`confirmLabel`, buf)
+                FfiConverterString.write(value.`confirmActionId`, buf)
+                FfiConverterOptionalString.write(value.`dismissLabel`, buf)
+                FfiConverterOptionalString.write(value.`dismissActionId`, buf)
+                FfiConverterBoolean.write(value.`dismissible`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Scroll -> {
+                buf.putInt(5)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`child`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Scaffold -> {
-                buf.putInt(5)
+                buf.putInt(6)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`appBar`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`body`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`floatingActionButton`, buf)
@@ -2046,7 +2098,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.AppBar -> {
-                buf.putInt(6)
+                buf.putInt(7)
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeAppBarStyle.write(value.`style`, buf)
@@ -2055,14 +2107,14 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Text -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Button -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeButtonStyle.write(value.`style`, buf)
@@ -2071,7 +2123,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.IconButton -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
@@ -2080,7 +2132,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Card -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
@@ -2089,7 +2141,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Checkbox -> {
-                buf.putInt(11)
+                buf.putInt(12)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterBoolean.write(value.`enabled`, buf)
@@ -2100,7 +2152,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Chip -> {
-                buf.putInt(12)
+                buf.putInt(13)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterTypeChipStyle.write(value.`style`, buf)
                 FfiConverterBoolean.write(value.`selected`, buf)
@@ -2113,7 +2165,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Fab -> {
-                buf.putInt(13)
+                buf.putInt(14)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -2123,7 +2175,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(14)
+                buf.putInt(15)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -2718,6 +2770,22 @@ sealed class IosUiNode {
         companion object
     }
     
+    data class Dialog(
+        val `title`: kotlin.String?, 
+        val `text`: kotlin.String, 
+        val `confirmLabel`: kotlin.String, 
+        val `confirmActionId`: kotlin.String, 
+        val `dismissLabel`: kotlin.String?, 
+        val `dismissActionId`: kotlin.String?, 
+        val `dismissible`: kotlin.Boolean, 
+        val `attributes`: Modifiers) : IosUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class ScrollView(
         val `views`: List<IosUiNode>, 
         val `attributes`: Modifiers) : IosUiNode()
@@ -2765,16 +2833,26 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
                 FfiConverterSequenceTypeIosUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            2 -> IosUiNode.ScrollView(
+            2 -> IosUiNode.Dialog(
+                FfiConverterOptionalString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            3 -> IosUiNode.ScrollView(
                 FfiConverterSequenceTypeIosUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            3 -> IosUiNode.Label(
+            4 -> IosUiNode.Label(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            4 -> IosUiNode.Button(
+            5 -> IosUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeIosUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -2789,6 +2867,20 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
             (
                 4UL
                 + FfiConverterSequenceTypeIosUiNode.allocationSize(value.`views`)
+                + FfiConverterTypeModifiers.allocationSize(value.`attributes`)
+            )
+        }
+        is IosUiNode.Dialog -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalString.allocationSize(value.`title`)
+                + FfiConverterString.allocationSize(value.`text`)
+                + FfiConverterString.allocationSize(value.`confirmLabel`)
+                + FfiConverterString.allocationSize(value.`confirmActionId`)
+                + FfiConverterOptionalString.allocationSize(value.`dismissLabel`)
+                + FfiConverterOptionalString.allocationSize(value.`dismissActionId`)
+                + FfiConverterBoolean.allocationSize(value.`dismissible`)
                 + FfiConverterTypeModifiers.allocationSize(value.`attributes`)
             )
         }
@@ -2828,21 +2920,33 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
                 Unit
             }
-            is IosUiNode.ScrollView -> {
+            is IosUiNode.Dialog -> {
                 buf.putInt(2)
+                FfiConverterOptionalString.write(value.`title`, buf)
+                FfiConverterString.write(value.`text`, buf)
+                FfiConverterString.write(value.`confirmLabel`, buf)
+                FfiConverterString.write(value.`confirmActionId`, buf)
+                FfiConverterOptionalString.write(value.`dismissLabel`, buf)
+                FfiConverterOptionalString.write(value.`dismissActionId`, buf)
+                FfiConverterBoolean.write(value.`dismissible`, buf)
+                FfiConverterTypeModifiers.write(value.`attributes`, buf)
+                Unit
+            }
+            is IosUiNode.ScrollView -> {
+                buf.putInt(3)
                 FfiConverterSequenceTypeIosUiNode.write(value.`views`, buf)
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
                 Unit
             }
             is IosUiNode.Label -> {
-                buf.putInt(3)
+                buf.putInt(4)
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterFloat.write(value.`ptSize`, buf)
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
                 Unit
             }
             is IosUiNode.Button -> {
-                buf.putInt(4)
+                buf.putInt(5)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeIosUiNode.write(value.`label`, buf)
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)

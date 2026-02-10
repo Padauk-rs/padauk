@@ -8,6 +8,16 @@ pub enum IosUiNode {
         views: Vec<IosUiNode>,
         attributes: Modifiers,
     },
+    Dialog {
+        title: Option<String>,
+        text: String,
+        confirm_label: String,
+        confirm_action_id: String,
+        dismiss_label: Option<String>,
+        dismiss_action_id: Option<String>,
+        dismissible: bool,
+        attributes: Modifiers,
+    },
     ScrollView {
         views: Vec<IosUiNode>,
         attributes: Modifiers,
