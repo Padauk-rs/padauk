@@ -9,7 +9,7 @@
       "args": [
         "run",
         "--debug",
-        "--wait-on-launch",
+        // "--wait-on-launch",
         "--debug-port",
         "5039"
       ],

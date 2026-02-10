@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 use dialoguer::{Select, theme::ColorfulTheme};
 use serde_json::Value;
 use std::io::Cursor;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 use std::{env, fs};
@@ -831,11 +831,8 @@ fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
     let so_name = "librust.so";
 
     // Rust target folder (e.g., target/aarch64-linux-android/debug)
-    let so_path = project_root
-        .join("rust/target")
-        .join(rust_target)
-        .join(profile)
-        .join(&so_name);
+    let target_dir = cargo_target_dir(&project_root).unwrap_or_else(|| project_root.join("rust/target"));
+    let so_path = target_dir.join(rust_target).join(profile).join(&so_name);
     let debug_dir = so_path
         .parent()
         .expect("Rust target directory should exist")
@@ -857,6 +854,25 @@ fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
 
     // Generate bindings using the embedded logic
     run_internal_bindgen(dst_so.to_path_buf(), kotlin_out.to_path_buf());
+}
+
+fn cargo_target_dir(project_root: &Path) -> Option<PathBuf> {
+    let output = Command::new("cargo")
+        .args(["metadata", "--format-version", "1", "--no-deps"])
+        .current_dir(project_root)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    let metadata: Value = serde_json::from_str(&stdout).ok()?;
+    metadata
+        .get("target_directory")
+        .and_then(|value| value.as_str())
+        .map(PathBuf::from)
 }
 
 fn build_android(release: bool, abi_list: Option<&str>) -> anyhow::Result<()> {
