@@ -1467,13 +1467,43 @@ public object FfiConverterTypeIconButtonOptions: FfiConverterRustBuffer<IconButt
 
 
 data class Modifiers (
-    var `padding`: kotlin.Float
+    var `padding`: kotlin.Float?
     , 
-    var `backgroundColor`: kotlin.String?
+    var `paddingHorizontal`: kotlin.Float?
+    , 
+    var `paddingVertical`: kotlin.Float?
+    , 
+    var `backgroundColor`: ColorValue?
     , 
     var `width`: kotlin.Float?
     , 
     var `height`: kotlin.Float?
+    , 
+    var `fillMaxWidth`: kotlin.Boolean
+    , 
+    var `fillMaxHeight`: kotlin.Boolean
+    , 
+    var `weight`: kotlin.Float?
+    , 
+    var `weightFill`: kotlin.Boolean?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `alpha`: kotlin.Float?
+    , 
+    var `clip`: kotlin.Boolean
+    , 
+    var `cornerRadius`: kotlin.Float?
+    , 
+    var `offsetX`: kotlin.Float?
+    , 
+    var `offsetY`: kotlin.Float?
+    , 
+    var `zIndex`: kotlin.Float?
+    , 
+    var `enabled`: kotlin.Boolean?
     
 ){
     
@@ -1488,25 +1518,70 @@ data class Modifiers (
 public object FfiConverterTypeModifiers: FfiConverterRustBuffer<Modifiers> {
     override fun read(buf: ByteBuffer): Modifiers {
         return Modifiers(
-            FfiConverterFloat.read(buf),
-            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalFloat.read(buf),
             FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: Modifiers) = (
-            FfiConverterFloat.allocationSize(value.`padding`) +
-            FfiConverterOptionalString.allocationSize(value.`backgroundColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`padding`) +
+            FfiConverterOptionalFloat.allocationSize(value.`paddingHorizontal`) +
+            FfiConverterOptionalFloat.allocationSize(value.`paddingVertical`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`backgroundColor`) +
             FfiConverterOptionalFloat.allocationSize(value.`width`) +
-            FfiConverterOptionalFloat.allocationSize(value.`height`)
+            FfiConverterOptionalFloat.allocationSize(value.`height`) +
+            FfiConverterBoolean.allocationSize(value.`fillMaxWidth`) +
+            FfiConverterBoolean.allocationSize(value.`fillMaxHeight`) +
+            FfiConverterOptionalFloat.allocationSize(value.`weight`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`weightFill`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`alpha`) +
+            FfiConverterBoolean.allocationSize(value.`clip`) +
+            FfiConverterOptionalFloat.allocationSize(value.`cornerRadius`) +
+            FfiConverterOptionalFloat.allocationSize(value.`offsetX`) +
+            FfiConverterOptionalFloat.allocationSize(value.`offsetY`) +
+            FfiConverterOptionalFloat.allocationSize(value.`zIndex`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`enabled`)
     )
 
     override fun write(value: Modifiers, buf: ByteBuffer) {
-            FfiConverterFloat.write(value.`padding`, buf)
-            FfiConverterOptionalString.write(value.`backgroundColor`, buf)
+            FfiConverterOptionalFloat.write(value.`padding`, buf)
+            FfiConverterOptionalFloat.write(value.`paddingHorizontal`, buf)
+            FfiConverterOptionalFloat.write(value.`paddingVertical`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`backgroundColor`, buf)
             FfiConverterOptionalFloat.write(value.`width`, buf)
             FfiConverterOptionalFloat.write(value.`height`, buf)
+            FfiConverterBoolean.write(value.`fillMaxWidth`, buf)
+            FfiConverterBoolean.write(value.`fillMaxHeight`, buf)
+            FfiConverterOptionalFloat.write(value.`weight`, buf)
+            FfiConverterOptionalBoolean.write(value.`weightFill`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`alpha`, buf)
+            FfiConverterBoolean.write(value.`clip`, buf)
+            FfiConverterOptionalFloat.write(value.`cornerRadius`, buf)
+            FfiConverterOptionalFloat.write(value.`offsetX`, buf)
+            FfiConverterOptionalFloat.write(value.`offsetY`, buf)
+            FfiConverterOptionalFloat.write(value.`zIndex`, buf)
+            FfiConverterOptionalBoolean.write(value.`enabled`, buf)
     }
 }
 
@@ -1536,6 +1611,16 @@ sealed class AndroidUiNode {
     
     data class Stack(
         val `children`: List<AndroidUiNode>, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Scroll(
+        val `child`: List<AndroidUiNode>, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -1699,46 +1784,50 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            4 -> AndroidUiNode.Scaffold(
+            4 -> AndroidUiNode.Scroll(
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            5 -> AndroidUiNode.Scaffold(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            5 -> AndroidUiNode.AppBar(
+            6 -> AndroidUiNode.AppBar(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeAppBarStyle.read(buf),
                 FfiConverterTypeAppBarStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            6 -> AndroidUiNode.Text(
+            7 -> AndroidUiNode.Text(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            7 -> AndroidUiNode.Button(
+            8 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            8 -> AndroidUiNode.IconButton(
+            9 -> AndroidUiNode.IconButton(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeIconButtonOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            9 -> AndroidUiNode.Card(
+            10 -> AndroidUiNode.Card(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            10 -> AndroidUiNode.Checkbox(
+            11 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -1747,7 +1836,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            11 -> AndroidUiNode.Chip(
+            12 -> AndroidUiNode.Chip(
                 FfiConverterString.read(buf),
                 FfiConverterTypeChipStyle.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -1758,7 +1847,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeChipStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            12 -> AndroidUiNode.Fab(
+            13 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
@@ -1766,7 +1855,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeFabOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            13 -> AndroidUiNode.Image(
+            14 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -1797,6 +1886,14 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
             (
                 4UL
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`children`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Scroll -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`child`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -1934,8 +2031,14 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Scaffold -> {
+            is AndroidUiNode.Scroll -> {
                 buf.putInt(4)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`child`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Scaffold -> {
+                buf.putInt(5)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`appBar`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`body`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`floatingActionButton`, buf)
@@ -1943,7 +2046,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.AppBar -> {
-                buf.putInt(5)
+                buf.putInt(6)
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`leading`, buf)
                 FfiConverterTypeAppBarStyle.write(value.`style`, buf)
@@ -1952,14 +2055,14 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Text -> {
-                buf.putInt(6)
+                buf.putInt(7)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.Button -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeButtonStyle.write(value.`style`, buf)
@@ -1968,7 +2071,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.IconButton -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
@@ -1977,7 +2080,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Card -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
@@ -1986,7 +2089,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Checkbox -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterBoolean.write(value.`enabled`, buf)
@@ -1997,7 +2100,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Chip -> {
-                buf.putInt(11)
+                buf.putInt(12)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterTypeChipStyle.write(value.`style`, buf)
                 FfiConverterBoolean.write(value.`selected`, buf)
@@ -2010,7 +2113,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Fab -> {
-                buf.putInt(12)
+                buf.putInt(13)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -2020,7 +2123,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(13)
+                buf.putInt(14)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -2615,6 +2718,16 @@ sealed class IosUiNode {
         companion object
     }
     
+    data class ScrollView(
+        val `views`: List<IosUiNode>, 
+        val `attributes`: Modifiers) : IosUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Label(
         val `title`: kotlin.String, 
         val `ptSize`: kotlin.Float, 
@@ -2652,12 +2765,16 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
                 FfiConverterSequenceTypeIosUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            2 -> IosUiNode.Label(
+            2 -> IosUiNode.ScrollView(
+                FfiConverterSequenceTypeIosUiNode.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            3 -> IosUiNode.Label(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            3 -> IosUiNode.Button(
+            4 -> IosUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeIosUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -2668,6 +2785,14 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
 
     override fun allocationSize(value: IosUiNode) = when(value) {
         is IosUiNode.VStack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeIosUiNode.allocationSize(value.`views`)
+                + FfiConverterTypeModifiers.allocationSize(value.`attributes`)
+            )
+        }
+        is IosUiNode.ScrollView -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -2703,15 +2828,21 @@ public object FfiConverterTypeIosUiNode : FfiConverterRustBuffer<IosUiNode>{
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
                 Unit
             }
-            is IosUiNode.Label -> {
+            is IosUiNode.ScrollView -> {
                 buf.putInt(2)
+                FfiConverterSequenceTypeIosUiNode.write(value.`views`, buf)
+                FfiConverterTypeModifiers.write(value.`attributes`, buf)
+                Unit
+            }
+            is IosUiNode.Label -> {
+                buf.putInt(3)
                 FfiConverterString.write(value.`title`, buf)
                 FfiConverterFloat.write(value.`ptSize`, buf)
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
                 Unit
             }
             is IosUiNode.Button -> {
-                buf.putInt(3)
+                buf.putInt(4)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeIosUiNode.write(value.`label`, buf)
                 FfiConverterTypeModifiers.write(value.`attributes`, buf)
@@ -2990,6 +3121,38 @@ public object FfiConverterOptionalFloat: FfiConverterRustBuffer<kotlin.Float?> {
         } else {
             buf.put(1)
             FfiConverterFloat.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalBoolean: FfiConverterRustBuffer<kotlin.Boolean?> {
+    override fun read(buf: ByteBuffer): kotlin.Boolean? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterBoolean.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.Boolean?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterBoolean.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.Boolean?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterBoolean.write(value, buf)
         }
     }
 }

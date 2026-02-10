@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -158,19 +160,55 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = widget.modifiers.toCompose()
             ) {
-                widget.children.forEach { PadaukRenderer(it) }
+                val columnScope = this
+                widget.children.forEach { child ->
+                    val childModifiers = child.modifiersOrNull()
+                    val weight = childModifiers?.weight
+                    if (weight != null) {
+                        val fill = childModifiers.weightFill ?: true
+                        Box(modifier = with(columnScope) { Modifier.weight(weight, fill) }) {
+                            PadaukRenderer(child)
+                        }
+                    } else {
+                        PadaukRenderer(child)
+                    }
+                }
             }
         }
 
         is AndroidUiNode.Row -> {
             Row(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it) }
+                val rowScope = this
+                widget.children.forEach { child ->
+                    val childModifiers = child.modifiersOrNull()
+                    val weight = childModifiers?.weight
+                    if (weight != null) {
+                        val fill = childModifiers.weightFill ?: true
+                        Box(modifier = with(rowScope) { Modifier.weight(weight, fill) }) {
+                            PadaukRenderer(child)
+                        }
+                    } else {
+                        PadaukRenderer(child)
+                    }
+                }
             }
         }
 
         is AndroidUiNode.Stack -> {
             Box(modifier = widget.modifiers.toCompose()) {
                 widget.children.forEach { PadaukRenderer(it) }
+            }
+        }
+
+        is AndroidUiNode.Scroll -> {
+            val child = widget.child.firstOrNull()
+            val scroll = rememberScrollState()
+            Box(
+                modifier = widget.modifiers.toCompose().verticalScroll(scroll)
+            ) {
+                if (child != null) {
+                    PadaukRenderer(child)
+                }
             }
         }
 
@@ -713,6 +751,25 @@ fun PadaukRenderer(widget: AndroidUiNode) {
 //                modifier = composeModifier
 //            )
 //        }
+    }
+}
+
+private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
+    return when (this) {
+        is AndroidUiNode.Column -> this.modifiers
+        is AndroidUiNode.Row -> this.modifiers
+        is AndroidUiNode.Stack -> this.modifiers
+        is AndroidUiNode.Scroll -> this.modifiers
+        is AndroidUiNode.Scaffold -> this.modifiers
+        is AndroidUiNode.AppBar -> this.modifiers
+        is AndroidUiNode.Text -> this.modifiers
+        is AndroidUiNode.Button -> this.modifiers
+        is AndroidUiNode.IconButton -> this.modifiers
+        is AndroidUiNode.Card -> this.modifiers
+        is AndroidUiNode.Checkbox -> this.modifiers
+        is AndroidUiNode.Chip -> this.modifiers
+        is AndroidUiNode.Fab -> this.modifiers
+        is AndroidUiNode.Image -> this.modifiers
     }
 }
 
