@@ -42,6 +42,16 @@ pub enum AndroidUiNode {
         dismissible: bool,
         modifiers: Modifiers,
     },
+    FullscreenDialog {
+        title: String,
+        content: Vec<AndroidUiNode>,
+        confirm_label: Option<String>,
+        confirm_action_id: Option<String>,
+        dismiss_label: String,
+        dismiss_action_id: String,
+        dismissible: bool,
+        modifiers: Modifiers,
+    },
     Scroll {
         child: Vec<AndroidUiNode>,
         modifiers: Modifiers,

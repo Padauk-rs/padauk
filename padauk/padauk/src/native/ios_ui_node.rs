@@ -18,6 +18,16 @@ pub enum IosUiNode {
         dismissible: bool,
         attributes: Modifiers,
     },
+    FullscreenDialog {
+        title: String,
+        content: Vec<IosUiNode>,
+        confirm_label: Option<String>,
+        confirm_action_id: Option<String>,
+        dismiss_label: String,
+        dismiss_action_id: String,
+        dismissible: bool,
+        attributes: Modifiers,
+    },
     ScrollView {
         views: Vec<IosUiNode>,
         attributes: Modifiers,

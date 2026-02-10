@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -68,6 +70,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import rs.padauk.core.widget.PadaukImage
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
@@ -226,6 +230,47 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 },
                 modifier = widget.modifiers.toCompose(),
             )
+        }
+
+        is AndroidUiNode.FullscreenDialog -> {
+            Dialog(
+                onDismissRequest = {
+                    if (widget.dismissible) {
+                        padaukDispatchAction(widget.dismissActionId)
+                    }
+                },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+            ) {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(widget.title) },
+                                navigationIcon = {
+                                    IconButton(onClick = { padaukDispatchAction(widget.dismissActionId) }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = widget.dismissLabel,
+                                        )
+                                    }
+                                },
+                                actions = {
+                                    if (widget.confirmLabel != null && widget.confirmActionId != null) {
+                                        TextButton(onClick = { padaukDispatchAction(widget.confirmActionId) }) {
+                                            Text(widget.confirmLabel)
+                                        }
+                                    }
+                                },
+                            )
+                        },
+                        modifier = widget.modifiers.toCompose(),
+                    ) { innerPadding ->
+                        Box(modifier = Modifier.padding(innerPadding)) {
+                            widget.content.firstOrNull()?.let { PadaukRenderer(it) }
+                        }
+                    }
+                }
+            }
         }
 
         is AndroidUiNode.Scroll -> {
@@ -788,6 +833,7 @@ private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.Row -> this.modifiers
         is AndroidUiNode.Stack -> this.modifiers
         is AndroidUiNode.Dialog -> this.modifiers
+        is AndroidUiNode.FullscreenDialog -> this.modifiers
         is AndroidUiNode.Scroll -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
