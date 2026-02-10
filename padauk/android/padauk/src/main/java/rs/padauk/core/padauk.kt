@@ -1467,13 +1467,43 @@ public object FfiConverterTypeIconButtonOptions: FfiConverterRustBuffer<IconButt
 
 
 data class Modifiers (
-    var `padding`: kotlin.Float
+    var `padding`: kotlin.Float?
     , 
-    var `backgroundColor`: kotlin.String?
+    var `paddingHorizontal`: kotlin.Float?
+    , 
+    var `paddingVertical`: kotlin.Float?
+    , 
+    var `backgroundColor`: ColorValue?
     , 
     var `width`: kotlin.Float?
     , 
     var `height`: kotlin.Float?
+    , 
+    var `fillMaxWidth`: kotlin.Boolean
+    , 
+    var `fillMaxHeight`: kotlin.Boolean
+    , 
+    var `weight`: kotlin.Float?
+    , 
+    var `weightFill`: kotlin.Boolean?
+    , 
+    var `borderWidth`: kotlin.Float?
+    , 
+    var `borderColor`: ColorValue?
+    , 
+    var `alpha`: kotlin.Float?
+    , 
+    var `clip`: kotlin.Boolean
+    , 
+    var `cornerRadius`: kotlin.Float?
+    , 
+    var `offsetX`: kotlin.Float?
+    , 
+    var `offsetY`: kotlin.Float?
+    , 
+    var `zIndex`: kotlin.Float?
+    , 
+    var `enabled`: kotlin.Boolean?
     
 ){
     
@@ -1488,25 +1518,70 @@ data class Modifiers (
 public object FfiConverterTypeModifiers: FfiConverterRustBuffer<Modifiers> {
     override fun read(buf: ByteBuffer): Modifiers {
         return Modifiers(
-            FfiConverterFloat.read(buf),
-            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalFloat.read(buf),
             FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: Modifiers) = (
-            FfiConverterFloat.allocationSize(value.`padding`) +
-            FfiConverterOptionalString.allocationSize(value.`backgroundColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`padding`) +
+            FfiConverterOptionalFloat.allocationSize(value.`paddingHorizontal`) +
+            FfiConverterOptionalFloat.allocationSize(value.`paddingVertical`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`backgroundColor`) +
             FfiConverterOptionalFloat.allocationSize(value.`width`) +
-            FfiConverterOptionalFloat.allocationSize(value.`height`)
+            FfiConverterOptionalFloat.allocationSize(value.`height`) +
+            FfiConverterBoolean.allocationSize(value.`fillMaxWidth`) +
+            FfiConverterBoolean.allocationSize(value.`fillMaxHeight`) +
+            FfiConverterOptionalFloat.allocationSize(value.`weight`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`weightFill`) +
+            FfiConverterOptionalFloat.allocationSize(value.`borderWidth`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`borderColor`) +
+            FfiConverterOptionalFloat.allocationSize(value.`alpha`) +
+            FfiConverterBoolean.allocationSize(value.`clip`) +
+            FfiConverterOptionalFloat.allocationSize(value.`cornerRadius`) +
+            FfiConverterOptionalFloat.allocationSize(value.`offsetX`) +
+            FfiConverterOptionalFloat.allocationSize(value.`offsetY`) +
+            FfiConverterOptionalFloat.allocationSize(value.`zIndex`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`enabled`)
     )
 
     override fun write(value: Modifiers, buf: ByteBuffer) {
-            FfiConverterFloat.write(value.`padding`, buf)
-            FfiConverterOptionalString.write(value.`backgroundColor`, buf)
+            FfiConverterOptionalFloat.write(value.`padding`, buf)
+            FfiConverterOptionalFloat.write(value.`paddingHorizontal`, buf)
+            FfiConverterOptionalFloat.write(value.`paddingVertical`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`backgroundColor`, buf)
             FfiConverterOptionalFloat.write(value.`width`, buf)
             FfiConverterOptionalFloat.write(value.`height`, buf)
+            FfiConverterBoolean.write(value.`fillMaxWidth`, buf)
+            FfiConverterBoolean.write(value.`fillMaxHeight`, buf)
+            FfiConverterOptionalFloat.write(value.`weight`, buf)
+            FfiConverterOptionalBoolean.write(value.`weightFill`, buf)
+            FfiConverterOptionalFloat.write(value.`borderWidth`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`borderColor`, buf)
+            FfiConverterOptionalFloat.write(value.`alpha`, buf)
+            FfiConverterBoolean.write(value.`clip`, buf)
+            FfiConverterOptionalFloat.write(value.`cornerRadius`, buf)
+            FfiConverterOptionalFloat.write(value.`offsetX`, buf)
+            FfiConverterOptionalFloat.write(value.`offsetY`, buf)
+            FfiConverterOptionalFloat.write(value.`zIndex`, buf)
+            FfiConverterOptionalBoolean.write(value.`enabled`, buf)
     }
 }
 
@@ -2990,6 +3065,38 @@ public object FfiConverterOptionalFloat: FfiConverterRustBuffer<kotlin.Float?> {
         } else {
             buf.put(1)
             FfiConverterFloat.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalBoolean: FfiConverterRustBuffer<kotlin.Boolean?> {
+    override fun read(buf: ByteBuffer): kotlin.Boolean? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterBoolean.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.Boolean?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterBoolean.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.Boolean?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterBoolean.write(value, buf)
         }
     }
 }

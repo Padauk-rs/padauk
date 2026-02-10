@@ -158,13 +158,37 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = widget.modifiers.toCompose()
             ) {
-                widget.children.forEach { PadaukRenderer(it) }
+                val columnScope = this
+                widget.children.forEach { child ->
+                    val childModifiers = child.modifiersOrNull()
+                    val weight = childModifiers?.weight
+                    if (weight != null) {
+                        val fill = childModifiers.weightFill ?: true
+                        Box(modifier = with(columnScope) { Modifier.weight(weight, fill) }) {
+                            PadaukRenderer(child)
+                        }
+                    } else {
+                        PadaukRenderer(child)
+                    }
+                }
             }
         }
 
         is AndroidUiNode.Row -> {
             Row(modifier = widget.modifiers.toCompose()) {
-                widget.children.forEach { PadaukRenderer(it) }
+                val rowScope = this
+                widget.children.forEach { child ->
+                    val childModifiers = child.modifiersOrNull()
+                    val weight = childModifiers?.weight
+                    if (weight != null) {
+                        val fill = childModifiers.weightFill ?: true
+                        Box(modifier = with(rowScope) { Modifier.weight(weight, fill) }) {
+                            PadaukRenderer(child)
+                        }
+                    } else {
+                        PadaukRenderer(child)
+                    }
+                }
             }
         }
 
@@ -713,6 +737,24 @@ fun PadaukRenderer(widget: AndroidUiNode) {
 //                modifier = composeModifier
 //            )
 //        }
+    }
+}
+
+private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
+    return when (this) {
+        is AndroidUiNode.Column -> this.modifiers
+        is AndroidUiNode.Row -> this.modifiers
+        is AndroidUiNode.Stack -> this.modifiers
+        is AndroidUiNode.Scaffold -> this.modifiers
+        is AndroidUiNode.AppBar -> this.modifiers
+        is AndroidUiNode.Text -> this.modifiers
+        is AndroidUiNode.Button -> this.modifiers
+        is AndroidUiNode.IconButton -> this.modifiers
+        is AndroidUiNode.Card -> this.modifiers
+        is AndroidUiNode.Checkbox -> this.modifiers
+        is AndroidUiNode.Chip -> this.modifiers
+        is AndroidUiNode.Fab -> this.modifiers
+        is AndroidUiNode.Image -> this.modifiers
     }
 }
 
