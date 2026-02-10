@@ -1,12 +1,14 @@
+use padauk::prelude::{color_hex, CardShape, CardStyleOptions};
 use padauk::{app_bar, card, column, text, Widget};
-use padauk::prelude::{CardShape, CardStyleOptions, color_hex};
 
 use crate::example_layout::example_screen;
 
 const CODE: &str = r##"card(vec![
     Box::new(text("Filled card")),
     Box::new(text("Cards provide flexible containers for content.")),
-]).options(options);"##;
+])
+    .options(options)
+    .action(|| {});"##;
 
 pub struct FilledCardScreen;
 
@@ -26,7 +28,7 @@ impl Widget for FilledCardScreen {
             Box::new(text("Cards provide flexible containers for content.")),
         ])
         .options(options)
-        .on_click(|| {});
+        .action(|| {});
 
         example_screen(app_bar("Filled Card"), column(vec![Box::new(c)]), CODE)
     }
