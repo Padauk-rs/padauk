@@ -7,6 +7,7 @@ mod buttons;
 mod cards;
 mod checkboxes;
 mod chips;
+mod scroll;
 mod state_demo;
 mod generated;
 mod home_screen;

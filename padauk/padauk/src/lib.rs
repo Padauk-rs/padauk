@@ -24,7 +24,7 @@ pub mod prelude {
         checkbox, elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small,
         filled_button, filled_icon_button, filled_tonal_button, filled_tonal_icon_button,
         filter_chip, icon_button, input_chip, outlined_button, outlined_card, outlined_icon_button,
-        scaffold, suggestion_chip, text_button,
+        scaffold, scroll, suggestion_chip, text_button,
     };
 }
 

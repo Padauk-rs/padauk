@@ -32,6 +32,10 @@ pub enum AndroidUiNode {
         children: Vec<AndroidUiNode>,
         modifiers: Modifiers,
     },
+    Scroll {
+        child: Vec<AndroidUiNode>,
+        modifiers: Modifiers,
+    },
 
     // --- Phase 1: Structural Components ---
     Scaffold {

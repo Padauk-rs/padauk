@@ -8,6 +8,10 @@ pub enum IosUiNode {
         views: Vec<IosUiNode>,
         attributes: Modifiers,
     },
+    ScrollView {
+        views: Vec<IosUiNode>,
+        attributes: Modifiers,
+    },
     Label {
         title: String,
         pt_size: f32, // iOS uses Points

@@ -134,6 +134,50 @@ pub fn scaffold(body: impl Widget + 'static) -> Scaffold {
 }
 
 // ==========================
+//      SCROLL VIEW
+// ==========================
+
+pub struct Scroll {
+    pub child: Box<dyn Widget>,
+    pub modifiers: Modifiers,
+}
+
+impl Scroll {
+    pub fn new(child: impl Widget + 'static) -> Self {
+        Self {
+            child: Box::new(child),
+            modifiers: Modifiers::default(),
+        }
+    }
+}
+
+impl_modifiers!(Scroll);
+
+impl Widget for Scroll {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::ScrollView {
+                views: vec![self.child.build()],
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Scroll {
+                child: vec![self.child.build()],
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+pub fn scroll(child: impl Widget + 'static) -> Scroll {
+    Scroll::new(child)
+}
+
+// ==========================
 //      APP BAR WIDGET
 // ==========================
 

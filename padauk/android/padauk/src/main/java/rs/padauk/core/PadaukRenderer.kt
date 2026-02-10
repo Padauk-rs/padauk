@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -195,6 +197,18 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         is AndroidUiNode.Stack -> {
             Box(modifier = widget.modifiers.toCompose()) {
                 widget.children.forEach { PadaukRenderer(it) }
+            }
+        }
+
+        is AndroidUiNode.Scroll -> {
+            val child = widget.child.firstOrNull()
+            val scroll = rememberScrollState()
+            Box(
+                modifier = widget.modifiers.toCompose().verticalScroll(scroll)
+            ) {
+                if (child != null) {
+                    PadaukRenderer(child)
+                }
             }
         }
 
@@ -745,6 +759,7 @@ private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.Column -> this.modifiers
         is AndroidUiNode.Row -> this.modifiers
         is AndroidUiNode.Stack -> this.modifiers
+        is AndroidUiNode.Scroll -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
         is AndroidUiNode.Text -> this.modifiers

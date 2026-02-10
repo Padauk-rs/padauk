@@ -11,6 +11,7 @@ use crate::cards::menu::CardsMenu;
 use crate::checkboxes::demo::CheckboxDemo;
 use crate::chips::menu::ChipsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
+use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
 
 pub struct HomeScreen;
@@ -36,6 +37,9 @@ impl Widget for HomeScreen {
             }),
             button("Chips", || {
                 Navigator::push(Route::new("chips", || ChipsMenu {}));
+            }),
+            button("Scroll", || {
+                Navigator::push(Route::new("scroll_demo", || ScrollDemoScreen {}));
             }),
             button("State", || {
                 Navigator::push(Route::new("state_demo", || StateDemoScreen {}));
