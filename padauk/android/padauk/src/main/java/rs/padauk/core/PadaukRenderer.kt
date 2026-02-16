@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -43,6 +46,11 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -72,9 +80,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.text.style.TextOverflow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import rs.padauk.core.widget.PadaukImage
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
+import rs.padauk.core.padaukDispatchActionWithString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -267,6 +280,107 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                     ) { innerPadding ->
                         Box(modifier = Modifier.padding(innerPadding)) {
                             widget.content.firstOrNull()?.let { PadaukRenderer(it) }
+                        }
+                    }
+                }
+            }
+        }
+
+        is AndroidUiNode.DatePickerDialog -> {
+            val state = rememberDatePickerState(
+                initialSelectedDateMillis = widget.initialSelectedMillis
+            )
+            DatePickerDialog(
+                onDismissRequest = {
+                    if (widget.dismissible) {
+                        widget.dismissActionId?.let { padaukDispatchAction(it) }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val millis = state.selectedDateMillis
+                        if (millis != null) {
+                            padaukDispatchActionWithString(widget.confirmActionId, millis.toString())
+                        }
+                    }) {
+                        Text(widget.confirmLabel)
+                    }
+                },
+                dismissButton = if (widget.dismissLabel != null && widget.dismissActionId != null) {
+                    {
+                        TextButton(onClick = { padaukDispatchAction(widget.dismissActionId) }) {
+                            Text(widget.dismissLabel)
+                        }
+                    }
+                } else {
+                    null
+                },
+            ) {
+                DatePicker(
+                    state = state,
+                    showModeToggle = widget.showModeToggle,
+                )
+            }
+        }
+
+        is AndroidUiNode.DateRangePickerDialog -> {
+            val state = rememberDateRangePickerState(
+                initialSelectedStartDateMillis = widget.initialStartMillis,
+                initialSelectedEndDateMillis = widget.initialEndMillis,
+            )
+            Dialog(
+                onDismissRequest = {
+                    if (widget.dismissible) {
+                        widget.dismissActionId?.let { padaukDispatchAction(it) }
+                    }
+                },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+            ) {
+                Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                        DateRangePicker(
+                            state = state,
+                            title = widget.title?.let {
+                                {
+                                    Text(
+                                        text = it,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.labelLarge,
+                                    )
+                                }
+                            },
+                            headline = {
+                                Text(
+                                    text = formatDateRangeHeadline(
+                                        state.selectedStartDateMillis,
+                                        state.selectedEndDateMillis,
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 16.sp,
+                                )
+                            },
+                            showModeToggle = widget.showModeToggle,
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            if (widget.dismissLabel != null && widget.dismissActionId != null) {
+                                TextButton(onClick = { padaukDispatchAction(widget.dismissActionId) }) {
+                                    Text(widget.dismissLabel)
+                                }
+                            }
+                            TextButton(onClick = {
+                                val start = state.selectedStartDateMillis
+                                val end = state.selectedEndDateMillis
+                                val payload = "${start ?: ""}|${end ?: ""}"
+                                padaukDispatchActionWithString(widget.confirmActionId, payload)
+                            }) {
+                                Text(widget.confirmLabel)
+                            }
                         }
                     }
                 }
@@ -834,6 +948,8 @@ private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.Stack -> this.modifiers
         is AndroidUiNode.Dialog -> this.modifiers
         is AndroidUiNode.FullscreenDialog -> this.modifiers
+        is AndroidUiNode.DatePickerDialog -> this.modifiers
+        is AndroidUiNode.DateRangePickerDialog -> this.modifiers
         is AndroidUiNode.Scroll -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
@@ -865,4 +981,14 @@ private fun extractBackActionId(node: AndroidUiNode): String? {
         }
     }
     return null
+}
+
+private fun formatDateRangeHeadline(startMillis: Long?, endMillis: Long?): String {
+    val start = startMillis?.let(::formatShortDate) ?: "Start"
+    val end = endMillis?.let(::formatShortDate) ?: "End"
+    return "$start - $end"
+}
+
+private fun formatShortDate(millis: Long): String {
+    return SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(millis))
 }

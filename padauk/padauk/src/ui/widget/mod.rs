@@ -13,6 +13,7 @@ pub use AndroidUiNode as UiNode;
 mod controls;
 mod dialogs;
 mod layout;
+mod pickers;
 
 pub use controls::{
     AppBar, Button, Card, Checkbox, Chip, Fab, IconButton, Text, app_bar, app_bar_center_aligned,
@@ -23,6 +24,9 @@ pub use controls::{
 };
 pub use dialogs::{Dialog, FullscreenDialog, dialog, dialog_fullscreen};
 pub use layout::{Column, Scaffold, Scroll, column, scaffold, scroll};
+pub use pickers::{
+    DatePickerDialog, DateRangePickerDialog, date_picker_dialog, date_range_picker_dialog,
+};
 
 // This is equivalent to Flutter's "abstract class Widget"
 pub trait Widget {

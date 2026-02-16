@@ -10,6 +10,7 @@ use crate::buttons::menu::ButtonsMenu;
 use crate::cards::menu::CardsMenu;
 use crate::checkboxes::demo::CheckboxDemo;
 use crate::chips::menu::ChipsMenu;
+use crate::date_pickers::demo::DatePickerDemoScreen;
 use crate::dialogs::demo::DialogDemoScreen;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
@@ -38,6 +39,9 @@ impl Widget for HomeScreen {
             }),
             button("Chips", || {
                 Navigator::push(Route::new("chips", || ChipsMenu {}));
+            }),
+            button("Date pickers", || {
+                Navigator::push(Route::new("date_pickers", || DatePickerDemoScreen {}));
             }),
             button("Dialog", || {
                 Navigator::push(Route::new("dialog_demo", || DialogDemoScreen {}));
