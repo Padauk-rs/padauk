@@ -5,7 +5,8 @@ use crate::example_layout::example_screen;
 const CODE: &str = r#"elevated_card(children![
     text("Elevated card"),
     text("Use elevation to emphasize content."),
-]);"#;
+])
+    .action(|| {});"#;
 
 pub struct ElevatedCardScreen;
 
@@ -15,7 +16,7 @@ impl Widget for ElevatedCardScreen {
             text("Elevated card"),
             text("Use elevation to emphasize content."),
         ])
-        .on_click(|| {});
+        .action(|| {});
 
         example_screen(app_bar("Elevated Card"), column(vec![Box::new(c)]), CODE)
     }

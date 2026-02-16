@@ -1,12 +1,5 @@
-#[cfg(not(target_os = "ios"))]
-pub use crate::native::android_ui_node::AndroidUiNode;
-
-#[cfg(target_os = "ios")]
-pub use crate::native::ios_ui_node::IosUiNode;
-
 use crate::{
     impl_modifiers,
-    prelude::Navigator,
     ui::{
         app_bar::{AppBarStyle, AppBarStyleOptions},
         button::{
@@ -21,161 +14,13 @@ use crate::{
         },
         card::{CardShape, CardStyle, CardStyleOptions},
         chip::{ChipStyle, ChipStyleOptions},
+        color::ColorValue,
         modifier::Modifiers,
+        widget::{UiNode, Widget},
     },
 };
 use log::debug;
-
-// --------------------------------------------------------
-// THE SWITCH: Choose the definition based on the OS
-// --------------------------------------------------------
-
-#[cfg(target_os = "ios")]
-pub use IosUiNode as UiNode;
-
-#[cfg(not(target_os = "ios"))] // Fallback for iOS/Tests
-pub use AndroidUiNode as UiNode;
 use uuid::Uuid;
-
-// This is equivalent to Flutter's "abstract class Widget"
-pub trait Widget {
-    // Equivalent to: Widget build(BuildContext context)
-    fn build(&self) -> UiNode;
-}
-
-pub trait IntoWidget {
-    fn into_widget(self) -> Box<dyn Widget>;
-}
-
-impl<T: Widget + Sized + 'static> IntoWidget for T {
-    fn into_widget(self) -> Box<dyn Widget> {
-        Box::new(self)
-    }
-}
-
-// ==========================
-//      SCAFFOLD WIDGET
-// ==========================
-
-pub struct Scaffold {
-    pub app_bar: Option<Box<dyn Widget>>,
-    pub body: Box<dyn Widget>,
-    pub fab: Option<Box<dyn Widget>>,
-    pub modifiers: Modifiers,
-}
-
-impl Scaffold {
-    pub fn new(body: impl Widget + 'static) -> Self {
-        Self {
-            body: Box::new(body),
-            app_bar: None,
-            fab: None,
-            modifiers: Modifiers::default(),
-        }
-    }
-
-    pub fn app_bar(mut self, bar: impl Widget + 'static) -> Self {
-        self.app_bar = Some(Box::new(bar));
-        self
-    }
-
-    pub fn fab(mut self, button: impl Widget + 'static) -> Self {
-        self.fab = Some(Box::new(button));
-        self
-    }
-}
-
-impl_modifiers!(Scaffold);
-
-impl Widget for Scaffold {
-    fn build(&self) -> UiNode {
-        // 1. Build the AppBar Node first
-        let mut app_bar_nodes: Vec<UiNode> = Vec::new();
-
-        if let Some(bar) = &self.app_bar {
-            let mut node = bar.build();
-
-            // 2. Logic: Inject Back Button if Global Navigator says we can pop
-            if Navigator::can_pop() {
-                debug!("Scaffold: injecting back button into AppBar.");
-                if let UiNode::AppBar { leading, .. } = &mut node {
-                    // Create a Back Button
-                    let back_btn = Button::new("<", || {
-                        Navigator::pop();
-                    });
-
-                    // Inject into the 'leading' slot of the AppBar node
-                    leading.push(back_btn.build());
-                }
-            }
-            app_bar_nodes.push(node);
-        }
-
-        // Helper to convert Option<Box<Widget>> -> Vec<UiNode>
-        let to_vec = |opt: &Option<Box<dyn Widget>>| -> Vec<UiNode> {
-            match opt {
-                Some(w) => vec![w.build()],
-                None => vec![],
-            }
-        };
-
-        UiNode::Scaffold {
-            app_bar: app_bar_nodes,
-            body: vec![self.body.build()],
-            floating_action_button: to_vec(&self.fab),
-            modifiers: self.modifiers.clone(),
-        }
-    }
-}
-
-// DSL Helper
-pub fn scaffold(body: impl Widget + 'static) -> Scaffold {
-    Scaffold::new(body)
-}
-
-// ==========================
-//      SCROLL VIEW
-// ==========================
-
-pub struct Scroll {
-    pub child: Box<dyn Widget>,
-    pub modifiers: Modifiers,
-}
-
-impl Scroll {
-    pub fn new(child: impl Widget + 'static) -> Self {
-        Self {
-            child: Box::new(child),
-            modifiers: Modifiers::default(),
-        }
-    }
-}
-
-impl_modifiers!(Scroll);
-
-impl Widget for Scroll {
-    fn build(&self) -> UiNode {
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::ScrollView {
-                views: vec![self.child.build()],
-                attributes: self.modifiers.clone(),
-            }
-        }
-
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Scroll {
-                child: vec![self.child.build()],
-                modifiers: self.modifiers.clone(),
-            }
-        }
-    }
-}
-
-pub fn scroll(child: impl Widget + 'static) -> Scroll {
-    Scroll::new(child)
-}
 
 // ==========================
 //      APP BAR WIDGET
@@ -183,15 +28,44 @@ pub fn scroll(child: impl Widget + 'static) -> Scroll {
 
 pub struct AppBar {
     pub title: String,
+    pub leading: Vec<Box<dyn Widget>>,
     pub style: AppBarStyle,
     pub options: AppBarStyleOptions,
     pub modifiers: Modifiers,
+}
+
+impl_modifiers!(AppBar);
+
+impl Widget for AppBar {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            // iOS uses Label; AppBar not supported yet.
+            UiNode::Label {
+                title: self.title.clone(),
+                pt_size: 16.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::AppBar {
+                title: self.title.clone(),
+                leading: self.leading.iter().map(|child| child.build()).collect(),
+                style: self.style,
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
 }
 
 impl AppBar {
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
+            leading: Vec::new(),
             style: AppBarStyle::Small,
             options: AppBarStyleOptions::default(),
             modifiers: Modifiers::default(),
@@ -206,20 +80,6 @@ impl AppBar {
     pub fn options(mut self, options: AppBarStyleOptions) -> Self {
         self.options = options;
         self
-    }
-}
-
-impl_modifiers!(AppBar);
-
-impl Widget for AppBar {
-    fn build(&self) -> UiNode {
-        UiNode::AppBar {
-            title: self.title.clone(),
-            leading: vec![], // Default empty, populated by Scaffold if needed
-            style: self.style,
-            options: self.options.clone(),
-            modifiers: self.modifiers.clone(),
-        }
     }
 }
 
@@ -239,7 +99,9 @@ pub fn app_bar_large(title: impl Into<String>) -> AppBar {
     AppBar::new(title).style(AppBarStyle::Large)
 }
 
-// --- Primitives ---
+// ==========================
+//      TEXT WIDGET
+// ==========================
 
 pub struct Text {
     pub content: String,
@@ -256,7 +118,6 @@ impl Widget for Text {
         {
             UiNode::Label {
                 title: self.content.clone(),
-                // Logic: Convert abstract "size" to iOS Points (if different)
                 pt_size: self.font_size,
                 attributes: self.modifiers.clone(),
             }
@@ -267,7 +128,6 @@ impl Widget for Text {
         {
             UiNode::Text {
                 text: self.content.clone(),
-                // Logic: Convert abstract "size" to Android SP
                 sp_size: self.font_size,
                 modifiers: self.modifiers.clone(),
             }
@@ -279,16 +139,19 @@ impl Text {
     pub fn new(content: impl Into<String>) -> Self {
         Self {
             content: content.into(),
-            font_size: 16.0, // ✅ Your Custom Default Value
+            font_size: 16.0,
             modifiers: Modifiers::default(),
         }
     }
 }
 
-// Returns 'Text', NOT 'Box<dyn Widget>'
 pub fn text(content: &str) -> Text {
     Text::new(content)
 }
+
+// ==========================
+//      BUTTON WIDGET
+// ==========================
 
 pub struct Button {
     pub label: String,
@@ -302,7 +165,6 @@ impl_modifiers!(Button);
 
 impl Widget for Button {
     fn build(&self) -> UiNode {
-        // --- iOS ---
         #[cfg(target_os = "ios")]
         {
             let child_node = UiNode::Label {
@@ -313,16 +175,13 @@ impl Widget for Button {
 
             UiNode::Button {
                 action_id: self.action_id.clone(),
-                // FIX: Wrap in Arc::new
                 label: vec![child_node],
                 attributes: self.modifiers.clone(),
             }
         }
 
-        // --- Android ---
         #[cfg(not(target_os = "ios"))]
         {
-            // Create the child node (e.g. Text)
             let child_node = UiNode::Text {
                 text: self.label.clone(),
                 sp_size: 16.0,
@@ -331,7 +190,6 @@ impl Widget for Button {
 
             UiNode::Button {
                 action_id: self.action_id.clone(),
-                // FIX: Wrap in Arc::new
                 content: vec![child_node],
                 style: self.style,
                 options: self.options.clone(),
@@ -342,17 +200,14 @@ impl Widget for Button {
 }
 
 impl Button {
-    // Standard constructor
     pub fn new(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
         debug!("Button created with action id: {}", action_id);
-
-        // Register the closure in our static map
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
 
         Self {
             label: label.into(),
-            action_id: action_id,
+            action_id,
             style: ButtonStyle::Filled,
             options: ButtonStyleOptions::default(),
             modifiers: Modifiers::default(),
@@ -368,7 +223,10 @@ impl Button {
         self.options = options;
         self
     }
+}
 
+pub fn button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+    Button::new(label, on_click)
 }
 
 pub fn filled_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
@@ -400,6 +258,10 @@ pub fn text_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync +
     Button::new(label, on_click).style(ButtonStyle::Text)
 }
 
+// ==========================
+//      ICON BUTTON
+// ==========================
+
 pub struct IconButton {
     pub icon: IconType,
     pub style: IconButtonStyle,
@@ -414,11 +276,10 @@ impl Widget for IconButton {
     fn build(&self) -> UiNode {
         #[cfg(target_os = "ios")]
         {
-            // TODO: iOS icon buttons
             UiNode::Label {
                 title: "Icon".to_string(),
                 pt_size: 16.0,
-                attributes: Modifiers::default(),
+                attributes: self.modifiers.clone(),
             }
         }
 
@@ -439,6 +300,7 @@ impl IconButton {
     pub fn new(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
+
         Self {
             icon,
             style: IconButtonStyle::Standard,
@@ -457,15 +319,10 @@ impl IconButton {
         self.options = options;
         self
     }
-
-    pub fn enabled(mut self, enabled: bool) -> Self {
-        self.options.enabled = enabled;
-        self
-    }
 }
 
 pub fn icon_button(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> IconButton {
-    IconButton::new(icon, on_click)
+    IconButton::new(icon, on_click).style(IconButtonStyle::Standard)
 }
 
 pub fn filled_icon_button(
@@ -489,6 +346,10 @@ pub fn outlined_icon_button(
     IconButton::new(icon, on_click).style(IconButtonStyle::Outlined)
 }
 
+// ==========================
+//      CARD
+// ==========================
+
 pub struct Card {
     pub children: Vec<Box<dyn Widget>>,
     pub style: CardStyle,
@@ -501,24 +362,14 @@ impl_modifiers!(Card);
 
 impl Widget for Card {
     fn build(&self) -> UiNode {
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::Label {
-                title: "Card".to_string(),
-                pt_size: 16.0,
-                attributes: Modifiers::default(),
-            }
-        }
+        let children = self.children.iter().map(|child| child.build()).collect();
 
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Card {
-                children: self.children.iter().map(|c| c.build()).collect(),
-                style: self.style,
-                action_id: self.action_id.clone(),
-                options: self.options.clone(),
-                modifiers: self.modifiers.clone(),
-            }
+        UiNode::Card {
+            children,
+            style: self.style,
+            action_id: self.action_id.clone(),
+            options: self.options.clone(),
+            modifiers: self.modifiers.clone(),
         }
     }
 }
@@ -539,7 +390,7 @@ impl Card {
         self
     }
 
-    pub fn on_click(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+    pub fn action(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
         self.action_id = Some(action_id);
@@ -553,7 +404,7 @@ impl Card {
 }
 
 pub fn card(children: Vec<Box<dyn Widget>>) -> Card {
-    Card::new(children)
+    Card::new(children).style(CardStyle::Filled)
 }
 
 pub fn elevated_card(children: Vec<Box<dyn Widget>>) -> Card {
@@ -564,13 +415,17 @@ pub fn outlined_card(children: Vec<Box<dyn Widget>>) -> Card {
     Card::new(children).style(CardStyle::Outlined)
 }
 
+// ==========================
+//      CHECKBOX
+// ==========================
+
 pub struct Checkbox {
     pub checked: bool,
     pub action_id: String,
     pub enabled: bool,
-    pub color_checked: Option<crate::ui::color::ColorValue>,
-    pub color_unchecked: Option<crate::ui::color::ColorValue>,
-    pub color_checkmark: Option<crate::ui::color::ColorValue>,
+    pub color_checked: Option<ColorValue>,
+    pub color_unchecked: Option<ColorValue>,
+    pub color_checkmark: Option<ColorValue>,
     pub modifiers: Modifiers,
 }
 
@@ -578,34 +433,23 @@ impl_modifiers!(Checkbox);
 
 impl Widget for Checkbox {
     fn build(&self) -> UiNode {
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::Label {
-                title: "Checkbox".to_string(),
-                pt_size: 16.0,
-                attributes: Modifiers::default(),
-            }
-        }
-
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Checkbox {
-                checked: self.checked,
-                action_id: self.action_id.clone(),
-                enabled: self.enabled,
-                color_checked: self.color_checked.clone(),
-                color_unchecked: self.color_unchecked.clone(),
-                color_checkmark: self.color_checkmark.clone(),
-                modifiers: self.modifiers.clone(),
-            }
+        UiNode::Checkbox {
+            checked: self.checked,
+            action_id: self.action_id.clone(),
+            enabled: self.enabled,
+            color_checked: self.color_checked.clone(),
+            color_unchecked: self.color_unchecked.clone(),
+            color_checkmark: self.color_checkmark.clone(),
+            modifiers: self.modifiers.clone(),
         }
     }
 }
 
 impl Checkbox {
-    pub fn new(checked: bool, on_toggle: impl Fn() + Send + Sync + 'static) -> Self {
+    pub fn new(checked: bool, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
-        crate::ui::event_registry::register_action(action_id.clone(), on_toggle);
+        crate::ui::event_registry::register_action(action_id.clone(), on_click);
+
         Self {
             checked,
             action_id,
@@ -617,11 +461,6 @@ impl Checkbox {
         }
     }
 
-    pub fn checked(mut self, checked: bool) -> Self {
-        self.checked = checked;
-        self
-    }
-
     pub fn enabled(mut self, enabled: bool) -> Self {
         self.enabled = enabled;
         self
@@ -629,9 +468,9 @@ impl Checkbox {
 
     pub fn colors(
         mut self,
-        checked: Option<crate::ui::color::ColorValue>,
-        unchecked: Option<crate::ui::color::ColorValue>,
-        checkmark: Option<crate::ui::color::ColorValue>,
+        checked: Option<ColorValue>,
+        unchecked: Option<ColorValue>,
+        checkmark: Option<ColorValue>,
     ) -> Self {
         self.color_checked = checked;
         self.color_unchecked = unchecked;
@@ -640,9 +479,13 @@ impl Checkbox {
     }
 }
 
-pub fn checkbox(checked: bool, on_toggle: impl Fn() + Send + Sync + 'static) -> Checkbox {
-    Checkbox::new(checked, on_toggle)
+pub fn checkbox(checked: bool, on_click: impl Fn() + Send + Sync + 'static) -> Checkbox {
+    Checkbox::new(checked, on_click)
 }
+
+// ==========================
+//      CHIP
+// ==========================
 
 pub struct Chip {
     pub label: String,
@@ -660,36 +503,29 @@ impl_modifiers!(Chip);
 
 impl Widget for Chip {
     fn build(&self) -> UiNode {
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::Label {
-                title: "Chip".to_string(),
-                pt_size: 16.0,
-                attributes: Modifiers::default(),
-            }
-        }
-
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Chip {
-                label: self.label.clone(),
-                style: self.style,
-                selected: self.selected,
-                action_id: self.action_id.clone(),
-                leading_icon: self.leading_icon,
-                trailing_icon: self.trailing_icon,
-                close_action_id: self.close_action_id.clone(),
-                options: self.options.clone(),
-                modifiers: self.modifiers.clone(),
-            }
+        UiNode::Chip {
+            label: self.label.clone(),
+            style: self.style,
+            selected: self.selected,
+            action_id: self.action_id.clone(),
+            leading_icon: self.leading_icon.clone(),
+            trailing_icon: self.trailing_icon.clone(),
+            close_action_id: self.close_action_id.clone(),
+            options: self.options.clone(),
+            modifiers: self.modifiers.clone(),
         }
     }
 }
 
 impl Chip {
-    pub fn new(label: impl Into<String>, style: ChipStyle, on_click: impl Fn() + Send + Sync + 'static) -> Self {
+    pub fn new(
+        label: impl Into<String>,
+        style: ChipStyle,
+        on_click: impl Fn() + Send + Sync + 'static,
+    ) -> Self {
         let action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
+
         Self {
             label: label.into(),
             style,
@@ -703,8 +539,8 @@ impl Chip {
         }
     }
 
-    pub fn selected(mut self, selected: bool) -> Self {
-        self.selected = selected;
+    pub fn selected(mut self, value: bool) -> Self {
+        self.selected = value;
         self
     }
 
@@ -718,15 +554,13 @@ impl Chip {
         self
     }
 
-    pub fn close_action(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
-        let action_id = Uuid::new_v4().to_string();
-        crate::ui::event_registry::register_action(action_id.clone(), on_click);
-        self.close_action_id = Some(action_id);
-        self
-    }
-
-    pub fn enabled(mut self, enabled: bool) -> Self {
-        self.options.enabled = enabled;
+    pub fn close_action(
+        mut self,
+        on_click: impl Fn() + Send + Sync + 'static,
+    ) -> Self {
+        let close_action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(close_action_id.clone(), on_click);
+        self.close_action_id = Some(close_action_id);
         self
     }
 
@@ -740,27 +574,30 @@ pub fn assist_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync +
     Chip::new(label, ChipStyle::Assist, on_click)
 }
 
-pub fn filter_chip(
-    label: impl Into<String>,
-    selected: bool,
-    on_click: impl Fn() + Send + Sync + 'static,
-) -> Chip {
-    Chip::new(label, ChipStyle::Filter, on_click).selected(selected)
+pub fn filter_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
+    Chip::new(label, ChipStyle::Filter, on_click)
 }
 
 pub fn input_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
     Chip::new(label, ChipStyle::Input, on_click)
 }
 
-pub fn suggestion_chip(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Chip {
+pub fn suggestion_chip(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Chip {
     Chip::new(label, ChipStyle::Suggestion, on_click)
 }
 
+// ==========================
+//      FAB
+// ==========================
+
 pub struct Fab {
+    pub action_id: String,
     pub icon: IconType,
     pub style: FabStyle,
     pub label: Option<String>,
-    pub action_id: String,
     pub options: FabOptions,
     pub modifiers: Modifiers,
 }
@@ -769,25 +606,13 @@ impl_modifiers!(Fab);
 
 impl Widget for Fab {
     fn build(&self) -> UiNode {
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::Label {
-                title: "FAB".to_string(),
-                pt_size: 16.0,
-                attributes: Modifiers::default(),
-            }
-        }
-
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Fab {
-                action_id: self.action_id.clone(),
-                icon: self.icon,
-                style: self.style,
-                label: self.label.clone(),
-                options: self.options.clone(),
-                modifiers: self.modifiers.clone(),
-            }
+        UiNode::Fab {
+            action_id: self.action_id.clone(),
+            icon: self.icon,
+            style: self.style,
+            label: self.label.clone(),
+            options: self.options.clone(),
+            modifiers: self.modifiers.clone(),
         }
     }
 }
@@ -796,11 +621,12 @@ impl Fab {
     pub fn new(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(action_id.clone(), on_click);
+
         Self {
+            action_id,
             icon,
             style: FabStyle::Normal,
             label: None,
-            action_id,
             options: FabOptions::default(),
             modifiers: Modifiers::default(),
         }
@@ -820,7 +646,6 @@ impl Fab {
         self.options = options;
         self
     }
-
 }
 
 pub fn fab(icon: IconType, on_click: impl Fn() + Send + Sync + 'static) -> Fab {
@@ -843,53 +668,4 @@ pub fn fab_extended(
     Fab::new(icon, on_click)
         .style(FabStyle::Extended)
         .label(label)
-}
-
-pub fn button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
-    Button::new(label, on_click)
-}
-
-pub struct Column {
-    pub children: Vec<Box<dyn Widget>>,
-    pub modifiers: Modifiers,
-}
-
-impl_modifiers!(Column);
-
-impl Widget for Column {
-    fn build(&self) -> UiNode {
-        // Recursively build children
-        let node_children = self.children.iter().map(|child| child.build()).collect();
-
-        // 2. Return the Platform-Specific Node
-        #[cfg(target_os = "ios")]
-        {
-            UiNode::VStack {
-                views: node_children, // Matches Vec<IosUiNode>
-                attributes: self.modifiers.clone(),
-            }
-        }
-
-        #[cfg(not(target_os = "ios"))]
-        {
-            UiNode::Column {
-                children: node_children, // Matches Vec<AndroidUiNode>
-                modifiers: self.modifiers.clone(),
-            }
-        }
-    }
-}
-
-impl Column {
-    // Constructor
-    pub fn new(children: Vec<Box<dyn Widget>>) -> Self {
-        Self {
-            children,
-            modifiers: Modifiers::default(),
-        }
-    }
-}
-
-pub fn column(children: Vec<Box<dyn Widget>>) -> Column {
-    Column::new(children)
 }

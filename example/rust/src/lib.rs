@@ -7,6 +7,8 @@ mod buttons;
 mod cards;
 mod checkboxes;
 mod chips;
+mod date_pickers;
+mod dialogs;
 mod scroll;
 mod state_demo;
 mod generated;

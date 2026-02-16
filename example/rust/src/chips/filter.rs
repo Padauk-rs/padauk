@@ -6,7 +6,8 @@ use padauk::prelude::{IconType, State, state};
 use crate::example_layout::example_screen;
 
 const CODE: &str = r#"let selected = filter_state().get();
-filter_chip("Selected", selected, || filter_state().update(|v| *v = !*v))
+filter_chip("Selected", || filter_state().update(|v| *v = !*v))
+    .selected(selected)
     .leading_icon(IconType::Favorite);"#;
 
 static FILTER_SELECTED: OnceLock<State<bool>> = OnceLock::new();
@@ -20,10 +21,11 @@ pub struct FilterChipScreen;
 impl Widget for FilterChipScreen {
     fn build(&self) -> padauk::UiNode {
         let selected = filter_state().get();
-        let chip = filter_chip("Selected", selected, || {
+        let chip = filter_chip("Selected", || {
             filter_state().update(|v| *v = !*v);
         })
-            .leading_icon(IconType::Favorite);
+        .selected(selected)
+        .leading_icon(IconType::Favorite);
 
         let t = text(if selected { "Selected" } else { "Not selected" });
         example_screen(
