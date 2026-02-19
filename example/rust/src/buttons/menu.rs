@@ -1,5 +1,5 @@
 use padauk::prelude::{Navigator, Route};
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
+use padauk::{app_bar, children, divider, list, list_item, scaffold, Widget};
 
 use crate::buttons::elevated::ElevatedButtonScreen;
 use crate::buttons::fab_extended::FabExtendedScreen;
@@ -19,52 +19,63 @@ pub struct ButtonsMenu;
 
 impl Widget for ButtonsMenu {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Buttons"),
-            button("Filled", || {
+        scaffold(list(children![
+            list_item("Filled").on_click(|| {
                 Navigator::push(Route::new("btn_filled", || FilledButtonScreen {}));
             }),
-            button("Filled tonal", || {
+            divider(),
+            list_item("Filled tonal").on_click(|| {
                 Navigator::push(Route::new(
                     "btn_filled_tonal",
                     || FilledTonalButtonScreen {},
                 ));
             }),
-            button("Elevated", || {
+            divider(),
+            list_item("Elevated").on_click(|| {
                 Navigator::push(Route::new("btn_elevated", || ElevatedButtonScreen {}));
             }),
-            button("Outlined", || {
+            divider(),
+            list_item("Outlined").on_click(|| {
                 Navigator::push(Route::new("btn_outlined", || OutlinedButtonScreen {}));
             }),
-            button("Text", || {
+            divider(),
+            list_item("Text").on_click(|| {
                 Navigator::push(Route::new("btn_text", || TextButtonScreen {}));
             }),
-            button("Icon standard", || {
+            divider(),
+            list_item("Icon standard").on_click(|| {
                 Navigator::push(Route::new("btn_icon_std", || IconButtonStandardScreen {}));
             }),
-            button("Icon filled", || {
+            divider(),
+            list_item("Icon filled").on_click(|| {
                 Navigator::push(Route::new("btn_icon_filled", || IconButtonFilledScreen {}));
             }),
-            button("Icon filled tonal", || {
+            divider(),
+            list_item("Icon filled tonal").on_click(|| {
                 Navigator::push(Route::new("btn_icon_tonal", || {
                     IconButtonFilledTonalScreen {}
                 }));
             }),
-            button("Icon outlined", || {
+            divider(),
+            list_item("Icon outlined").on_click(|| {
                 Navigator::push(Route::new("btn_icon_outlined", || {
                     IconButtonOutlinedScreen {}
                 }));
             }),
-            button("FAB small", || {
+            divider(),
+            list_item("FAB small").on_click(|| {
                 Navigator::push(Route::new("btn_fab_small", || FabSmallScreen {}));
             }),
-            button("FAB default", || {
+            divider(),
+            list_item("FAB default").on_click(|| {
                 Navigator::push(Route::new("btn_fab_normal", || FabNormalScreen {}));
             }),
-            button("FAB large", || {
+            divider(),
+            list_item("FAB large").on_click(|| {
                 Navigator::push(Route::new("btn_fab_large", || FabLargeScreen {}));
             }),
-            button("FAB extended", || {
+            divider(),
+            list_item("FAB extended").on_click(|| {
                 Navigator::push(Route::new("btn_fab_extended", || FabExtendedScreen {}));
             }),
         ]))

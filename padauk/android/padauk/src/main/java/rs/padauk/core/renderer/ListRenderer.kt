@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -25,7 +27,8 @@ import rs.padauk.core.widget.toComposeColor
 
 @Composable
 internal fun renderList(widget: AndroidUiNode.ListView) {
-    Column(modifier = widget.modifiers.toCompose()) {
+    val scrollState = rememberScrollState()
+    Column(modifier = widget.modifiers.toCompose().verticalScroll(scrollState)) {
         widget.items.forEach { item ->
             PadaukRenderer(item)
         }
