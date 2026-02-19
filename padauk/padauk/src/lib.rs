@@ -21,11 +21,11 @@ pub mod prelude {
     pub use crate::ui::widget::*;
     pub use crate::ui::widget::{
         app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, assist_chip, card,
-        checkbox, elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small,
-        filled_button, filled_icon_button, filled_tonal_button, filled_tonal_icon_button,
-        filter_chip, icon_button, input_chip, outlined_button, outlined_card, outlined_icon_button,
-        scaffold, scroll, dialog, dialog_fullscreen, date_picker_dialog, date_range_picker_dialog,
-        suggestion_chip, text_button,
+        checkbox, date_picker_dialog, date_range_picker_dialog, dialog, dialog_fullscreen,
+        elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small, filled_button,
+        filled_icon_button, filled_tonal_button, filled_tonal_icon_button, filter_chip,
+        icon_button, input_chip, outlined_button, outlined_card, outlined_icon_button, scaffold,
+        scroll, suggestion_chip, text_button, time_picker_dialog,
     };
 }
 

@@ -25,7 +25,8 @@ pub use controls::{
 pub use dialogs::{Dialog, FullscreenDialog, dialog, dialog_fullscreen};
 pub use layout::{Column, Scaffold, Scroll, column, scaffold, scroll};
 pub use pickers::{
-    DatePickerDialog, DateRangePickerDialog, date_picker_dialog, date_range_picker_dialog,
+    DatePickerDialog, DateRangePickerDialog, TimePickerDialog, date_picker_dialog,
+    date_range_picker_dialog, time_picker_dialog,
 };
 
 // This is equivalent to Flutter's "abstract class Widget"

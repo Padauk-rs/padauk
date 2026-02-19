@@ -1,6 +1,9 @@
 use crate::{
     impl_modifiers,
-    ui::{modifier::Modifiers, widget::{UiNode, Widget}},
+    ui::{
+        modifier::Modifiers,
+        widget::{UiNode, Widget},
+    },
 };
 use uuid::Uuid;
 
@@ -236,6 +239,140 @@ pub fn date_range_picker_dialog(
         title,
         initial_start_millis,
         initial_end_millis,
+        confirm_label,
+        on_confirm,
+    )
+}
+
+pub struct TimePickerDialog {
+    pub title: Option<String>,
+    pub initial_hour: Option<i32>,
+    pub initial_minute: Option<i32>,
+    pub is_24_hour: bool,
+    pub show_mode_toggle: bool,
+    pub confirm_label: String,
+    pub confirm_action_id: String,
+    pub dismiss_label: Option<String>,
+    pub dismiss_action_id: Option<String>,
+    pub dismissible: bool,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(TimePickerDialog);
+
+impl TimePickerDialog {
+    pub fn new(
+        title: Option<impl Into<String>>,
+        initial_hour: Option<i32>,
+        initial_minute: Option<i32>,
+        confirm_label: impl Into<String>,
+        on_confirm: impl Fn(i32, i32) + Send + Sync + 'static,
+    ) -> Self {
+        let confirm_action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action_with_string(
+            confirm_action_id.clone(),
+            move |payload| {
+                let mut parts = payload.split('|');
+                let hour = parts.next().and_then(|v| v.parse::<i32>().ok());
+                let minute = parts.next().and_then(|v| v.parse::<i32>().ok());
+                if let (Some(hour), Some(minute)) = (hour, minute) {
+                    on_confirm(hour, minute);
+                }
+            },
+        );
+
+        Self {
+            title: title.map(|t| t.into()),
+            initial_hour,
+            initial_minute,
+            is_24_hour: true,
+            show_mode_toggle: true,
+            confirm_label: confirm_label.into(),
+            confirm_action_id,
+            dismiss_label: None,
+            dismiss_action_id: None,
+            dismissible: true,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn dismiss(
+        mut self,
+        label: impl Into<String>,
+        on_dismiss: impl Fn() + Send + Sync + 'static,
+    ) -> Self {
+        let dismiss_action_id = Uuid::new_v4().to_string();
+        crate::ui::event_registry::register_action(dismiss_action_id.clone(), on_dismiss);
+        self.dismiss_label = Some(label.into());
+        self.dismiss_action_id = Some(dismiss_action_id);
+        self
+    }
+
+    pub fn use_24_hour(mut self, value: bool) -> Self {
+        self.is_24_hour = value;
+        self
+    }
+
+    pub fn show_mode_toggle(mut self, value: bool) -> Self {
+        self.show_mode_toggle = value;
+        self
+    }
+
+    pub fn dismissible(mut self, value: bool) -> Self {
+        self.dismissible = value;
+        self
+    }
+}
+
+impl Widget for TimePickerDialog {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::TimePickerDialog {
+                title: self.title.clone(),
+                initial_hour: self.initial_hour,
+                initial_minute: self.initial_minute,
+                is_24_hour: self.is_24_hour,
+                show_mode_toggle: self.show_mode_toggle,
+                confirm_label: self.confirm_label.clone(),
+                confirm_action_id: self.confirm_action_id.clone(),
+                dismiss_label: self.dismiss_label.clone(),
+                dismiss_action_id: self.dismiss_action_id.clone(),
+                dismissible: self.dismissible,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::TimePickerDialog {
+                title: self.title.clone(),
+                initial_hour: self.initial_hour,
+                initial_minute: self.initial_minute,
+                is_24_hour: self.is_24_hour,
+                show_mode_toggle: self.show_mode_toggle,
+                confirm_label: self.confirm_label.clone(),
+                confirm_action_id: self.confirm_action_id.clone(),
+                dismiss_label: self.dismiss_label.clone(),
+                dismiss_action_id: self.dismiss_action_id.clone(),
+                dismissible: self.dismissible,
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+pub fn time_picker_dialog(
+    title: Option<impl Into<String>>,
+    initial_hour: Option<i32>,
+    initial_minute: Option<i32>,
+    confirm_label: impl Into<String>,
+    on_confirm: impl Fn(i32, i32) + Send + Sync + 'static,
+) -> TimePickerDialog {
+    TimePickerDialog::new(
+        title,
+        initial_hour,
+        initial_minute,
         confirm_label,
         on_confirm,
     )

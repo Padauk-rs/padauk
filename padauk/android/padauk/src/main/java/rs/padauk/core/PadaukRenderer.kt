@@ -49,8 +49,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.LargeFloatingActionButton
@@ -73,6 +76,10 @@ import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,6 +91,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
 import rs.padauk.core.widget.PadaukImage
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
@@ -377,6 +385,66 @@ fun PadaukRenderer(widget: AndroidUiNode) {
                                 val start = state.selectedStartDateMillis
                                 val end = state.selectedEndDateMillis
                                 val payload = "${start ?: ""}|${end ?: ""}"
+                                padaukDispatchActionWithString(widget.confirmActionId, payload)
+                            }) {
+                                Text(widget.confirmLabel)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        is AndroidUiNode.TimePickerDialog -> {
+            val calendar = remember {
+                Calendar.getInstance()
+            }
+            val initialHour = widget.initialHour ?: calendar.get(Calendar.HOUR_OF_DAY)
+            val initialMinute = widget.initialMinute ?: calendar.get(Calendar.MINUTE)
+            val state = rememberTimePickerState(
+                initialHour = initialHour,
+                initialMinute = initialMinute,
+                is24Hour = widget.is24Hour,
+            )
+            var inputMode by remember { mutableStateOf(false) }
+
+            Dialog(
+                onDismissRequest = {
+                    if (widget.dismissible) {
+                        widget.dismissActionId?.let { padaukDispatchAction(it) }
+                    }
+                },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+            ) {
+                Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text(
+                            text = widget.title ?: "Select time",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                        if (inputMode) {
+                            TimeInput(state = state, modifier = Modifier.fillMaxWidth())
+                        } else {
+                            TimePicker(state = state, modifier = Modifier.fillMaxWidth())
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            if (widget.showModeToggle) {
+                                TextButton(onClick = { inputMode = !inputMode }) {
+                                    Text(if (inputMode) "Clock" else "Keyboard")
+                                }
+                            }
+                            if (widget.dismissLabel != null && widget.dismissActionId != null) {
+                                TextButton(onClick = { padaukDispatchAction(widget.dismissActionId) }) {
+                                    Text(widget.dismissLabel)
+                                }
+                            }
+                            TextButton(onClick = {
+                                val payload = "${state.hour}|${state.minute}"
                                 padaukDispatchActionWithString(widget.confirmActionId, payload)
                             }) {
                                 Text(widget.confirmLabel)
@@ -950,6 +1018,7 @@ private fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.FullscreenDialog -> this.modifiers
         is AndroidUiNode.DatePickerDialog -> this.modifiers
         is AndroidUiNode.DateRangePickerDialog -> this.modifiers
+        is AndroidUiNode.TimePickerDialog -> this.modifiers
         is AndroidUiNode.Scroll -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
