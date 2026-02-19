@@ -1,5 +1,5 @@
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 use padauk::prelude::{Navigator, Route};
+use padauk::{app_bar, children, divider, list, list_item, scaffold, Widget};
 
 use crate::chips::assist::AssistChipScreen;
 use crate::chips::filter::FilterChipScreen;
@@ -10,18 +10,20 @@ pub struct ChipsMenu;
 
 impl Widget for ChipsMenu {
     fn build(&self) -> padauk::UiNode {
-        scaffold(column(children![
-            text("Chips"),
-            button("Assist", || {
+        scaffold(list(children![
+            list_item("Assist").on_click(|| {
                 Navigator::push(Route::new("chip_assist", || AssistChipScreen {}));
             }),
-            button("Filter", || {
+            divider(),
+            list_item("Filter").on_click(|| {
                 Navigator::push(Route::new("chip_filter", || FilterChipScreen {}));
             }),
-            button("Input", || {
+            divider(),
+            list_item("Input").on_click(|| {
                 Navigator::push(Route::new("chip_input", || InputChipScreen {}));
             }),
-            button("Suggestion", || {
+            divider(),
+            list_item("Suggestion").on_click(|| {
                 Navigator::push(Route::new("chip_suggestion", || SuggestionChipScreen {}));
             }),
         ]))

@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
+use padauk::prelude::{state, IconType, State};
 use padauk::{app_bar, column, input_chip, text, Widget};
-use padauk::prelude::{IconType, State, state};
 
 use crate::example_layout::example_screen;
 
@@ -24,9 +24,9 @@ impl Widget for InputChipScreen {
     fn build(&self) -> padauk::UiNode {
         let present = input_state().get();
 
-        let mut widgets: Vec<Box<dyn padauk::Widget>> = vec![
-            Box::new(text("Input chips show a selected entity and can be removed.")),
-        ];
+        let mut widgets: Vec<Box<dyn padauk::Widget>> = vec![Box::new(text(
+            "Input chips show a selected entity and can be removed.",
+        ))];
 
         if present {
             let chip = input_chip("Jane Doe", || {})

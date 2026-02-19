@@ -1,8 +1,9 @@
 use std::sync::OnceLock;
 
 use padauk::{
-    app_bar, button, children, column, Text, Widget,
-    prelude::{State, state},
+    app_bar, button, children, column,
+    prelude::{state, State},
+    Text, Widget,
 };
 
 use crate::example_layout::example_screen;
@@ -18,11 +19,7 @@ pub struct StateDemoScreen;
 impl Widget for StateDemoScreen {
     fn build(&self) -> padauk::UiNode {
         let content = StateDemoContent;
-        example_screen(
-            app_bar("State"),
-            content,
-            STATE_DEMO_CODE,
-        )
+        example_screen(app_bar("State"), content, STATE_DEMO_CODE)
     }
 }
 

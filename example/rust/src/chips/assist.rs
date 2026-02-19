@@ -1,6 +1,6 @@
-use padauk::{app_bar, assist_chip, column, text, Widget};
-use padauk::prelude::{ChipShape, ChipStyleOptions, color_hex};
 use padauk::prelude::IconType;
+use padauk::prelude::{color_hex, ChipShape, ChipStyleOptions};
+use padauk::{app_bar, assist_chip, column, text, Widget};
 
 use crate::example_layout::example_screen;
 

@@ -1,18 +1,14 @@
 use crate::ui::{
     app_bar::{AppBarStyle, AppBarStyleOptions},
     button::{
-        ButtonShape,
-        ButtonStyle,
-        ButtonStyleOptions,
-        FabOptions,
-        FabStyle,
-        IconButtonOptions,
-        IconButtonStyle,
-        IconType,
+        ButtonShape, ButtonStyle, ButtonStyleOptions, FabOptions, FabStyle, IconButtonOptions,
+        IconButtonStyle, IconType,
     },
     card::{CardShape, CardStyle, CardStyleOptions},
     chip::{ChipStyle, ChipStyleOptions},
+    divider::DividerOptions,
     image::{BoxFit, ImageSource},
+    list::{ListItemOptions, ListItemTrailing},
     modifier::Modifiers,
 };
 
@@ -75,8 +71,39 @@ pub enum AndroidUiNode {
         dismissible: bool,
         modifiers: Modifiers,
     },
+    TimePickerDialog {
+        title: Option<String>,
+        initial_hour: Option<i32>,
+        initial_minute: Option<i32>,
+        is_24_hour: bool,
+        show_mode_toggle: bool,
+        confirm_label: String,
+        confirm_action_id: String,
+        dismiss_label: Option<String>,
+        dismiss_action_id: Option<String>,
+        dismissible: bool,
+        modifiers: Modifiers,
+    },
     Scroll {
         child: Vec<AndroidUiNode>,
+        modifiers: Modifiers,
+    },
+    ListView {
+        items: Vec<AndroidUiNode>,
+        modifiers: Modifiers,
+    },
+    ListItem {
+        headline: String,
+        supporting_text: Option<String>,
+        overline_text: Option<String>,
+        leading_icon: Option<IconType>,
+        trailing: ListItemTrailing,
+        action_id: Option<String>,
+        options: ListItemOptions,
+        modifiers: Modifiers,
+    },
+    Divider {
+        options: DividerOptions,
         modifiers: Modifiers,
     },
 

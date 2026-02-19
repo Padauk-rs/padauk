@@ -5,8 +5,12 @@ pub fn example_screen(
     content: impl Widget + 'static,
     code: &'static str,
 ) -> padauk::UiNode {
-    let preview_block = outlined_card(children![content]).padding(8.0).fill_max_width();
-    let code_block = outlined_card(children![text(code).padding(8.0)]).padding(8.0).fill_max_width();
+    let preview_block = outlined_card(children![content])
+        .padding(8.0)
+        .fill_max_width();
+    let code_block = outlined_card(children![text(code).padding(8.0)])
+        .padding(8.0)
+        .fill_max_width();
     let code_scroll = scroll(code_block).fill_max_width().weight(1.0);
 
     scaffold(column(children![
@@ -32,8 +36,12 @@ pub fn example_screen_with_fab(
     fab: impl Widget + 'static,
     code: &'static str,
 ) -> padauk::UiNode {
-    let preview_block = outlined_card(children![content]).padding(8.0).fill_max_width();
-    let code_block = outlined_card(children![text(code).padding(8.0)]).padding(8.0).fill_max_width();
+    let preview_block = outlined_card(children![content])
+        .padding(8.0)
+        .fill_max_width();
+    let code_block = outlined_card(children![text(code).padding(8.0)])
+        .padding(8.0)
+        .fill_max_width();
     let code_scroll = scroll(code_block).fill_max_width().weight(1.0);
 
     scaffold(column(children![

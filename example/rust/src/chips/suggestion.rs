@@ -1,5 +1,5 @@
-use padauk::{app_bar, column, suggestion_chip, text, Widget};
 use padauk::prelude::IconType;
+use padauk::{app_bar, column, suggestion_chip, text, Widget};
 
 use crate::example_layout::example_screen;
 

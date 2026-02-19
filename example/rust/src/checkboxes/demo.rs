@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
-use padauk::{app_bar, checkbox, column, text, Widget};
 use padauk::prelude::{color_hex, color_rgb, state, State};
+use padauk::{app_bar, checkbox, column, text, Widget};
 
 use crate::example_layout::example_screen;
 
@@ -29,12 +29,12 @@ impl Widget for CheckboxDemo {
         let cb = checkbox(checked, || {
             checked_state().update(|v| *v = !*v);
         })
-            .colors(
-                Some(color_hex("#1E88E5")),
-                Some(color_rgb(180, 180, 180)),
-                Some(color_hex("#FFFFFF")),
-            )
-            .enabled(true);
+        .colors(
+            Some(color_hex("#1E88E5")),
+            Some(color_rgb(180, 180, 180)),
+            Some(color_hex("#FFFFFF")),
+        )
+        .enabled(true);
 
         example_screen(
             app_bar("Checkbox"),

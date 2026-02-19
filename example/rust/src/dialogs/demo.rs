@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
-use padauk::{app_bar, button, children, column, dialog, dialog_fullscreen, scroll, text, Widget};
 use padauk::prelude::{state, State};
+use padauk::{app_bar, button, children, column, dialog, dialog_fullscreen, scroll, text, Widget};
 
 use crate::example_layout::example_screen;
 
@@ -85,7 +85,11 @@ impl Widget for DialogDemoScreen {
             Box::new(button("Open full screen dialog", || {
                 fullscreen_open().update(|v| *v = true);
             })),
-            Box::new(text(if open { "Dialog is open" } else { "Dialog is closed" })),
+            Box::new(text(if open {
+                "Dialog is open"
+            } else {
+                "Dialog is closed"
+            })),
         ];
 
         if open {
