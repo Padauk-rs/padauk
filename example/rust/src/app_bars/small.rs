@@ -1,5 +1,5 @@
-use padauk::{app_bar, children, column, text, Widget};
 use padauk::prelude::AppBarStyle;
+use padauk::{app_bar, children, column, text, Widget};
 
 use crate::example_layout::example_screen;
 

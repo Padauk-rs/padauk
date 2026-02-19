@@ -123,7 +123,10 @@ impl Navigator {
                 }
                 if changed {
                     request_redraw();
-                    debug!("Navigator stack size after pop_until: {}", state.stack.len());
+                    debug!(
+                        "Navigator stack size after pop_until: {}",
+                        state.stack.len()
+                    );
                 }
             }
         } else {
@@ -171,7 +174,10 @@ impl Navigator {
                 }
                 if changed {
                     request_redraw();
-                    debug!("Navigator stack size after pop_to_first: {}", state.stack.len());
+                    debug!(
+                        "Navigator stack size after pop_to_first: {}",
+                        state.stack.len()
+                    );
                 }
             }
         } else {

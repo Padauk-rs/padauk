@@ -3,14 +3,8 @@ use crate::{
     ui::{
         app_bar::{AppBarStyle, AppBarStyleOptions},
         button::{
-            ButtonShape,
-            ButtonStyle,
-            ButtonStyleOptions,
-            FabOptions,
-            FabStyle,
-            IconButtonOptions,
-            IconButtonStyle,
-            IconType,
+            ButtonShape, ButtonStyle, ButtonStyleOptions, FabOptions, FabStyle, IconButtonOptions,
+            IconButtonStyle, IconType,
         },
         card::{CardShape, CardStyle, CardStyleOptions},
         chip::{ChipStyle, ChipStyleOptions},
@@ -229,7 +223,10 @@ pub fn button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'sta
     Button::new(label, on_click)
 }
 
-pub fn filled_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+pub fn filled_button(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Button {
     Button::new(label, on_click).style(ButtonStyle::Filled)
 }
 
@@ -254,7 +251,10 @@ pub fn outlined_button(
     Button::new(label, on_click).style(ButtonStyle::Outlined)
 }
 
-pub fn text_button(label: impl Into<String>, on_click: impl Fn() + Send + Sync + 'static) -> Button {
+pub fn text_button(
+    label: impl Into<String>,
+    on_click: impl Fn() + Send + Sync + 'static,
+) -> Button {
     Button::new(label, on_click).style(ButtonStyle::Text)
 }
 
@@ -554,10 +554,7 @@ impl Chip {
         self
     }
 
-    pub fn close_action(
-        mut self,
-        on_click: impl Fn() + Send + Sync + 'static,
-    ) -> Self {
+    pub fn close_action(mut self, on_click: impl Fn() + Send + Sync + 'static) -> Self {
         let close_action_id = Uuid::new_v4().to_string();
         crate::ui::event_registry::register_action(close_action_id.clone(), on_click);
         self.close_action_id = Some(close_action_id);

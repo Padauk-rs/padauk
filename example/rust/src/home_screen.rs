@@ -12,6 +12,7 @@ use crate::checkboxes::demo::CheckboxDemo;
 use crate::chips::menu::ChipsMenu;
 use crate::date_pickers::demo::DatePickerDemoScreen;
 use crate::dialogs::demo::DialogDemoScreen;
+use crate::lists::demo::ListsDemoScreen;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
@@ -45,6 +46,9 @@ impl Widget for HomeScreen {
             }),
             button("Dialog", || {
                 Navigator::push(Route::new("dialog_demo", || DialogDemoScreen {}));
+            }),
+            button("Lists", || {
+                Navigator::push(Route::new("list_demo", || ListsDemoScreen {}));
             }),
             button("Scroll", || {
                 Navigator::push(Route::new("scroll_demo", || ScrollDemoScreen {}));

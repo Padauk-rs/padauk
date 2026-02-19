@@ -1,5 +1,5 @@
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 use padauk::prelude::{Navigator, Route};
+use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 
 use crate::chips::assist::AssistChipScreen;
 use crate::chips::filter::FilterChipScreen;

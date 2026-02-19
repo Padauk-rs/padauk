@@ -1,5 +1,5 @@
-use padauk::{app_bar, children, column, fab_extended, text, Widget};
 use padauk::prelude::IconType;
+use padauk::{app_bar, children, column, fab_extended, text, Widget};
 
 use crate::example_layout::example_screen_with_fab;
 

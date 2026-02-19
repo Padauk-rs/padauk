@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
+use padauk::prelude::{state, IconType, State};
 use padauk::{app_bar, column, filter_chip, text, Widget};
-use padauk::prelude::{IconType, State, state};
 
 use crate::example_layout::example_screen;
 

@@ -1,19 +1,19 @@
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 use padauk::prelude::{Navigator, Route};
+use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 
+use crate::buttons::elevated::ElevatedButtonScreen;
+use crate::buttons::fab_extended::FabExtendedScreen;
+use crate::buttons::fab_large::FabLargeScreen;
+use crate::buttons::fab_normal::FabNormalScreen;
+use crate::buttons::fab_small::FabSmallScreen;
 use crate::buttons::filled::FilledButtonScreen;
 use crate::buttons::filled_tonal::FilledTonalButtonScreen;
-use crate::buttons::elevated::ElevatedButtonScreen;
-use crate::buttons::outlined::OutlinedButtonScreen;
-use crate::buttons::text_button::TextButtonScreen;
-use crate::buttons::icon_standard::IconButtonStandardScreen;
 use crate::buttons::icon_filled::IconButtonFilledScreen;
 use crate::buttons::icon_filled_tonal::IconButtonFilledTonalScreen;
 use crate::buttons::icon_outlined::IconButtonOutlinedScreen;
-use crate::buttons::fab_small::FabSmallScreen;
-use crate::buttons::fab_normal::FabNormalScreen;
-use crate::buttons::fab_large::FabLargeScreen;
-use crate::buttons::fab_extended::FabExtendedScreen;
+use crate::buttons::icon_standard::IconButtonStandardScreen;
+use crate::buttons::outlined::OutlinedButtonScreen;
+use crate::buttons::text_button::TextButtonScreen;
 
 pub struct ButtonsMenu;
 
@@ -25,7 +25,10 @@ impl Widget for ButtonsMenu {
                 Navigator::push(Route::new("btn_filled", || FilledButtonScreen {}));
             }),
             button("Filled tonal", || {
-                Navigator::push(Route::new("btn_filled_tonal", || FilledTonalButtonScreen {}));
+                Navigator::push(Route::new(
+                    "btn_filled_tonal",
+                    || FilledTonalButtonScreen {},
+                ));
             }),
             button("Elevated", || {
                 Navigator::push(Route::new("btn_elevated", || ElevatedButtonScreen {}));
@@ -43,10 +46,14 @@ impl Widget for ButtonsMenu {
                 Navigator::push(Route::new("btn_icon_filled", || IconButtonFilledScreen {}));
             }),
             button("Icon filled tonal", || {
-                Navigator::push(Route::new("btn_icon_tonal", || IconButtonFilledTonalScreen {}));
+                Navigator::push(Route::new("btn_icon_tonal", || {
+                    IconButtonFilledTonalScreen {}
+                }));
             }),
             button("Icon outlined", || {
-                Navigator::push(Route::new("btn_icon_outlined", || IconButtonOutlinedScreen {}));
+                Navigator::push(Route::new("btn_icon_outlined", || {
+                    IconButtonOutlinedScreen {}
+                }));
             }),
             button("FAB small", || {
                 Navigator::push(Route::new("btn_fab_small", || FabSmallScreen {}));

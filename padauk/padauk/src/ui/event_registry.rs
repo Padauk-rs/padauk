@@ -1,6 +1,6 @@
+use log::{debug, warn};
 use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
-use log::{debug, warn};
 
 // Define the type for our registry
 type ActionMap = Mutex<HashMap<String, Box<dyn Fn() + Send + Sync>>>;
@@ -26,10 +26,7 @@ pub fn register_action(id: String, f: impl Fn() + Send + Sync + 'static) {
 
 pub fn register_action_with_string(id: String, f: impl Fn(String) + Send + Sync + 'static) {
     debug!("Register string action: {}", id);
-    get_actions_string()
-        .lock()
-        .unwrap()
-        .insert(id, Box::new(f));
+    get_actions_string().lock().unwrap().insert(id, Box::new(f));
 }
 
 pub fn clear_actions() {

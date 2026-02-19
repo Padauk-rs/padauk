@@ -1,6 +1,9 @@
 use crate::{
     impl_modifiers,
-    ui::{modifier::Modifiers, widget::{UiNode, Widget}},
+    ui::{
+        modifier::Modifiers,
+        widget::{UiNode, Widget},
+    },
 };
 use uuid::Uuid;
 

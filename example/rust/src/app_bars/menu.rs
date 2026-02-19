@@ -1,10 +1,10 @@
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 use padauk::prelude::{Navigator, Route};
+use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 
-use crate::app_bars::small::SmallAppBarScreen;
 use crate::app_bars::center_aligned::CenterAlignedAppBarScreen;
-use crate::app_bars::medium::MediumAppBarScreen;
 use crate::app_bars::large::LargeAppBarScreen;
+use crate::app_bars::medium::MediumAppBarScreen;
+use crate::app_bars::small::SmallAppBarScreen;
 
 pub struct AppBarsMenu;
 
@@ -16,7 +16,10 @@ impl Widget for AppBarsMenu {
                 Navigator::push(Route::new("app_bar_small", || SmallAppBarScreen {}));
             }),
             button("Center Aligned", || {
-                Navigator::push(Route::new("app_bar_center", || CenterAlignedAppBarScreen {}));
+                Navigator::push(Route::new(
+                    "app_bar_center",
+                    || CenterAlignedAppBarScreen {},
+                ));
             }),
             button("Medium", || {
                 Navigator::push(Route::new("app_bar_medium", || MediumAppBarScreen {}));

@@ -25,6 +25,9 @@ internal fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.DateRangePickerDialog -> this.modifiers
         is AndroidUiNode.TimePickerDialog -> this.modifiers
         is AndroidUiNode.Scroll -> this.modifiers
+        is AndroidUiNode.ListView -> this.modifiers
+        is AndroidUiNode.ListItem -> this.modifiers
+        is AndroidUiNode.Divider -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
         is AndroidUiNode.Text -> this.modifiers

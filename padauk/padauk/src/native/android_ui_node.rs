@@ -6,7 +6,9 @@ use crate::ui::{
     },
     card::{CardShape, CardStyle, CardStyleOptions},
     chip::{ChipStyle, ChipStyleOptions},
+    divider::DividerOptions,
     image::{BoxFit, ImageSource},
+    list::{ListItemOptions, ListItemTrailing},
     modifier::Modifiers,
 };
 
@@ -84,6 +86,24 @@ pub enum AndroidUiNode {
     },
     Scroll {
         child: Vec<AndroidUiNode>,
+        modifiers: Modifiers,
+    },
+    ListView {
+        items: Vec<AndroidUiNode>,
+        modifiers: Modifiers,
+    },
+    ListItem {
+        headline: String,
+        supporting_text: Option<String>,
+        overline_text: Option<String>,
+        leading_icon: Option<IconType>,
+        trailing: ListItemTrailing,
+        action_id: Option<String>,
+        options: ListItemOptions,
+        modifiers: Modifiers,
+    },
+    Divider {
+        options: DividerOptions,
         modifiers: Modifiers,
     },
 

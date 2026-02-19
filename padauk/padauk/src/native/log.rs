@@ -1,4 +1,4 @@
-use log::{LevelFilter, info};
+use log::{info, LevelFilter};
 
 #[uniffi::export]
 pub fn init_logging() {

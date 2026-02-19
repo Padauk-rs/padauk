@@ -1,5 +1,5 @@
-use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 use padauk::prelude::{Navigator, Route};
+use padauk::{app_bar, button, children, column, scaffold, text, Widget};
 
 use crate::navigator::first_screen::FirstScreen;
 use crate::navigator::second_screen::SecondScreen;
