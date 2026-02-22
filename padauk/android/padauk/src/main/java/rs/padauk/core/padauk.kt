@@ -1798,6 +1798,77 @@ public object FfiConverterTypeModifiers: FfiConverterRustBuffer<Modifiers> {
 
 
 
+data class TextFieldOptions (
+    var `placeholder`: kotlin.String?
+    , 
+    var `supportingText`: kotlin.String?
+    , 
+    var `enabled`: kotlin.Boolean
+    , 
+    var `readOnly`: kotlin.Boolean
+    , 
+    var `singleLine`: kotlin.Boolean
+    , 
+    var `maxLines`: kotlin.Int
+    , 
+    var `isPassword`: kotlin.Boolean
+    , 
+    var `leadingIcon`: IconType?
+    , 
+    var `trailingIcon`: IconType?
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTextFieldOptions: FfiConverterRustBuffer<TextFieldOptions> {
+    override fun read(buf: ByteBuffer): TextFieldOptions {
+        return TextFieldOptions(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterInt.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeIconType.read(buf),
+            FfiConverterOptionalTypeIconType.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TextFieldOptions) = (
+            FfiConverterOptionalString.allocationSize(value.`placeholder`) +
+            FfiConverterOptionalString.allocationSize(value.`supportingText`) +
+            FfiConverterBoolean.allocationSize(value.`enabled`) +
+            FfiConverterBoolean.allocationSize(value.`readOnly`) +
+            FfiConverterBoolean.allocationSize(value.`singleLine`) +
+            FfiConverterInt.allocationSize(value.`maxLines`) +
+            FfiConverterBoolean.allocationSize(value.`isPassword`) +
+            FfiConverterOptionalTypeIconType.allocationSize(value.`leadingIcon`) +
+            FfiConverterOptionalTypeIconType.allocationSize(value.`trailingIcon`)
+    )
+
+    override fun write(value: TextFieldOptions, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`placeholder`, buf)
+            FfiConverterOptionalString.write(value.`supportingText`, buf)
+            FfiConverterBoolean.write(value.`enabled`, buf)
+            FfiConverterBoolean.write(value.`readOnly`, buf)
+            FfiConverterBoolean.write(value.`singleLine`, buf)
+            FfiConverterInt.write(value.`maxLines`, buf)
+            FfiConverterBoolean.write(value.`isPassword`, buf)
+            FfiConverterOptionalTypeIconType.write(value.`leadingIcon`, buf)
+            FfiConverterOptionalTypeIconType.write(value.`trailingIcon`, buf)
+    }
+}
+
+
+
 sealed class AndroidUiNode {
     
     data class Column(
@@ -1990,6 +2061,21 @@ sealed class AndroidUiNode {
     data class Text(
         val `text`: kotlin.String, 
         val `spSize`: kotlin.Float, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class TextField(
+        val `label`: kotlin.String, 
+        val `value`: kotlin.String, 
+        val `style`: TextFieldStyle, 
+        val `onChangeActionId`: kotlin.String, 
+        val `options`: TextFieldOptions, 
+        val `errorText`: kotlin.String?, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -2213,28 +2299,37 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            16 -> AndroidUiNode.Button(
+            16 -> AndroidUiNode.TextField(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterTypeTextFieldStyle.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterTypeTextFieldOptions.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            17 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            17 -> AndroidUiNode.IconButton(
+            18 -> AndroidUiNode.IconButton(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeIconButtonOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            18 -> AndroidUiNode.Card(
+            19 -> AndroidUiNode.Card(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            19 -> AndroidUiNode.Checkbox(
+            20 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2243,7 +2338,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            20 -> AndroidUiNode.Chip(
+            21 -> AndroidUiNode.Chip(
                 FfiConverterString.read(buf),
                 FfiConverterTypeChipStyle.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2254,7 +2349,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeChipStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            21 -> AndroidUiNode.Fab(
+            22 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
@@ -2262,7 +2357,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeFabOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            22 -> AndroidUiNode.Image(
+            23 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -2437,6 +2532,19 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterString.allocationSize(value.`text`)
                 + FfiConverterFloat.allocationSize(value.`spSize`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.TextField -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`label`)
+                + FfiConverterString.allocationSize(value.`value`)
+                + FfiConverterTypeTextFieldStyle.allocationSize(value.`style`)
+                + FfiConverterString.allocationSize(value.`onChangeActionId`)
+                + FfiConverterTypeTextFieldOptions.allocationSize(value.`options`)
+                + FfiConverterOptionalString.allocationSize(value.`errorText`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -2664,8 +2772,19 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Button -> {
+            is AndroidUiNode.TextField -> {
                 buf.putInt(16)
+                FfiConverterString.write(value.`label`, buf)
+                FfiConverterString.write(value.`value`, buf)
+                FfiConverterTypeTextFieldStyle.write(value.`style`, buf)
+                FfiConverterString.write(value.`onChangeActionId`, buf)
+                FfiConverterTypeTextFieldOptions.write(value.`options`, buf)
+                FfiConverterOptionalString.write(value.`errorText`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Button -> {
+                buf.putInt(17)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeButtonStyle.write(value.`style`, buf)
@@ -2674,7 +2793,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.IconButton -> {
-                buf.putInt(17)
+                buf.putInt(18)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
@@ -2683,7 +2802,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Card -> {
-                buf.putInt(18)
+                buf.putInt(19)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
@@ -2692,7 +2811,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Checkbox -> {
-                buf.putInt(19)
+                buf.putInt(20)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterBoolean.write(value.`enabled`, buf)
@@ -2703,7 +2822,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Chip -> {
-                buf.putInt(20)
+                buf.putInt(21)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterTypeChipStyle.write(value.`style`, buf)
                 FfiConverterBoolean.write(value.`selected`, buf)
@@ -2716,7 +2835,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Fab -> {
-                buf.putInt(21)
+                buf.putInt(22)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -2726,7 +2845,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(22)
+                buf.putInt(23)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -3852,6 +3971,36 @@ public object FfiConverterTypePlatformError : FfiConverterRustBuffer<PlatformExc
     }
 
 }
+
+
+
+
+enum class TextFieldStyle {
+    
+    FILLED,
+    OUTLINED;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTextFieldStyle: FfiConverterRustBuffer<TextFieldStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        TextFieldStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: TextFieldStyle) = 4UL
+
+    override fun write(value: TextFieldStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
