@@ -16,6 +16,7 @@ use crate::lists::demo::ListsDemoScreen;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
+use crate::text_fields::menu::TextFieldsMenu;
 
 pub struct HomeScreen;
 
@@ -86,6 +87,12 @@ impl Widget for HomeScreen {
                 .supporting_text("State management sample")
                 .on_click(|| {
                     Navigator::push(Route::new("state_demo", || StateDemoScreen {}));
+                }),
+            divider(),
+            list_item("Text fields")
+                .supporting_text("Filled and outlined text field samples")
+                .on_click(|| {
+                    Navigator::push(Route::new("text_fields", || TextFieldsMenu {}));
                 }),
         ]))
         .app_bar(app_bar("Examples"))
