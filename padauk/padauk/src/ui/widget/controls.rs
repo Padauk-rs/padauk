@@ -9,11 +9,14 @@ use crate::{
         card::{CardShape, CardStyle, CardStyleOptions},
         chip::{ChipStyle, ChipStyleOptions},
         color::ColorValue,
+        form::{self, FieldValidator, FormKey},
         modifier::Modifiers,
+        text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
 };
 use log::debug;
+use std::sync::Arc;
 use uuid::Uuid;
 
 // ==========================
@@ -141,6 +144,216 @@ impl Text {
 
 pub fn text(content: &str) -> Text {
     Text::new(content)
+}
+
+// ==========================
+//      TEXT FIELD WIDGET
+// ==========================
+
+pub struct TextField {
+    pub field_id: String,
+    pub label: String,
+    pub value: String,
+    pub style: TextFieldStyle,
+    pub on_change_action_id: String,
+    pub on_change: Arc<dyn Fn(String) + Send + Sync>,
+    pub options: TextFieldOptions,
+    pub form_id: Option<String>,
+    pub validator: Option<FieldValidator>,
+    pub autovalidate_on_user_interaction: bool,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(TextField);
+
+impl Widget for TextField {
+    fn build(&self) -> UiNode {
+        let mut error_text = None;
+
+        let on_change_action_id = self.on_change_action_id.clone();
+        let on_change = self.on_change.clone();
+        let form_id = self.form_id.clone();
+        let field_id = self.field_id.clone();
+        let validator = self.validator.clone();
+        let autovalidate_on_user_interaction = self.autovalidate_on_user_interaction;
+        crate::ui::event_registry::register_action_with_string(
+            on_change_action_id,
+            move |payload| {
+                on_change(payload.clone());
+                if let Some(fid) = form_id.as_deref() {
+                    form::sync_field(fid, &field_id, &payload, validator.clone());
+                    if autovalidate_on_user_interaction {
+                        form::validate_field(fid, &field_id);
+                    }
+                }
+            },
+        );
+
+        if let Some(form_id) = &self.form_id {
+            form::sync_field(form_id, &self.field_id, &self.value, self.validator.clone());
+            error_text = form::field_error(form_id, &self.field_id);
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            let mut line = format!("{}: {}", self.label, self.value);
+            if let Some(error) = error_text {
+                line = format!("{line} ({error})");
+            }
+
+            UiNode::Label {
+                title: line,
+                pt_size: 16.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::TextField {
+                label: self.label.clone(),
+                value: self.value.clone(),
+                style: self.style,
+                on_change_action_id: self.on_change_action_id.clone(),
+                options: self.options.clone(),
+                error_text,
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl TextField {
+    pub fn new(
+        label: impl Into<String>,
+        value: impl Into<String>,
+        style: TextFieldStyle,
+        on_change: impl Fn(String) + Send + Sync + 'static,
+    ) -> Self {
+        let label = label.into();
+        let on_change_action_id = Uuid::new_v4().to_string();
+        let on_change = Arc::new(on_change);
+        crate::ui::event_registry::register_action_with_string(on_change_action_id.clone(), {
+            let on_change = on_change.clone();
+            move |payload| on_change(payload)
+        });
+
+        Self {
+            field_id: label.clone(),
+            label,
+            value: value.into(),
+            style,
+            on_change_action_id,
+            on_change,
+            options: TextFieldOptions::default(),
+            form_id: None,
+            validator: None,
+            autovalidate_on_user_interaction: false,
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: TextFieldOptions) -> Self {
+        self.options = options;
+        self
+    }
+
+    pub fn field_key(mut self, key: impl Into<String>) -> Self {
+        self.field_id = key.into();
+        self
+    }
+
+    pub fn placeholder(mut self, text: impl Into<String>) -> Self {
+        self.options.placeholder = Some(text.into());
+        self
+    }
+
+    pub fn supporting_text(mut self, text: impl Into<String>) -> Self {
+        self.options.supporting_text = Some(text.into());
+        self
+    }
+
+    pub fn enabled(mut self, enabled: bool) -> Self {
+        self.options.enabled = enabled;
+        self
+    }
+
+    pub fn read_only(mut self, read_only: bool) -> Self {
+        self.options.read_only = read_only;
+        self
+    }
+
+    pub fn single_line(mut self, single_line: bool) -> Self {
+        self.options.single_line = single_line;
+        self
+    }
+
+    pub fn max_lines(mut self, max_lines: i32) -> Self {
+        self.options.max_lines = max_lines.max(1);
+        self
+    }
+
+    pub fn password(mut self, is_password: bool) -> Self {
+        self.options.is_password = is_password;
+        self
+    }
+
+    pub fn leading_icon(mut self, icon: IconType) -> Self {
+        self.options.leading_icon = Some(icon);
+        self
+    }
+
+    pub fn trailing_icon(mut self, icon: IconType) -> Self {
+        self.options.trailing_icon = Some(icon);
+        self
+    }
+
+    pub fn form(mut self, key: &FormKey) -> Self {
+        self.form_id = Some(key.id().to_string());
+        self
+    }
+
+    pub fn validator(
+        mut self,
+        key: &FormKey,
+        validate: impl Fn(&str) -> Option<String> + Send + Sync + 'static,
+    ) -> Self {
+        self.form_id = Some(key.id().to_string());
+        self.validator = Some(Arc::new(validate));
+        self
+    }
+
+    pub fn required(self, key: &FormKey, message: impl Into<String>) -> Self {
+        let message = message.into();
+        self.validator(key, move |value| {
+            if value.trim().is_empty() {
+                Some(message.clone())
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn autovalidate_on_user_interaction(mut self, enabled: bool) -> Self {
+        self.autovalidate_on_user_interaction = enabled;
+        self
+    }
+}
+
+pub fn filled_text_field(
+    label: impl Into<String>,
+    value: impl Into<String>,
+    on_change: impl Fn(String) + Send + Sync + 'static,
+) -> TextField {
+    TextField::new(label, value, TextFieldStyle::Filled, on_change)
+}
+
+pub fn outlined_text_field(
+    label: impl Into<String>,
+    value: impl Into<String>,
+    on_change: impl Fn(String) + Send + Sync + 'static,
+) -> TextField {
+    TextField::new(label, value, TextFieldStyle::Outlined, on_change)
 }
 
 // ==========================

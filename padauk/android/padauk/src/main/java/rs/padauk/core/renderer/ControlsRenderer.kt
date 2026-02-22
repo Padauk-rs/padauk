@@ -36,15 +36,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import rs.padauk.core.AndroidUiNode
@@ -58,6 +63,8 @@ import rs.padauk.core.FabStyle
 import rs.padauk.core.IconButtonStyle
 import rs.padauk.core.PadaukRenderer
 import rs.padauk.core.padaukDispatchAction
+import rs.padauk.core.padaukDispatchActionWithString
+import rs.padauk.core.TextFieldStyle
 import rs.padauk.core.widget.PadaukImage
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
@@ -69,6 +76,69 @@ internal fun renderText(widget: AndroidUiNode.Text) {
         fontSize = widget.spSize.sp,
         modifier = widget.modifiers.toCompose()
     )
+}
+
+@Composable
+internal fun renderTextField(widget: AndroidUiNode.TextField) {
+    val visualTransformation = if (widget.options.isPassword) {
+        PasswordVisualTransformation()
+    } else {
+        VisualTransformation.None
+    }
+    val rawSupportingText = widget.options.supportingText
+    val supportingText: (@Composable () -> Unit)? = when {
+        widget.errorText != null -> {
+            { Text(widget.errorText) }
+        }
+        rawSupportingText != null -> {
+            { Text(rawSupportingText) }
+        }
+        else -> null
+    }
+
+    val leadingIcon: (@Composable () -> Unit)? = widget.options.leadingIcon?.let { icon ->
+        { Icon(iconVector(icon), contentDescription = null) }
+    }
+    val trailingIcon: (@Composable () -> Unit)? = widget.options.trailingIcon?.let { icon ->
+        { Icon(iconVector(icon), contentDescription = null) }
+    }
+
+    when (widget.style) {
+        TextFieldStyle.FILLED -> TextField(
+            value = widget.value,
+            onValueChange = { padaukDispatchActionWithString(widget.onChangeActionId, it) },
+            modifier = widget.modifiers.toCompose(),
+            enabled = widget.options.enabled,
+            readOnly = widget.options.readOnly,
+            singleLine = widget.options.singleLine,
+            maxLines = widget.options.maxLines,
+            isError = widget.errorText != null,
+            visualTransformation = visualTransformation,
+            label = { Text(widget.label) },
+            placeholder = widget.options.placeholder?.let { { Text(it) } },
+            supportingText = supportingText,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            colors = TextFieldDefaults.colors()
+        )
+
+        TextFieldStyle.OUTLINED -> OutlinedTextField(
+            value = widget.value,
+            onValueChange = { padaukDispatchActionWithString(widget.onChangeActionId, it) },
+            modifier = widget.modifiers.toCompose(),
+            enabled = widget.options.enabled,
+            readOnly = widget.options.readOnly,
+            singleLine = widget.options.singleLine,
+            maxLines = widget.options.maxLines,
+            isError = widget.errorText != null,
+            visualTransformation = visualTransformation,
+            label = { Text(widget.label) },
+            placeholder = widget.options.placeholder?.let { { Text(it) } },
+            supportingText = supportingText,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon
+        )
+    }
 }
 
 @Composable

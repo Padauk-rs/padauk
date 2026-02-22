@@ -10,6 +10,7 @@ use crate::ui::{
     image::{BoxFit, ImageSource},
     list::{ListItemOptions, ListItemTrailing},
     modifier::Modifiers,
+    text_field::{TextFieldOptions, TextFieldStyle},
 };
 
 // Android-specific definitions
@@ -129,6 +130,15 @@ pub enum AndroidUiNode {
     Text {
         text: String,
         sp_size: f32, // Android uses SP for fonts
+        modifiers: Modifiers,
+    },
+    TextField {
+        label: String,
+        value: String,
+        style: TextFieldStyle,
+        on_change_action_id: String,
+        options: TextFieldOptions,
+        error_text: Option<String>,
         modifiers: Modifiers,
     },
     Button {
