@@ -1,6 +1,6 @@
 use crate::ui::button::IconType;
 
-#[derive(uniffi::Enum, Clone, Copy)]
+#[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum TextFieldStyle {
     Filled,
     Outlined,

@@ -10,6 +10,7 @@ pub mod image;
 pub mod layout;
 pub mod list;
 pub mod macros;
+pub mod menu;
 pub mod modifier;
 pub mod navigation;
 pub mod render_callback;

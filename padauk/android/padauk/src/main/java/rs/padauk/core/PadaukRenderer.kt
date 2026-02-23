@@ -22,6 +22,8 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         is AndroidUiNode.Divider -> renderDivider(widget)
         is AndroidUiNode.Text -> renderText(widget)
         is AndroidUiNode.TextField -> renderTextField(widget)
+        is AndroidUiNode.Menu -> renderMenu(widget)
+        is AndroidUiNode.DropdownField -> renderDropdownField(widget)
         is AndroidUiNode.Button -> renderButton(widget)
         is AndroidUiNode.IconButton -> renderIconButton(widget)
         is AndroidUiNode.Card -> renderCard(widget)
