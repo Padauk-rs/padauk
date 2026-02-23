@@ -19,6 +19,7 @@ pub mod prelude {
     pub use crate::ui::divider::DividerOptions;
     pub use crate::ui::form::{FormKey, form_key};
     pub use crate::ui::list::{ListItemOptions, ListItemTrailing};
+    pub use crate::ui::menu::{DropdownFieldOptions, MenuItem};
     pub use crate::ui::navigation::{Navigator, Route};
     pub use crate::ui::state::{State, state};
     pub use crate::ui::text_field::{TextFieldOptions, TextFieldStyle};
@@ -26,11 +27,11 @@ pub mod prelude {
     pub use crate::ui::widget::{
         app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, assist_chip, card,
         checkbox, date_picker_dialog, date_range_picker_dialog, dialog, dialog_fullscreen, divider,
-        elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small, filled_button,
-        filled_icon_button, filled_text_field, filled_tonal_button, filled_tonal_icon_button,
-        filter_chip, icon_button, input_chip, list, list_item, outlined_button, outlined_card,
-        outlined_icon_button, outlined_text_field, scaffold, scroll, suggestion_chip, text_button,
-        time_picker_dialog, vertical_divider,
+        dropdown_field, elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small,
+        filled_button, filled_icon_button, filled_text_field, filled_tonal_button,
+        filled_tonal_icon_button, filter_chip, icon_button, input_chip, list, list_item, menu,
+        outlined_button, outlined_card, outlined_icon_button, outlined_text_field, scaffold,
+        scroll, suggestion_chip, text_button, time_picker_dialog, vertical_divider,
     };
 }
 

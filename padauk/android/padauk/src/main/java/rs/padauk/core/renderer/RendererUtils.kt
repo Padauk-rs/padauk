@@ -32,6 +32,8 @@ internal fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.AppBar -> this.modifiers
         is AndroidUiNode.Text -> this.modifiers
         is AndroidUiNode.TextField -> this.modifiers
+        is AndroidUiNode.Menu -> this.modifiers
+        is AndroidUiNode.DropdownField -> this.modifiers
         is AndroidUiNode.Button -> this.modifiers
         is AndroidUiNode.IconButton -> this.modifiers
         is AndroidUiNode.Card -> this.modifiers

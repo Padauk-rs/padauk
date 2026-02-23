@@ -3,10 +3,11 @@ package rs.padauk.core.renderer
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -16,8 +17,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
@@ -46,6 +53,10 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -138,6 +149,113 @@ internal fun renderTextField(widget: AndroidUiNode.TextField) {
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon
         )
+    }
+}
+
+@Composable
+internal fun renderMenu(widget: AndroidUiNode.Menu) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = widget.modifiers.toCompose()) {
+        TextButton(onClick = { expanded = true }) {
+            Text(widget.label)
+            Icon(iconVector(rs.padauk.core.IconType.MENU), contentDescription = null)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            widget.items.forEachIndexed { index, item ->
+                val actionId = widget.actionIds.getOrNull(index)
+                DropdownMenuItem(
+                    text = { Text(item.label) },
+                    onClick = {
+                        if (item.enabled && !actionId.isNullOrEmpty()) {
+                            padaukDispatchAction(actionId)
+                        }
+                        expanded = false
+                    },
+                    enabled = item.enabled
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun renderDropdownField(widget: AndroidUiNode.DropdownField) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val rawSupportingText = widget.options.supportingText
+    val supportingText: (@Composable () -> Unit)? = when {
+        widget.errorText != null -> {
+            { Text(widget.errorText) }
+        }
+        rawSupportingText != null -> {
+            { Text(rawSupportingText) }
+        }
+        else -> null
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { shouldExpand ->
+            if (widget.options.enabled) {
+                expanded = shouldExpand
+            }
+        },
+        modifier = widget.modifiers.toCompose()
+    ) {
+        when (widget.options.style) {
+            TextFieldStyle.FILLED -> TextField(
+                value = widget.value,
+                onValueChange = {},
+                modifier = Modifier.menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = widget.options.enabled
+                ),
+                readOnly = true,
+                enabled = widget.options.enabled,
+                isError = widget.errorText != null,
+                label = { Text(widget.label) },
+                placeholder = widget.options.placeholder?.let { { Text(it) } },
+                supportingText = supportingText,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.textFieldColors()
+            )
+
+            TextFieldStyle.OUTLINED -> OutlinedTextField(
+                value = widget.value,
+                onValueChange = {},
+                modifier = Modifier.menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = widget.options.enabled
+                ),
+                readOnly = true,
+                enabled = widget.options.enabled,
+                isError = widget.errorText != null,
+                label = { Text(widget.label) },
+                placeholder = widget.options.placeholder?.let { { Text(it) } },
+                supportingText = supportingText,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            widget.optionsList.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        padaukDispatchActionWithString(widget.onChangeActionId, option)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
