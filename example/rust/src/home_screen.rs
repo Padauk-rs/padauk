@@ -14,6 +14,7 @@ use crate::date_pickers::demo::DatePickerDemoScreen;
 use crate::dialogs::demo::DialogDemoScreen;
 use crate::lists::demo::ListsDemoScreen;
 use crate::navigation_bars::menu::NavigationBarsMenu;
+use crate::navigation_drawers::menu::NavigationDrawersMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
@@ -40,6 +41,15 @@ impl Widget for HomeScreen {
                 .supporting_text("Material 3 bottom navigation bar")
                 .on_click(|| {
                     Navigator::push(Route::new("navigation_bars", || NavigationBarsMenu {}));
+                }),
+            divider(),
+            list_item("Navigation drawers")
+                .supporting_text("Material 3 side drawer patterns")
+                .on_click(|| {
+                    Navigator::push(Route::new(
+                        "navigation_drawers",
+                        || NavigationDrawersMenu {},
+                    ));
                 }),
             divider(),
             list_item("Buttons")

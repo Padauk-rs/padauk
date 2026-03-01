@@ -14,6 +14,7 @@ pub mod menu;
 pub mod modifier;
 pub mod navigation;
 pub mod navigation_bar;
+pub mod navigation_drawer;
 pub mod render_callback;
 pub mod state;
 pub mod text_field;

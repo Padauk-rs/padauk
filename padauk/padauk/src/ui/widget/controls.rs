@@ -13,6 +13,9 @@ use crate::{
         menu::{DropdownFieldOptions, MenuItem},
         modifier::Modifiers,
         navigation_bar::{NavigationBarOptions, NavigationDestination},
+        navigation_drawer::{
+            NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
+        },
         text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
@@ -175,6 +178,98 @@ pub fn nav_destination(
         label: label.into(),
         icon,
         selected,
+        action_id,
+    }
+}
+
+// ==========================
+//  NAVIGATION DRAWER WIDGET
+// ==========================
+
+pub struct NavigationDrawer {
+    pub title: Option<String>,
+    pub destinations: Vec<NavigationDrawerDestination>,
+    pub drawer_type: NavigationDrawerType,
+    pub options: NavigationDrawerOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationDrawer);
+
+impl Widget for NavigationDrawer {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationDrawer is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationDrawer {
+                title: self.title.clone(),
+                destinations: self.destinations.clone(),
+                drawer_type: self.drawer_type,
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationDrawer {
+    pub fn new(destinations: Vec<NavigationDrawerDestination>) -> Self {
+        Self {
+            title: None,
+            destinations,
+            drawer_type: NavigationDrawerType::Modal,
+            options: NavigationDrawerOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    pub fn drawer_type(mut self, drawer_type: NavigationDrawerType) -> Self {
+        self.drawer_type = drawer_type;
+        self
+    }
+
+    pub fn options(mut self, options: NavigationDrawerOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_drawer(destinations: Vec<NavigationDrawerDestination>) -> NavigationDrawer {
+    NavigationDrawer::new(destinations)
+}
+
+pub fn nav_drawer_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    badge: Option<String>,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationDrawerDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationDrawerDestination {
+        label: label.into(),
+        icon,
+        selected,
+        badge,
         action_id,
     }
 }

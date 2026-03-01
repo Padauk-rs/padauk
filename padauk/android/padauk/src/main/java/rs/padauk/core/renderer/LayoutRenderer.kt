@@ -1,5 +1,6 @@
 package rs.padauk.core.renderer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,32 +17,104 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import rs.padauk.core.AndroidUiNode
 import rs.padauk.core.AppBarStyle
+import rs.padauk.core.NavigationDrawerType
 import rs.padauk.core.PadaukRenderer
 import rs.padauk.core.padaukDispatchAction
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
+import kotlinx.coroutines.launch
+import androidx.compose.material3.DismissibleDrawerSheet
+import androidx.compose.material3.DismissibleNavigationDrawer
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.rememberDrawerState
 
 @Composable
 internal fun renderScaffold(widget: AndroidUiNode.Scaffold) {
+    val drawerNode = widget.drawer.firstOrNull()
+    if (drawerNode is AndroidUiNode.NavigationDrawer) {
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        val toggleDrawer: (() -> Unit)? = if (drawerNode.drawerType == NavigationDrawerType.PERMANENT) {
+            null
+        } else {
+            {
+                scope.launch {
+                    if (drawerState.isClosed) {
+                        drawerState.open()
+                    } else {
+                        drawerState.close()
+                    }
+                }
+            }
+        }
+
+        BackHandler(enabled = drawerState.isOpen) {
+            scope.launch { drawerState.close() }
+        }
+
+        when (drawerNode.drawerType) {
+            NavigationDrawerType.MODAL -> ModalNavigationDrawer(
+                drawerState = drawerState,
+                gesturesEnabled = drawerNode.options.gesturesEnabled,
+                drawerContent = { renderNavigationDrawerSheet(drawerNode) }
+            ) {
+                renderScaffoldContent(widget, toggleDrawer)
+            }
+
+            NavigationDrawerType.DISMISSIBLE -> DismissibleNavigationDrawer(
+                drawerState = drawerState,
+                gesturesEnabled = drawerNode.options.gesturesEnabled,
+                drawerContent = { renderNavigationDrawerSheet(drawerNode, dismissible = true) }
+            ) {
+                renderScaffoldContent(widget, toggleDrawer)
+            }
+
+            NavigationDrawerType.PERMANENT -> PermanentNavigationDrawer(
+                drawerContent = { renderNavigationDrawerSheet(drawerNode, permanent = true) }
+            ) {
+                renderScaffoldContent(widget, null)
+            }
+        }
+    } else {
+        renderScaffoldContent(widget, null)
+    }
+}
+
+@Composable
+private fun renderScaffoldContent(
+    widget: AndroidUiNode.Scaffold,
+    openDrawer: (() -> Unit)? = null
+) {
     Scaffold(
         modifier = widget.modifiers.toCompose(),
         topBar = {
-            // Check if the vector has items
             if (widget.appBar.isNotEmpty()) {
-                PadaukRenderer(widget.appBar.first())
+                val top = widget.appBar.first()
+                if (top is AndroidUiNode.AppBar) {
+                    renderAppBar(top, openDrawer)
+                } else {
+                    PadaukRenderer(top)
+                }
             }
         },
         bottomBar = {
@@ -55,8 +128,6 @@ internal fun renderScaffold(widget: AndroidUiNode.Scaffold) {
             }
         }
     ) { innerPadding ->
-        // IMPORTANT: We apply the innerPadding to the body
-        // This ensures content doesn't go behind the AppBar
         Box(modifier = Modifier.padding(innerPadding)) {
             if (widget.body.isNotEmpty()) {
                 PadaukRenderer(widget.body.first())
@@ -67,7 +138,7 @@ internal fun renderScaffold(widget: AndroidUiNode.Scaffold) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun renderAppBar(widget: AndroidUiNode.AppBar) {
+internal fun renderAppBar(widget: AndroidUiNode.AppBar, onMenuClick: (() -> Unit)? = null) {
     val navIcon: @Composable () -> Unit = {
         if (widget.leading.isNotEmpty()) {
             val leading = widget.leading.first()
@@ -81,6 +152,13 @@ internal fun renderAppBar(widget: AndroidUiNode.AppBar) {
                 }
             } else {
                 PadaukRenderer(leading)
+            }
+        } else if (onMenuClick != null) {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = iconVector(rs.padauk.core.IconType.MENU),
+                    contentDescription = "Menu"
+                )
             }
         }
     }
@@ -119,6 +197,83 @@ internal fun renderAppBar(widget: AndroidUiNode.AppBar) {
             colors = colors,
             navigationIcon = navIcon
         )
+    }
+}
+
+@Composable
+internal fun renderNavigationDrawer(widget: AndroidUiNode.NavigationDrawer) {
+    // Rendering this node directly is supported, but the preferred integration is Scaffold.drawer(...)
+    renderNavigationDrawerSheet(widget)
+}
+
+@Composable
+private fun renderNavigationDrawerSheet(
+    widget: AndroidUiNode.NavigationDrawer,
+    dismissible: Boolean = false,
+    permanent: Boolean = false
+) {
+    val drawerContent: @Composable () -> Unit = {
+        if (!widget.title.isNullOrEmpty()) {
+            Text(
+                text = widget.title,
+                modifier = Modifier.padding(start = 28.dp, top = 28.dp, end = 28.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        widget.destinations.forEach { destination ->
+            NavigationDrawerItem(
+                label = { Text(destination.label) },
+                selected = destination.selected,
+                onClick = { padaukDispatchAction(destination.actionId) },
+                icon = { Icon(imageVector = iconVector(destination.icon), contentDescription = destination.label) },
+                badge = destination.badge?.let { { Text(it) } },
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = widget.options.indicatorColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.secondaryContainer,
+                    selectedIconColor = widget.options.selectedIconColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedTextColor = widget.options.selectedTextColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                    unselectedIconColor = widget.options.unselectedIconColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = widget.options.unselectedTextColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+            )
+        }
+    }
+
+    when {
+        permanent -> PermanentDrawerSheet(
+            modifier = widget.modifiers.toCompose(),
+            drawerContainerColor = widget.options.containerColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.surfaceContainerLow,
+            drawerContentColor = widget.options.contentColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.onSurfaceVariant
+        ) {
+            drawerContent()
+        }
+
+        dismissible -> DismissibleDrawerSheet(
+            modifier = widget.modifiers.toCompose(),
+            drawerContainerColor = widget.options.containerColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.surfaceContainerLow,
+            drawerContentColor = widget.options.contentColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.onSurfaceVariant
+        ) {
+            drawerContent()
+        }
+
+        else -> ModalDrawerSheet(
+            modifier = widget.modifiers.toCompose(),
+            drawerContainerColor = widget.options.containerColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.surfaceContainerLow,
+            drawerContentColor = widget.options.contentColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.onSurfaceVariant
+        ) {
+            drawerContent()
+        }
     }
 }
 

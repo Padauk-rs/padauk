@@ -14,6 +14,7 @@ use log::debug;
 
 pub struct Scaffold {
     pub app_bar: Option<Box<dyn Widget>>,
+    pub drawer: Option<Box<dyn Widget>>,
     pub body: Box<dyn Widget>,
     pub bottom_bar: Option<Box<dyn Widget>>,
     pub fab: Option<Box<dyn Widget>>,
@@ -25,6 +26,7 @@ impl Scaffold {
         Self {
             body: Box::new(body),
             app_bar: None,
+            drawer: None,
             bottom_bar: None,
             fab: None,
             modifiers: Modifiers::default(),
@@ -33,6 +35,11 @@ impl Scaffold {
 
     pub fn app_bar(mut self, bar: impl Widget + 'static) -> Self {
         self.app_bar = Some(Box::new(bar));
+        self
+    }
+
+    pub fn drawer(mut self, drawer: impl Widget + 'static) -> Self {
+        self.drawer = Some(Box::new(drawer));
         self
     }
 
@@ -57,8 +64,9 @@ impl Widget for Scaffold {
         if let Some(bar) = &self.app_bar {
             let mut node = bar.build();
 
-            // 2. Logic: Inject Back Button if Global Navigator says we can pop
-            if Navigator::can_pop() {
+            // 2. Logic: Inject Back Button if Global Navigator says we can pop.
+            // If a drawer is attached, keep leading empty so the renderer can show a menu icon.
+            if Navigator::can_pop() && self.drawer.is_none() {
                 debug!("Scaffold: injecting back button into AppBar.");
                 if let UiNode::AppBar { leading, .. } = &mut node {
                     // Create a Back Button
@@ -83,6 +91,7 @@ impl Widget for Scaffold {
 
         UiNode::Scaffold {
             app_bar: app_bar_nodes,
+            drawer: to_vec(&self.drawer),
             body: vec![self.body.build()],
             bottom_bar: to_vec(&self.bottom_bar),
             floating_action_button: to_vec(&self.fab),

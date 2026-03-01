@@ -12,6 +12,9 @@ use crate::ui::{
     menu::{DropdownFieldOptions, MenuItem},
     modifier::Modifiers,
     navigation_bar::{NavigationBarOptions, NavigationDestination},
+    navigation_drawer::{
+        NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
+    },
     text_field::{TextFieldOptions, TextFieldStyle},
 };
 
@@ -115,6 +118,7 @@ pub enum AndroidUiNode {
         // We use Vec as a workaround for Option<Box<UiNode>> in UniFFI Enums.
         // Empty Vec = None, Vec with 1 item = Some.
         app_bar: Vec<AndroidUiNode>,
+        drawer: Vec<AndroidUiNode>,
         body: Vec<AndroidUiNode>,
         bottom_bar: Vec<AndroidUiNode>,
         floating_action_button: Vec<AndroidUiNode>,
@@ -131,6 +135,13 @@ pub enum AndroidUiNode {
     NavigationBar {
         destinations: Vec<NavigationDestination>,
         options: NavigationBarOptions,
+        modifiers: Modifiers,
+    },
+    NavigationDrawer {
+        title: Option<String>,
+        destinations: Vec<NavigationDrawerDestination>,
+        drawer_type: NavigationDrawerType,
+        options: NavigationDrawerOptions,
         modifiers: Modifiers,
     },
 

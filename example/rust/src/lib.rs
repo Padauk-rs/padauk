@@ -13,6 +13,7 @@ mod generated;
 mod home_screen;
 mod lists;
 mod navigation_bars;
+mod navigation_drawers;
 mod navigator;
 mod scroll;
 mod state_demo;
