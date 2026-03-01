@@ -13,6 +13,9 @@ use crate::chips::menu::ChipsMenu;
 use crate::date_pickers::demo::DatePickerDemoScreen;
 use crate::dialogs::demo::DialogDemoScreen;
 use crate::lists::demo::ListsDemoScreen;
+use crate::navigation_bars::menu::NavigationBarsMenu;
+use crate::navigation_drawers::menu::NavigationDrawersMenu;
+use crate::navigation_rails::menu::NavigationRailsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
@@ -33,6 +36,27 @@ impl Widget for HomeScreen {
                 .supporting_text("Material 3 app bar styles")
                 .on_click(|| {
                     Navigator::push(Route::new("app_bars", || AppBarsMenu {}));
+                }),
+            divider(),
+            list_item("Navigation bars")
+                .supporting_text("Material 3 bottom navigation bar")
+                .on_click(|| {
+                    Navigator::push(Route::new("navigation_bars", || NavigationBarsMenu {}));
+                }),
+            divider(),
+            list_item("Navigation drawers")
+                .supporting_text("Material 3 side drawer patterns")
+                .on_click(|| {
+                    Navigator::push(Route::new(
+                        "navigation_drawers",
+                        || NavigationDrawersMenu {},
+                    ));
+                }),
+            divider(),
+            list_item("Navigation rails")
+                .supporting_text("Material 3 rail for wider layouts")
+                .on_click(|| {
+                    Navigator::push(Route::new("navigation_rails", || NavigationRailsMenu {}));
                 }),
             divider(),
             list_item("Buttons")

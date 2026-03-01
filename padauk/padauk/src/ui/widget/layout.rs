@@ -14,7 +14,10 @@ use log::debug;
 
 pub struct Scaffold {
     pub app_bar: Option<Box<dyn Widget>>,
+    pub drawer: Option<Box<dyn Widget>>,
+    pub rail: Option<Box<dyn Widget>>,
     pub body: Box<dyn Widget>,
+    pub bottom_bar: Option<Box<dyn Widget>>,
     pub fab: Option<Box<dyn Widget>>,
     pub modifiers: Modifiers,
 }
@@ -24,6 +27,9 @@ impl Scaffold {
         Self {
             body: Box::new(body),
             app_bar: None,
+            drawer: None,
+            rail: None,
+            bottom_bar: None,
             fab: None,
             modifiers: Modifiers::default(),
         }
@@ -34,8 +40,23 @@ impl Scaffold {
         self
     }
 
+    pub fn drawer(mut self, drawer: impl Widget + 'static) -> Self {
+        self.drawer = Some(Box::new(drawer));
+        self
+    }
+
+    pub fn rail(mut self, rail: impl Widget + 'static) -> Self {
+        self.rail = Some(Box::new(rail));
+        self
+    }
+
     pub fn fab(mut self, button: impl Widget + 'static) -> Self {
         self.fab = Some(Box::new(button));
+        self
+    }
+
+    pub fn bottom_bar(mut self, bar: impl Widget + 'static) -> Self {
+        self.bottom_bar = Some(Box::new(bar));
         self
     }
 }
@@ -50,8 +71,9 @@ impl Widget for Scaffold {
         if let Some(bar) = &self.app_bar {
             let mut node = bar.build();
 
-            // 2. Logic: Inject Back Button if Global Navigator says we can pop
-            if Navigator::can_pop() {
+            // 2. Logic: Inject Back Button if Global Navigator says we can pop.
+            // If drawer/rail is attached, keep leading empty so renderer can show menu/toggle icon.
+            if Navigator::can_pop() && self.drawer.is_none() && self.rail.is_none() {
                 debug!("Scaffold: injecting back button into AppBar.");
                 if let UiNode::AppBar { leading, .. } = &mut node {
                     // Create a Back Button
@@ -76,7 +98,10 @@ impl Widget for Scaffold {
 
         UiNode::Scaffold {
             app_bar: app_bar_nodes,
+            drawer: to_vec(&self.drawer),
+            rail: to_vec(&self.rail),
             body: vec![self.body.build()],
+            bottom_bar: to_vec(&self.bottom_bar),
             floating_action_button: to_vec(&self.fab),
             modifiers: self.modifiers.clone(),
         }

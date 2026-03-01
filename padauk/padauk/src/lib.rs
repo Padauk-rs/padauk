@@ -21,6 +21,11 @@ pub mod prelude {
     pub use crate::ui::list::{ListItemOptions, ListItemTrailing};
     pub use crate::ui::menu::{DropdownFieldOptions, MenuItem};
     pub use crate::ui::navigation::{Navigator, Route};
+    pub use crate::ui::navigation_bar::{NavigationBarOptions, NavigationDestination};
+    pub use crate::ui::navigation_drawer::{
+        NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
+    };
+    pub use crate::ui::navigation_rail::{NavigationRailDestination, NavigationRailOptions};
     pub use crate::ui::state::{State, state};
     pub use crate::ui::text_field::{TextFieldOptions, TextFieldStyle};
     pub use crate::ui::widget::*;
@@ -30,8 +35,10 @@ pub mod prelude {
         dropdown_field, elevated_button, elevated_card, fab, fab_extended, fab_large, fab_small,
         filled_button, filled_icon_button, filled_text_field, filled_tonal_button,
         filled_tonal_icon_button, filter_chip, icon_button, input_chip, list, list_item, menu,
-        outlined_button, outlined_card, outlined_icon_button, outlined_text_field, scaffold,
-        scroll, suggestion_chip, text_button, time_picker_dialog, vertical_divider,
+        nav_destination, nav_drawer_destination, nav_rail_destination, navigation_bar,
+        navigation_drawer, navigation_rail, outlined_button, outlined_card, outlined_icon_button,
+        outlined_text_field, scaffold, scroll, suggestion_chip, text_button, time_picker_dialog,
+        vertical_divider,
     };
 }
 

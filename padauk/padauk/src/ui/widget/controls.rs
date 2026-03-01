@@ -12,11 +12,16 @@ use crate::{
         form::{self, FieldValidator, FormKey},
         menu::{DropdownFieldOptions, MenuItem},
         modifier::Modifiers,
+        navigation_bar::{NavigationBarOptions, NavigationDestination},
+        navigation_drawer::{
+            NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
+        },
+        navigation_rail::{NavigationRailDestination, NavigationRailOptions},
         text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
 };
-use log::debug;
+use log::{debug, warn};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -95,6 +100,260 @@ pub fn app_bar_medium(title: impl Into<String>) -> AppBar {
 
 pub fn app_bar_large(title: impl Into<String>) -> AppBar {
     AppBar::new(title).style(AppBarStyle::Large)
+}
+
+// ==========================
+//   NAVIGATION BAR WIDGET
+// ==========================
+
+pub struct NavigationBar {
+    pub destinations: Vec<NavigationDestination>,
+    pub options: NavigationBarOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationBar);
+
+impl Widget for NavigationBar {
+    fn build(&self) -> UiNode {
+        if !(3..=5).contains(&self.destinations.len()) {
+            warn!(
+                "NavigationBar expects 3-5 destinations for Material 3 guidance; got {}",
+                self.destinations.len()
+            );
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationBar is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationBar {
+                destinations: self.destinations.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationBar {
+    pub fn new(destinations: Vec<NavigationDestination>) -> Self {
+        Self {
+            destinations,
+            options: NavigationBarOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: NavigationBarOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_bar(destinations: Vec<NavigationDestination>) -> NavigationBar {
+    NavigationBar::new(destinations)
+}
+
+pub fn nav_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationDestination {
+        label: label.into(),
+        icon,
+        selected,
+        action_id,
+    }
+}
+
+// ==========================
+//  NAVIGATION DRAWER WIDGET
+// ==========================
+
+pub struct NavigationDrawer {
+    pub title: Option<String>,
+    pub destinations: Vec<NavigationDrawerDestination>,
+    pub drawer_type: NavigationDrawerType,
+    pub options: NavigationDrawerOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationDrawer);
+
+impl Widget for NavigationDrawer {
+    fn build(&self) -> UiNode {
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationDrawer is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationDrawer {
+                title: self.title.clone(),
+                destinations: self.destinations.clone(),
+                drawer_type: self.drawer_type,
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationDrawer {
+    pub fn new(destinations: Vec<NavigationDrawerDestination>) -> Self {
+        Self {
+            title: None,
+            destinations,
+            drawer_type: NavigationDrawerType::Modal,
+            options: NavigationDrawerOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    pub fn drawer_type(mut self, drawer_type: NavigationDrawerType) -> Self {
+        self.drawer_type = drawer_type;
+        self
+    }
+
+    pub fn options(mut self, options: NavigationDrawerOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_drawer(destinations: Vec<NavigationDrawerDestination>) -> NavigationDrawer {
+    NavigationDrawer::new(destinations)
+}
+
+pub fn nav_drawer_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    badge: Option<String>,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationDrawerDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationDrawerDestination {
+        label: label.into(),
+        icon,
+        selected,
+        badge,
+        action_id,
+    }
+}
+
+// ==========================
+//   NAVIGATION RAIL WIDGET
+// ==========================
+
+pub struct NavigationRail {
+    pub destinations: Vec<NavigationRailDestination>,
+    pub options: NavigationRailOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationRail);
+
+impl Widget for NavigationRail {
+    fn build(&self) -> UiNode {
+        if !(3..=7).contains(&self.destinations.len()) {
+            warn!(
+                "NavigationRail expects roughly 3-7 destinations for Material 3 guidance; got {}",
+                self.destinations.len()
+            );
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationRail is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationRail {
+                destinations: self.destinations.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationRail {
+    pub fn new(destinations: Vec<NavigationRailDestination>) -> Self {
+        Self {
+            destinations,
+            options: NavigationRailOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: NavigationRailOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_rail(destinations: Vec<NavigationRailDestination>) -> NavigationRail {
+    NavigationRail::new(destinations)
+}
+
+pub fn nav_rail_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationRailDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationRailDestination {
+        label: label.into(),
+        icon,
+        selected,
+        action_id,
+    }
 }
 
 // ==========================

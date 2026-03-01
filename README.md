@@ -132,6 +132,10 @@ Padauk detects running Android emulators and booted iOS simulators.
 ```
 padauk run
 ```
+Run with release mode:
+```
+padauk run --release
+```
 
 **4. Build Android APK**
 
