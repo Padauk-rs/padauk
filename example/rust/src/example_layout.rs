@@ -61,3 +61,35 @@ pub fn example_screen_with_fab(
     .fab(fab)
     .build()
 }
+
+pub fn example_screen_with_bottom_bar(
+    app_bar: impl Widget + 'static,
+    content: impl Widget + 'static,
+    bottom_bar: impl Widget + 'static,
+    code: &'static str,
+) -> padauk::UiNode {
+    let preview_block = outlined_card(children![content])
+        .padding(8.0)
+        .fill_max_width();
+    let code_block = outlined_card(children![text(code).padding(8.0)])
+        .padding(8.0)
+        .fill_max_width();
+    let code_scroll = scroll(code_block).fill_max_width().weight(1.0);
+
+    scaffold(column(children![
+        column(children![
+            text("Preview").padding(8.0).fill_max_width(),
+            preview_block,
+        ])
+        .fill_max_width(),
+        column(children![
+            text("Code").padding(8.0).fill_max_width(),
+            code_scroll,
+        ])
+        .fill_max_width()
+        .weight(1.0),
+    ]))
+    .app_bar(app_bar)
+    .bottom_bar(bottom_bar)
+    .build()
+}

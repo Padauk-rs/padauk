@@ -1,5 +1,5 @@
 use crate::UiNode;
-use crate::{impl_modifiers, ui::modifier::Modifiers, Widget};
+use crate::{Widget, impl_modifiers, ui::modifier::Modifiers};
 
 #[derive(uniffi::Enum, Clone)]
 pub enum BoxFit {

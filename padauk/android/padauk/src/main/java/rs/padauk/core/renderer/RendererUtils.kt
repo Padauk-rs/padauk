@@ -30,6 +30,7 @@ internal fun AndroidUiNode.modifiersOrNull(): Modifiers? {
         is AndroidUiNode.Divider -> this.modifiers
         is AndroidUiNode.Scaffold -> this.modifiers
         is AndroidUiNode.AppBar -> this.modifiers
+        is AndroidUiNode.NavigationBar -> this.modifiers
         is AndroidUiNode.Text -> this.modifiers
         is AndroidUiNode.TextField -> this.modifiers
         is AndroidUiNode.Menu -> this.modifiers

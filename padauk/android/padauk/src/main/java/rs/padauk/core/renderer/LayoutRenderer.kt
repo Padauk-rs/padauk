@@ -16,6 +16,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,6 +42,11 @@ internal fun renderScaffold(widget: AndroidUiNode.Scaffold) {
             // Check if the vector has items
             if (widget.appBar.isNotEmpty()) {
                 PadaukRenderer(widget.appBar.first())
+            }
+        },
+        bottomBar = {
+            if (widget.bottomBar.isNotEmpty()) {
+                PadaukRenderer(widget.bottomBar.first())
             }
         },
         floatingActionButton = {
@@ -111,6 +119,44 @@ internal fun renderAppBar(widget: AndroidUiNode.AppBar) {
             colors = colors,
             navigationIcon = navIcon
         )
+    }
+}
+
+@Composable
+internal fun renderNavigationBar(widget: AndroidUiNode.NavigationBar) {
+    NavigationBar(
+        modifier = widget.modifiers.toCompose(),
+        containerColor = widget.options.containerColor?.toComposeColor()
+            ?: MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = widget.options.contentColor?.toComposeColor()
+            ?: MaterialTheme.colorScheme.onSurface
+    ) {
+        widget.destinations.forEach { destination ->
+            NavigationBarItem(
+                selected = destination.selected,
+                onClick = { padaukDispatchAction(destination.actionId) },
+                icon = {
+                    Icon(
+                        imageVector = iconVector(destination.icon),
+                        contentDescription = destination.label
+                    )
+                },
+                label = { Text(destination.label) },
+                alwaysShowLabel = widget.options.alwaysShowLabel,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = widget.options.selectedIconColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedTextColor = widget.options.selectedTextColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = widget.options.indicatorColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.secondaryContainer,
+                    unselectedIconColor = widget.options.unselectedIconColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = widget.options.unselectedTextColor?.toComposeColor()
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
     }
 }
 

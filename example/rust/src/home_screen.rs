@@ -13,6 +13,7 @@ use crate::chips::menu::ChipsMenu;
 use crate::date_pickers::demo::DatePickerDemoScreen;
 use crate::dialogs::demo::DialogDemoScreen;
 use crate::lists::demo::ListsDemoScreen;
+use crate::navigation_bars::menu::NavigationBarsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
@@ -33,6 +34,12 @@ impl Widget for HomeScreen {
                 .supporting_text("Material 3 app bar styles")
                 .on_click(|| {
                     Navigator::push(Route::new("app_bars", || AppBarsMenu {}));
+                }),
+            divider(),
+            list_item("Navigation bars")
+                .supporting_text("Material 3 bottom navigation bar")
+                .on_click(|| {
+                    Navigator::push(Route::new("navigation_bars", || NavigationBarsMenu {}));
                 }),
             divider(),
             list_item("Buttons")

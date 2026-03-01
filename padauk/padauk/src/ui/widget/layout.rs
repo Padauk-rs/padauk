@@ -15,6 +15,7 @@ use log::debug;
 pub struct Scaffold {
     pub app_bar: Option<Box<dyn Widget>>,
     pub body: Box<dyn Widget>,
+    pub bottom_bar: Option<Box<dyn Widget>>,
     pub fab: Option<Box<dyn Widget>>,
     pub modifiers: Modifiers,
 }
@@ -24,6 +25,7 @@ impl Scaffold {
         Self {
             body: Box::new(body),
             app_bar: None,
+            bottom_bar: None,
             fab: None,
             modifiers: Modifiers::default(),
         }
@@ -36,6 +38,11 @@ impl Scaffold {
 
     pub fn fab(mut self, button: impl Widget + 'static) -> Self {
         self.fab = Some(Box::new(button));
+        self
+    }
+
+    pub fn bottom_bar(mut self, bar: impl Widget + 'static) -> Self {
+        self.bottom_bar = Some(Box::new(bar));
         self
     }
 }
@@ -77,6 +84,7 @@ impl Widget for Scaffold {
         UiNode::Scaffold {
             app_bar: app_bar_nodes,
             body: vec![self.body.build()],
+            bottom_bar: to_vec(&self.bottom_bar),
             floating_action_button: to_vec(&self.fab),
             modifiers: self.modifiers.clone(),
         }

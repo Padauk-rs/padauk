@@ -12,6 +12,7 @@ mod example_layout;
 mod generated;
 mod home_screen;
 mod lists;
+mod navigation_bars;
 mod navigator;
 mod scroll;
 mod state_demo;

@@ -12,11 +12,12 @@ use crate::{
         form::{self, FieldValidator, FormKey},
         menu::{DropdownFieldOptions, MenuItem},
         modifier::Modifiers,
+        navigation_bar::{NavigationBarOptions, NavigationDestination},
         text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
 };
-use log::debug;
+use log::{debug, warn};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -95,6 +96,87 @@ pub fn app_bar_medium(title: impl Into<String>) -> AppBar {
 
 pub fn app_bar_large(title: impl Into<String>) -> AppBar {
     AppBar::new(title).style(AppBarStyle::Large)
+}
+
+// ==========================
+//   NAVIGATION BAR WIDGET
+// ==========================
+
+pub struct NavigationBar {
+    pub destinations: Vec<NavigationDestination>,
+    pub options: NavigationBarOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationBar);
+
+impl Widget for NavigationBar {
+    fn build(&self) -> UiNode {
+        if !(3..=5).contains(&self.destinations.len()) {
+            warn!(
+                "NavigationBar expects 3-5 destinations for Material 3 guidance; got {}",
+                self.destinations.len()
+            );
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationBar is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationBar {
+                destinations: self.destinations.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationBar {
+    pub fn new(destinations: Vec<NavigationDestination>) -> Self {
+        Self {
+            destinations,
+            options: NavigationBarOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: NavigationBarOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_bar(destinations: Vec<NavigationDestination>) -> NavigationBar {
+    NavigationBar::new(destinations)
+}
+
+pub fn nav_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationDestination {
+        label: label.into(),
+        icon,
+        selected,
+        action_id,
+    }
 }
 
 // ==========================

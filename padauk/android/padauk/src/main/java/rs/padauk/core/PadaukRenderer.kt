@@ -8,6 +8,7 @@ fun PadaukRenderer(widget: AndroidUiNode) {
     when (widget) {
         is AndroidUiNode.Scaffold -> renderScaffold(widget)
         is AndroidUiNode.AppBar -> renderAppBar(widget)
+        is AndroidUiNode.NavigationBar -> renderNavigationBar(widget)
         is AndroidUiNode.Column -> renderColumn(widget)
         is AndroidUiNode.Row -> renderRow(widget)
         is AndroidUiNode.Stack -> renderStack(widget)

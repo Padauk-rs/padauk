@@ -17,12 +17,13 @@ mod lists;
 mod pickers;
 
 pub use controls::{
-    AppBar, Button, Card, Checkbox, Chip, DropdownField, Fab, IconButton, Menu, Text, TextField,
-    app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, assist_chip, button, card,
-    checkbox, dropdown_field, elevated_button, elevated_card, fab, fab_extended, fab_large,
-    fab_small, filled_button, filled_icon_button, filled_text_field, filled_tonal_button,
-    filled_tonal_icon_button, filter_chip, icon_button, input_chip, menu, outlined_button,
-    outlined_card, outlined_icon_button, outlined_text_field, suggestion_chip, text, text_button,
+    AppBar, Button, Card, Checkbox, Chip, DropdownField, Fab, IconButton, Menu, NavigationBar,
+    Text, TextField, app_bar, app_bar_center_aligned, app_bar_large, app_bar_medium, assist_chip,
+    button, card, checkbox, dropdown_field, elevated_button, elevated_card, fab, fab_extended,
+    fab_large, fab_small, filled_button, filled_icon_button, filled_text_field,
+    filled_tonal_button, filled_tonal_icon_button, filter_chip, icon_button, input_chip, menu,
+    nav_destination, navigation_bar, outlined_button, outlined_card, outlined_icon_button,
+    outlined_text_field, suggestion_chip, text, text_button,
 };
 pub use dialogs::{Dialog, FullscreenDialog, dialog, dialog_fullscreen};
 pub use layout::{Column, Scaffold, Scroll, column, scaffold, scroll};

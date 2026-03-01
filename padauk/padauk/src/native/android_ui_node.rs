@@ -11,6 +11,7 @@ use crate::ui::{
     list::{ListItemOptions, ListItemTrailing},
     menu::{DropdownFieldOptions, MenuItem},
     modifier::Modifiers,
+    navigation_bar::{NavigationBarOptions, NavigationDestination},
     text_field::{TextFieldOptions, TextFieldStyle},
 };
 
@@ -115,6 +116,7 @@ pub enum AndroidUiNode {
         // Empty Vec = None, Vec with 1 item = Some.
         app_bar: Vec<AndroidUiNode>,
         body: Vec<AndroidUiNode>,
+        bottom_bar: Vec<AndroidUiNode>,
         floating_action_button: Vec<AndroidUiNode>,
         modifiers: Modifiers,
     },
@@ -124,6 +126,11 @@ pub enum AndroidUiNode {
         style: AppBarStyle,
         options: AppBarStyleOptions,
         // Future: actions: Vec<UiNode>,
+        modifiers: Modifiers,
+    },
+    NavigationBar {
+        destinations: Vec<NavigationDestination>,
+        options: NavigationBarOptions,
         modifiers: Modifiers,
     },
 
