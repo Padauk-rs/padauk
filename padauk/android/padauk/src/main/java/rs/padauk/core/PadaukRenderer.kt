@@ -11,6 +11,7 @@ fun PadaukRenderer(widget: AndroidUiNode) {
         is AndroidUiNode.NavigationBar -> renderNavigationBar(widget)
         is AndroidUiNode.NavigationDrawer -> renderNavigationDrawer(widget)
         is AndroidUiNode.NavigationRail -> renderNavigationRail(widget, widget.options.expanded)
+        is AndroidUiNode.Tabs -> renderTabs(widget)
         is AndroidUiNode.Column -> renderColumn(widget)
         is AndroidUiNode.Row -> renderRow(widget)
         is AndroidUiNode.Stack -> renderStack(widget)

@@ -19,6 +19,7 @@ use crate::navigation_rails::menu::NavigationRailsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
+use crate::tabs::menu::TabsMenu;
 use crate::text_fields::menu::TextFieldsMenu;
 
 pub struct HomeScreen;
@@ -81,6 +82,12 @@ impl Widget for HomeScreen {
                 .supporting_text("Assist/filter/input/suggestion chips")
                 .on_click(|| {
                     Navigator::push(Route::new("chips", || ChipsMenu {}));
+                }),
+            divider(),
+            list_item("Tabs")
+                .supporting_text("Material 3 primary and secondary tabs")
+                .on_click(|| {
+                    Navigator::push(Route::new("tabs", || TabsMenu {}));
                 }),
             divider(),
             list_item("Date pickers")

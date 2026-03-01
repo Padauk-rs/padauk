@@ -16,6 +16,7 @@ use crate::ui::{
         NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
     },
     navigation_rail::{NavigationRailDestination, NavigationRailOptions},
+    tabs::{TabDestination, TabsOptions},
     text_field::{TextFieldOptions, TextFieldStyle},
 };
 
@@ -149,6 +150,11 @@ pub enum AndroidUiNode {
     NavigationRail {
         destinations: Vec<NavigationRailDestination>,
         options: NavigationRailOptions,
+        modifiers: Modifiers,
+    },
+    Tabs {
+        destinations: Vec<TabDestination>,
+        options: TabsOptions,
         modifiers: Modifiers,
     },
 

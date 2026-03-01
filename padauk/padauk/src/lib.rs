@@ -27,6 +27,7 @@ pub mod prelude {
     };
     pub use crate::ui::navigation_rail::{NavigationRailDestination, NavigationRailOptions};
     pub use crate::ui::state::{State, state};
+    pub use crate::ui::tabs::{TabDestination, TabsOptions, TabsStyle};
     pub use crate::ui::text_field::{TextFieldOptions, TextFieldStyle};
     pub use crate::ui::widget::*;
     pub use crate::ui::widget::{
@@ -37,8 +38,8 @@ pub mod prelude {
         filled_tonal_icon_button, filter_chip, icon_button, input_chip, list, list_item, menu,
         nav_destination, nav_drawer_destination, nav_rail_destination, navigation_bar,
         navigation_drawer, navigation_rail, outlined_button, outlined_card, outlined_icon_button,
-        outlined_text_field, scaffold, scroll, suggestion_chip, text_button, time_picker_dialog,
-        vertical_divider,
+        outlined_text_field, scaffold, scroll, suggestion_chip, tab, tab_with_icon, tabs,
+        text_button, time_picker_dialog, vertical_divider,
     };
 }
 
