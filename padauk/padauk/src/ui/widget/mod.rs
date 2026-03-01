@@ -22,9 +22,9 @@ pub use controls::{
     app_bar_medium, assist_chip, button, card, checkbox, dropdown_field, elevated_button,
     elevated_card, fab, fab_extended, fab_large, fab_small, filled_button, filled_icon_button,
     filled_text_field, filled_tonal_button, filled_tonal_icon_button, filter_chip, icon_button,
-    input_chip, menu, nav_destination, nav_drawer_destination, navigation_bar, navigation_drawer,
-    outlined_button, outlined_card, outlined_icon_button, outlined_text_field, suggestion_chip,
-    text, text_button,
+    input_chip, menu, nav_destination, nav_drawer_destination, nav_rail_destination,
+    navigation_bar, navigation_drawer, navigation_rail, outlined_button, outlined_card,
+    outlined_icon_button, outlined_text_field, suggestion_chip, text, text_button,
 };
 pub use dialogs::{Dialog, FullscreenDialog, dialog, dialog_fullscreen};
 pub use layout::{Column, Scaffold, Scroll, column, scaffold, scroll};

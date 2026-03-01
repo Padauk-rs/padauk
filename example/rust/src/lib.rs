@@ -14,6 +14,7 @@ mod home_screen;
 mod lists;
 mod navigation_bars;
 mod navigation_drawers;
+mod navigation_rails;
 mod navigator;
 mod scroll;
 mod state_demo;

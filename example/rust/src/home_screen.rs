@@ -15,6 +15,7 @@ use crate::dialogs::demo::DialogDemoScreen;
 use crate::lists::demo::ListsDemoScreen;
 use crate::navigation_bars::menu::NavigationBarsMenu;
 use crate::navigation_drawers::menu::NavigationDrawersMenu;
+use crate::navigation_rails::menu::NavigationRailsMenu;
 use crate::navigator::navigation_menu::NavigationMenu;
 use crate::scroll::demo::ScrollDemoScreen;
 use crate::state_demo::StateDemoScreen;
@@ -50,6 +51,12 @@ impl Widget for HomeScreen {
                         "navigation_drawers",
                         || NavigationDrawersMenu {},
                     ));
+                }),
+            divider(),
+            list_item("Navigation rails")
+                .supporting_text("Material 3 rail for wider layouts")
+                .on_click(|| {
+                    Navigator::push(Route::new("navigation_rails", || NavigationRailsMenu {}));
                 }),
             divider(),
             list_item("Buttons")

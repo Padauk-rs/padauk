@@ -2109,6 +2109,128 @@ public object FfiConverterTypeNavigationDrawerOptions: FfiConverterRustBuffer<Na
 
 
 
+data class NavigationRailDestination (
+    var `label`: kotlin.String
+    , 
+    var `icon`: IconType
+    , 
+    var `selected`: kotlin.Boolean
+    , 
+    var `actionId`: kotlin.String
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNavigationRailDestination: FfiConverterRustBuffer<NavigationRailDestination> {
+    override fun read(buf: ByteBuffer): NavigationRailDestination {
+        return NavigationRailDestination(
+            FfiConverterString.read(buf),
+            FfiConverterTypeIconType.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NavigationRailDestination) = (
+            FfiConverterString.allocationSize(value.`label`) +
+            FfiConverterTypeIconType.allocationSize(value.`icon`) +
+            FfiConverterBoolean.allocationSize(value.`selected`) +
+            FfiConverterString.allocationSize(value.`actionId`)
+    )
+
+    override fun write(value: NavigationRailDestination, buf: ByteBuffer) {
+            FfiConverterString.write(value.`label`, buf)
+            FfiConverterTypeIconType.write(value.`icon`, buf)
+            FfiConverterBoolean.write(value.`selected`, buf)
+            FfiConverterString.write(value.`actionId`, buf)
+    }
+}
+
+
+
+data class NavigationRailOptions (
+    var `containerColor`: ColorValue?
+    , 
+    var `contentColor`: ColorValue?
+    , 
+    var `indicatorColor`: ColorValue?
+    , 
+    var `selectedIconColor`: ColorValue?
+    , 
+    var `selectedTextColor`: ColorValue?
+    , 
+    var `unselectedIconColor`: ColorValue?
+    , 
+    var `unselectedTextColor`: ColorValue?
+    , 
+    var `alwaysShowLabel`: kotlin.Boolean
+    , 
+    var `expanded`: kotlin.Boolean
+    , 
+    var `allowToggle`: kotlin.Boolean
+    
+){
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNavigationRailOptions: FfiConverterRustBuffer<NavigationRailOptions> {
+    override fun read(buf: ByteBuffer): NavigationRailOptions {
+        return NavigationRailOptions(
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NavigationRailOptions) = (
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`contentColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`indicatorColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`selectedIconColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`selectedTextColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`unselectedIconColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`unselectedTextColor`) +
+            FfiConverterBoolean.allocationSize(value.`alwaysShowLabel`) +
+            FfiConverterBoolean.allocationSize(value.`expanded`) +
+            FfiConverterBoolean.allocationSize(value.`allowToggle`)
+    )
+
+    override fun write(value: NavigationRailOptions, buf: ByteBuffer) {
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`contentColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`indicatorColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`selectedIconColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`selectedTextColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`unselectedIconColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`unselectedTextColor`, buf)
+            FfiConverterBoolean.write(value.`alwaysShowLabel`, buf)
+            FfiConverterBoolean.write(value.`expanded`, buf)
+            FfiConverterBoolean.write(value.`allowToggle`, buf)
+    }
+}
+
+
+
 data class TextFieldOptions (
     var `placeholder`: kotlin.String?
     , 
@@ -2347,6 +2469,7 @@ sealed class AndroidUiNode {
     data class Scaffold(
         val `appBar`: List<AndroidUiNode>, 
         val `drawer`: List<AndroidUiNode>, 
+        val `rail`: List<AndroidUiNode>, 
         val `body`: List<AndroidUiNode>, 
         val `bottomBar`: List<AndroidUiNode>, 
         val `floatingActionButton`: List<AndroidUiNode>, 
@@ -2387,6 +2510,17 @@ sealed class AndroidUiNode {
         val `destinations`: List<NavigationDrawerDestination>, 
         val `drawerType`: NavigationDrawerType, 
         val `options`: NavigationDrawerOptions, 
+        val `modifiers`: Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class NavigationRail(
+        val `destinations`: List<NavigationRailDestination>, 
+        val `options`: NavigationRailOptions, 
         val `modifiers`: Modifiers) : AndroidUiNode()
         
     {
@@ -2651,6 +2785,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
+                FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
             14 -> AndroidUiNode.AppBar(
@@ -2672,12 +2807,17 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeNavigationDrawerOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            17 -> AndroidUiNode.Text(
+            17 -> AndroidUiNode.NavigationRail(
+                FfiConverterSequenceTypeNavigationRailDestination.read(buf),
+                FfiConverterTypeNavigationRailOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            18 -> AndroidUiNode.Text(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            18 -> AndroidUiNode.TextField(
+            19 -> AndroidUiNode.TextField(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterTypeTextFieldStyle.read(buf),
@@ -2686,13 +2826,13 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            19 -> AndroidUiNode.Menu(
+            20 -> AndroidUiNode.Menu(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeMenuItem.read(buf),
                 FfiConverterSequenceString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            20 -> AndroidUiNode.DropdownField(
+            21 -> AndroidUiNode.DropdownField(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterSequenceString.read(buf),
@@ -2701,28 +2841,28 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            21 -> AndroidUiNode.Button(
+            22 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            22 -> AndroidUiNode.IconButton(
+            23 -> AndroidUiNode.IconButton(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeIconButtonOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            23 -> AndroidUiNode.Card(
+            24 -> AndroidUiNode.Card(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            24 -> AndroidUiNode.Checkbox(
+            25 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2731,7 +2871,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            25 -> AndroidUiNode.Chip(
+            26 -> AndroidUiNode.Chip(
                 FfiConverterString.read(buf),
                 FfiConverterTypeChipStyle.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2742,7 +2882,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeChipStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            26 -> AndroidUiNode.Fab(
+            27 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
@@ -2750,7 +2890,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeFabOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            27 -> AndroidUiNode.Image(
+            28 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -2904,6 +3044,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`appBar`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`drawer`)
+                + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`rail`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`body`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`bottomBar`)
                 + FfiConverterSequenceTypeAndroidUiNode.allocationSize(value.`floatingActionButton`)
@@ -2938,6 +3079,15 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 + FfiConverterSequenceTypeNavigationDrawerDestination.allocationSize(value.`destinations`)
                 + FfiConverterTypeNavigationDrawerType.allocationSize(value.`drawerType`)
                 + FfiConverterTypeNavigationDrawerOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.NavigationRail -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeNavigationRailDestination.allocationSize(value.`destinations`)
+                + FfiConverterTypeNavigationRailOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -3190,6 +3340,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 buf.putInt(13)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`appBar`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`drawer`, buf)
+                FfiConverterSequenceTypeAndroidUiNode.write(value.`rail`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`body`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`bottomBar`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`floatingActionButton`, buf)
@@ -3221,15 +3372,22 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Text -> {
+            is AndroidUiNode.NavigationRail -> {
                 buf.putInt(17)
+                FfiConverterSequenceTypeNavigationRailDestination.write(value.`destinations`, buf)
+                FfiConverterTypeNavigationRailOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Text -> {
+                buf.putInt(18)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.TextField -> {
-                buf.putInt(18)
+                buf.putInt(19)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterString.write(value.`value`, buf)
                 FfiConverterTypeTextFieldStyle.write(value.`style`, buf)
@@ -3240,7 +3398,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Menu -> {
-                buf.putInt(19)
+                buf.putInt(20)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterSequenceTypeMenuItem.write(value.`items`, buf)
                 FfiConverterSequenceString.write(value.`actionIds`, buf)
@@ -3248,7 +3406,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.DropdownField -> {
-                buf.putInt(20)
+                buf.putInt(21)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterString.write(value.`value`, buf)
                 FfiConverterSequenceString.write(value.`optionsList`, buf)
@@ -3259,7 +3417,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Button -> {
-                buf.putInt(21)
+                buf.putInt(22)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeButtonStyle.write(value.`style`, buf)
@@ -3268,7 +3426,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.IconButton -> {
-                buf.putInt(22)
+                buf.putInt(23)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
@@ -3277,7 +3435,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Card -> {
-                buf.putInt(23)
+                buf.putInt(24)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
@@ -3286,7 +3444,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Checkbox -> {
-                buf.putInt(24)
+                buf.putInt(25)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterBoolean.write(value.`enabled`, buf)
@@ -3297,7 +3455,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Chip -> {
-                buf.putInt(25)
+                buf.putInt(26)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterTypeChipStyle.write(value.`style`, buf)
                 FfiConverterBoolean.write(value.`selected`, buf)
@@ -3310,7 +3468,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Fab -> {
-                buf.putInt(26)
+                buf.putInt(27)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -3320,7 +3478,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(27)
+                buf.putInt(28)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -4967,6 +5125,34 @@ public object FfiConverterSequenceTypeNavigationDrawerDestination: FfiConverterR
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeNavigationDrawerDestination.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeNavigationRailDestination: FfiConverterRustBuffer<List<NavigationRailDestination>> {
+    override fun read(buf: ByteBuffer): List<NavigationRailDestination> {
+        val len = buf.getInt()
+        return List<NavigationRailDestination>(len) {
+            FfiConverterTypeNavigationRailDestination.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<NavigationRailDestination>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeNavigationRailDestination.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<NavigationRailDestination>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeNavigationRailDestination.write(it, buf)
         }
     }
 }

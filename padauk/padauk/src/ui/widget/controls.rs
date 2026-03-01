@@ -16,6 +16,7 @@ use crate::{
         navigation_drawer::{
             NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
         },
+        navigation_rail::{NavigationRailDestination, NavigationRailOptions},
         text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
@@ -270,6 +271,87 @@ pub fn nav_drawer_destination(
         icon,
         selected,
         badge,
+        action_id,
+    }
+}
+
+// ==========================
+//   NAVIGATION RAIL WIDGET
+// ==========================
+
+pub struct NavigationRail {
+    pub destinations: Vec<NavigationRailDestination>,
+    pub options: NavigationRailOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(NavigationRail);
+
+impl Widget for NavigationRail {
+    fn build(&self) -> UiNode {
+        if !(3..=7).contains(&self.destinations.len()) {
+            warn!(
+                "NavigationRail expects roughly 3-7 destinations for Material 3 guidance; got {}",
+                self.destinations.len()
+            );
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "NavigationRail is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::NavigationRail {
+                destinations: self.destinations.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl NavigationRail {
+    pub fn new(destinations: Vec<NavigationRailDestination>) -> Self {
+        Self {
+            destinations,
+            options: NavigationRailOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: NavigationRailOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn navigation_rail(destinations: Vec<NavigationRailDestination>) -> NavigationRail {
+    NavigationRail::new(destinations)
+}
+
+pub fn nav_rail_destination(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> NavigationRailDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    NavigationRailDestination {
+        label: label.into(),
+        icon,
+        selected,
         action_id,
     }
 }

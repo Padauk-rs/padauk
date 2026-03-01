@@ -15,6 +15,7 @@ use crate::ui::{
     navigation_drawer::{
         NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
     },
+    navigation_rail::{NavigationRailDestination, NavigationRailOptions},
     text_field::{TextFieldOptions, TextFieldStyle},
 };
 
@@ -119,6 +120,7 @@ pub enum AndroidUiNode {
         // Empty Vec = None, Vec with 1 item = Some.
         app_bar: Vec<AndroidUiNode>,
         drawer: Vec<AndroidUiNode>,
+        rail: Vec<AndroidUiNode>,
         body: Vec<AndroidUiNode>,
         bottom_bar: Vec<AndroidUiNode>,
         floating_action_button: Vec<AndroidUiNode>,
@@ -142,6 +144,11 @@ pub enum AndroidUiNode {
         destinations: Vec<NavigationDrawerDestination>,
         drawer_type: NavigationDrawerType,
         options: NavigationDrawerOptions,
+        modifiers: Modifiers,
+    },
+    NavigationRail {
+        destinations: Vec<NavigationRailDestination>,
+        options: NavigationRailOptions,
         modifiers: Modifiers,
     },
 

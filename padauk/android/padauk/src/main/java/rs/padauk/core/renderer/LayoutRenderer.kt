@@ -3,9 +3,10 @@ package rs.padauk.core.renderer
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,6 +25,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -31,7 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -105,32 +113,132 @@ private fun renderScaffoldContent(
     widget: AndroidUiNode.Scaffold,
     openDrawer: (() -> Unit)? = null
 ) {
-    Scaffold(
-        modifier = widget.modifiers.toCompose(),
-        topBar = {
-            if (widget.appBar.isNotEmpty()) {
-                val top = widget.appBar.first()
-                if (top is AndroidUiNode.AppBar) {
-                    renderAppBar(top, openDrawer)
-                } else {
-                    PadaukRenderer(top)
+    val railNode = widget.rail.firstOrNull() as? AndroidUiNode.NavigationRail
+    var railExpanded by remember(railNode?.options?.expanded) {
+        mutableStateOf(railNode?.options?.expanded ?: false)
+    }
+    val railToggle: (() -> Unit)? = if (railNode?.options?.allowToggle == true) {
+        { railExpanded = !railExpanded }
+    } else {
+        null
+    }
+    val topBarAction = openDrawer ?: railToggle
+
+    val scaffoldContent: @Composable () -> Unit = {
+        Scaffold(
+            modifier = widget.modifiers.toCompose(),
+            topBar = {
+                if (widget.appBar.isNotEmpty()) {
+                    val top = widget.appBar.first()
+                    if (top is AndroidUiNode.AppBar) {
+                        renderAppBar(top, topBarAction)
+                    } else {
+                        PadaukRenderer(top)
+                    }
+                }
+            },
+            bottomBar = {
+                if (widget.bottomBar.isNotEmpty()) {
+                    PadaukRenderer(widget.bottomBar.first())
+                }
+            },
+            floatingActionButton = {
+                if (widget.floatingActionButton.isNotEmpty()) {
+                    PadaukRenderer(widget.floatingActionButton.first())
                 }
             }
-        },
-        bottomBar = {
-            if (widget.bottomBar.isNotEmpty()) {
-                PadaukRenderer(widget.bottomBar.first())
-            }
-        },
-        floatingActionButton = {
-            if (widget.floatingActionButton.isNotEmpty()) {
-                PadaukRenderer(widget.floatingActionButton.first())
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding)) {
+                if (widget.body.isNotEmpty()) {
+                    PadaukRenderer(widget.body.first())
+                }
             }
         }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            if (widget.body.isNotEmpty()) {
-                PadaukRenderer(widget.body.first())
+    }
+
+    if (railNode != null) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val rowScope = this
+            renderNavigationRail(railNode, railExpanded)
+            Box(modifier = with(rowScope) { Modifier.weight(1f) }) {
+                scaffoldContent()
+            }
+        }
+    } else {
+        scaffoldContent()
+    }
+}
+
+@Composable
+internal fun renderNavigationRail(widget: AndroidUiNode.NavigationRail, expanded: Boolean) {
+    if (expanded) {
+        PermanentDrawerSheet(
+            modifier = Modifier.fillMaxHeight().then(widget.modifiers.toCompose()),
+            drawerContainerColor = widget.options.containerColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.surfaceContainer,
+            drawerContentColor = widget.options.contentColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.onSurface
+        ) {
+            widget.destinations.forEach { destination ->
+                NavigationDrawerItem(
+                    label = { Text(destination.label) },
+                    selected = destination.selected,
+                    onClick = { padaukDispatchAction(destination.actionId) },
+                    icon = {
+                        Icon(
+                            imageVector = iconVector(destination.icon),
+                            contentDescription = destination.label
+                        )
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        selectedContainerColor = widget.options.indicatorColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.secondaryContainer,
+                        selectedIconColor = widget.options.selectedIconColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = widget.options.selectedTextColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                        unselectedIconColor = widget.options.unselectedIconColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = widget.options.unselectedTextColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                )
+            }
+        }
+    } else {
+        NavigationRail(
+            modifier = Modifier.fillMaxHeight().then(widget.modifiers.toCompose()),
+            containerColor = widget.options.containerColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = widget.options.contentColor?.toComposeColor()
+                ?: MaterialTheme.colorScheme.onSurface
+        ) {
+            widget.destinations.forEach { destination ->
+                NavigationRailItem(
+                    selected = destination.selected,
+                    onClick = { padaukDispatchAction(destination.actionId) },
+                    icon = {
+                        Icon(
+                            imageVector = iconVector(destination.icon),
+                            contentDescription = destination.label
+                        )
+                    },
+                    label = { Text(destination.label) },
+                    alwaysShowLabel = widget.options.alwaysShowLabel,
+                    colors = NavigationRailItemDefaults.colors(
+                        selectedIconColor = widget.options.selectedIconColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = widget.options.selectedTextColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSurface,
+                        indicatorColor = widget.options.indicatorColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.secondaryContainer,
+                        unselectedIconColor = widget.options.unselectedIconColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = widget.options.unselectedTextColor?.toComposeColor()
+                            ?: MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
             }
         }
     }
