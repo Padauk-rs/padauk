@@ -30,11 +30,14 @@ enum Commands {
     },
     /// Run the app on a device
     Run {
-        /// Build and run a debug app (Android only)
-        #[arg(long)]
+        /// Build and run a debug app (Android only; default)
+        #[arg(long, conflicts_with = "release")]
         debug: bool,
+        /// Build and run a release app
+        #[arg(long, conflicts_with = "debug")]
+        release: bool,
         /// Wait for debugger attach on launch (Android only; implies --debug)
-        #[arg(long)]
+        #[arg(long, conflicts_with = "release")]
         wait_on_launch: bool,
         /// LLDB server port for Android debug
         #[arg(long, default_value_t = 5039)]
@@ -68,15 +71,20 @@ fn main() {
         }
         Commands::Run {
             debug,
+            release,
             wait_on_launch,
             debug_port,
         } => {
-            let mut debug = *debug;
-            if *wait_on_launch && !debug {
-                eprintln!("ℹ️  --wait-on-launch implies --debug; enabling debug build.");
-                debug = true;
+            // Default run mode is debug unless --release is explicitly requested.
+            let mut debug_mode = !*release;
+            if *debug {
+                debug_mode = true;
             }
-            run_auto(debug, *wait_on_launch, *debug_port).unwrap();
+            if *wait_on_launch && !debug_mode {
+                eprintln!("ℹ️  --wait-on-launch implies --debug; enabling debug build.");
+                debug_mode = true;
+            }
+            run_auto(debug_mode, *wait_on_launch, *debug_port).unwrap();
         }
         Commands::Debug { debug_port } => {
             debug_android(*debug_port).unwrap();
