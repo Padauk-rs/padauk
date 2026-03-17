@@ -1,5 +1,6 @@
 use crate::ui::color::ColorValue;
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct DividerOptions {
     pub color: Option<ColorValue>,

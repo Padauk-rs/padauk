@@ -1,3 +1,4 @@
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Default, Clone)]
 pub struct Modifiers {
     pub padding: Option<f32>,

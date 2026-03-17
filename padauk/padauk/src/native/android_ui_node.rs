@@ -21,6 +21,7 @@ use crate::ui::{
 };
 
 // Android-specific definitions
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone)]
 pub enum AndroidUiNode {
     // --- Layouts ---

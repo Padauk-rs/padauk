@@ -1,11 +1,13 @@
 use crate::ui::{button::IconType, color::ColorValue};
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum TabsStyle {
     Primary,
     Secondary,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct TabsOptions {
     pub style: TabsStyle,
@@ -33,6 +35,7 @@ impl Default for TabsOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct TabDestination {
     pub label: String,

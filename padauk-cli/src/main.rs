@@ -4,7 +4,7 @@ use dialoguer::{Select, theme::ColorfulTheme};
 use serde_json::Value;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::{env, fs};
 use uniffi_bindgen::bindings::{GenerateOptions, TargetLanguage};
@@ -96,6 +96,8 @@ fn main() {
         } => {
             if platform == "android" {
                 build_android(*release, abi.as_deref()).unwrap();
+            } else if platform == "web" {
+                build_web(*release).unwrap();
             } else {
                 eprintln!("❌ Unsupported platform: {}", platform);
             }
@@ -168,12 +170,7 @@ pub fn extract_template(target_dir: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_android(
-    device_serial: Option<String>,
-    debug: bool,
-    wait_on_launch: bool,
-    debug_port: u16,
-) {
+fn run_android(device_serial: Option<String>, debug: bool, wait_on_launch: bool, debug_port: u16) {
     prepare_gradle().expect("Failed setting necessary permission to android ./gradlew");
 
     // 1. Pick the device first
@@ -189,7 +186,11 @@ fn run_android(
     println!("🎯 Target detected: {} (Device: {})", rust_target, abi);
 
     let profile = if debug { "debug" } else { "release" };
-    let gradle_task = if debug { "installDebug" } else { "installRelease" };
+    let gradle_task = if debug {
+        "installDebug"
+    } else {
+        "installRelease"
+    };
 
     // 3. Compile Rust for the SPECIFIC target
     println!("🏗️  Building app for {}...", rust_target);
@@ -259,13 +260,15 @@ fn run_auto(debug: bool, wait_on_launch: bool, debug_port: u16) -> anyhow::Resul
 
     let mut android_devices = get_android_devices();
     let mut ios_devices = get_available_simulators().unwrap_or_default();
+    let mut web_devices = get_web_devices();
 
     devices.append(&mut android_devices);
     devices.append(&mut ios_devices);
+    devices.append(&mut web_devices);
 
     if devices.is_empty() {
         anyhow::bail!(
-            "No running devices found. Start an Android emulator or boot an iOS simulator, then retry."
+            "No running devices found. Start Android emulator/iOS simulator or install Chrome/Chromium for web."
         );
     }
 
@@ -276,10 +279,7 @@ fn run_auto(debug: bool, wait_on_launch: bool, debug_port: u16) -> anyhow::Resul
     } else {
         let labels: Vec<String> = devices
             .iter()
-            .map(|d| {
-                let platform = if d.ios { "iOS" } else { "Android" };
-                format!("{}: {} [{}]", platform, d.name, d.serial)
-            })
+            .map(|d| format!("{}: {} [{}]", d.platform_name(), d.name, d.serial))
             .collect();
 
         let selection = Select::with_theme(&ColorfulTheme::default())
@@ -291,17 +291,152 @@ fn run_auto(debug: bool, wait_on_launch: bool, debug_port: u16) -> anyhow::Resul
         selected_device = &devices[selection];
     }
 
-    if selected_device.ios {
-        run_ios(&project_root, selected_device)?;
-    } else {
-        run_android(
+    match selected_device.platform {
+        DevicePlatform::Ios => run_ios(&project_root, selected_device)?,
+        DevicePlatform::Android => run_android(
             Some(selected_device.serial.clone()),
             debug,
             wait_on_launch,
             debug_port,
-        );
+        ),
+        DevicePlatform::Web => run_web(&project_root, debug)?,
     }
 
+    Ok(())
+}
+
+fn get_web_devices() -> Vec<Device> {
+    if let Some(browser) = find_chrome_command() {
+        let _ = ensure_chrome_started(&browser);
+        vec![Device {
+            serial: browser,
+            name: "Chrome Browser".to_string(),
+            platform: DevicePlatform::Web,
+        }]
+    } else {
+        Vec::new()
+    }
+}
+
+fn find_chrome_command() -> Option<String> {
+    if cfg!(target_os = "linux") {
+        for candidate in [
+            "google-chrome",
+            "google-chrome-stable",
+            "chromium",
+            "chromium-browser",
+        ] {
+            let status = Command::new("sh")
+                .args(["-c", &format!("command -v {} >/dev/null 2>&1", candidate)])
+                .status()
+                .ok()?;
+            if status.success() {
+                return Some(candidate.to_string());
+            }
+        }
+        return None;
+    }
+
+    if cfg!(target_os = "macos") {
+        for (app_name, launch_cmd) in [
+            ("Google Chrome", r#"open -a "Google Chrome""#),
+            ("Chromium", r#"open -a "Chromium""#),
+        ] {
+            // Use "open -R" to check if the app exists without launching it.
+            let check_cmd = format!(r#"open -Ra "{}" >/dev/null 2>&1"#, app_name);
+            let status = Command::new("sh").args(["-c", &check_cmd]).status().ok()?;
+            if status.success() {
+                return Some(launch_cmd.to_string());
+            }
+        }
+    }
+
+    None
+}
+
+fn ensure_chrome_started(command: &str) -> anyhow::Result<()> {
+    if cfg!(target_os = "linux") {
+        let _ = Command::new(command)
+            .args(["--new-window", "about:blank"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()?;
+        return Ok(());
+    }
+
+    if cfg!(target_os = "macos") {
+        let status = Command::new("sh").args(["-c", command]).status()?;
+        if status.success() {
+            return Ok(());
+        }
+    }
+
+    anyhow::bail!("Chrome/Chromium launch is not supported on this OS")
+}
+
+fn run_web(project_root: &PathBuf, debug: bool) -> anyhow::Result<()> {
+    println!("🌐 Building web app (WASM + native web renderer)...");
+
+    let profile = if debug { "debug" } else { "release" };
+    let rust_dir = web_rust_dir(project_root);
+    let package = web_rust_package(&rust_dir);
+
+    let mut args = vec![
+        "build",
+        "--package",
+        package.as_str(),
+        "--target",
+        "wasm32-unknown-unknown",
+    ];
+    if !debug {
+        args.push("--release");
+    }
+
+    let status = Command::new("cargo")
+        .args(args)
+        .current_dir(&rust_dir)
+        .status()?;
+
+    if !status.success() {
+        anyhow::bail!("Web Rust build failed. Did you install `wasm32-unknown-unknown` target?");
+    }
+
+    let wasm_src = find_primary_wasm(project_root, profile)
+        .ok_or_else(|| anyhow::anyhow!("Built wasm artifact was not found"))?;
+
+    let web_dir = project_root.join("web");
+    fs::create_dir_all(&web_dir)?;
+    fs::copy(&wasm_src, web_dir.join("app.wasm"))?;
+
+    let status = Command::new("sh")
+        .args([
+            "-c",
+            "python3 -m http.server 4173 >/tmp/padauk-web.log 2>&1 &",
+        ])
+        .current_dir(&web_dir)
+        .status()?;
+
+    if !status.success() {
+        anyhow::bail!("Failed to start web dev server");
+    }
+
+    let browser =
+        find_chrome_command().ok_or_else(|| anyhow::anyhow!("Chrome/Chromium is not available"))?;
+    ensure_chrome_started(&browser)?;
+
+    if cfg!(target_os = "linux") {
+        let _ = Command::new(&browser)
+            .arg("http://127.0.0.1:4173")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+    } else if cfg!(target_os = "macos") {
+        let _ = Command::new("open")
+            .args(["-a", "Google Chrome", "http://127.0.0.1:4173"])
+            .status();
+    }
+
+    println!("✅ Web app launched in Chrome at http://127.0.0.1:4173");
     Ok(())
 }
 
@@ -310,9 +445,7 @@ fn debug_android(debug_port: u16) -> anyhow::Result<()> {
     let devices = get_android_devices();
 
     if devices.is_empty() {
-        anyhow::bail!(
-            "No running Android emulator found. Start an emulator and try again."
-        );
+        anyhow::bail!("No running Android emulator found. Start an emulator and try again.");
     }
 
     let selected_device: &Device;
@@ -387,9 +520,7 @@ fn start_android_debugging(
     let lldb_server = match lldb_server {
         Some(path) => path,
         None => {
-            eprintln!(
-                "❌ lldb-server not found in NDK. Ensure LLDB is installed with the NDK."
-            );
+            eprintln!("❌ lldb-server not found in NDK. Ensure LLDB is installed with the NDK.");
             return;
         }
     };
@@ -400,9 +531,7 @@ fn start_android_debugging(
             let fallback_res =
                 push_and_check_lldb_server(&adb, device_serial, &fallback, remote_path);
             if fallback_res.is_ok() {
-                eprintln!(
-                    "⚠️  64-bit lldb-server failed; using 32-bit fallback for debugging."
-                );
+                eprintln!("⚠️  64-bit lldb-server failed; using 32-bit fallback for debugging.");
             } else {
                 eprintln!("❌ lldb-server failed to run on device.");
                 if let Err(err) = primary {
@@ -519,7 +648,10 @@ fn start_android_debugging(
         return;
     }
 
-    println!("🪲 LLDB gdbserver started on device (port {} forwarded).", port);
+    println!(
+        "🪲 LLDB gdbserver started on device (port {} forwarded).",
+        port
+    );
 
     if wait_on_launch {
         println!("🧩 LLDB server ready. Attach with your debugger.");
@@ -560,7 +692,8 @@ fn start_android_debugging(
     for _ in 0..5 {
         let mut cmd = Command::new("lldb");
         if let Some(path) = so_path.as_ref() {
-            cmd.arg("-o").arg(format!("target create {}", path.to_string_lossy()));
+            cmd.arg("-o")
+                .arg(format!("target create {}", path.to_string_lossy()));
         }
         if let Some(dir) = so_dir.as_ref() {
             cmd.arg("-o")
@@ -611,11 +744,11 @@ fn get_android_application_id(project_root: &PathBuf) -> String {
 
 fn find_android_debug_so(project_root: &PathBuf, abi: &str) -> Option<PathBuf> {
     let merged_libs = project_root
-        .join("android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib")
+        .join(
+            "android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib",
+        )
         .join(abi);
-    let app_jni = project_root
-        .join("android/app/src/main/jniLibs")
-        .join(abi);
+    let app_jni = project_root.join("android/app/src/main/jniLibs").join(abi);
 
     let preferred = vec![
         merged_libs.join("libpadauk.so"),
@@ -839,7 +972,8 @@ fn sync_assets(rust_target: &str, abi: &str, profile: &str) {
     let so_name = "librust.so";
 
     // Rust target folder (e.g., target/aarch64-linux-android/debug)
-    let target_dir = cargo_target_dir(&project_root).unwrap_or_else(|| project_root.join("rust/target"));
+    let target_dir =
+        cargo_target_dir(&project_root).unwrap_or_else(|| project_root.join("rust/target"));
     let so_path = target_dir.join(rust_target).join(profile).join(&so_name);
     let debug_dir = so_path
         .parent()
@@ -881,6 +1015,80 @@ fn cargo_target_dir(project_root: &Path) -> Option<PathBuf> {
         .get("target_directory")
         .and_then(|value| value.as_str())
         .map(PathBuf::from)
+}
+
+fn build_web(release: bool) -> anyhow::Result<()> {
+    let project_root = std::env::current_dir().unwrap();
+    let rust_dir = web_rust_dir(&project_root);
+    let package = web_rust_package(&rust_dir);
+
+    let mut args = vec![
+        "build",
+        "--package",
+        package.as_str(),
+        "--target",
+        "wasm32-unknown-unknown",
+    ];
+    if release {
+        args.push("--release");
+    }
+
+    let status = Command::new("cargo")
+        .args(args)
+        .current_dir(&rust_dir)
+        .status()?;
+
+    if !status.success() {
+        anyhow::bail!("Web build failed");
+    }
+
+    let profile = if release { "release" } else { "debug" };
+    let wasm_src = find_primary_wasm(&project_root, profile)
+        .ok_or_else(|| anyhow::anyhow!("Built wasm artifact was not found"))?;
+
+    let web_dir = project_root.join("web");
+    fs::create_dir_all(&web_dir)?;
+    fs::copy(&wasm_src, web_dir.join("app.wasm"))?;
+
+    println!(
+        "✅ Web bundle built: {}",
+        web_dir.join("app.wasm").display()
+    );
+    Ok(())
+}
+
+fn web_rust_dir(project_root: &PathBuf) -> PathBuf {
+    let web_rust = project_root.join("web/rust-web");
+    if web_rust.join("Cargo.toml").exists() {
+        web_rust
+    } else {
+        project_root.join("rust")
+    }
+}
+
+fn web_rust_package(rust_dir: &Path) -> String {
+    if rust_dir.ends_with("web/rust-web") {
+        "padauk_web".to_string()
+    } else {
+        "rust".to_string()
+    }
+}
+
+fn find_primary_wasm(project_root: &PathBuf, profile: &str) -> Option<PathBuf> {
+    let search_root = cargo_target_dir(project_root)
+        .unwrap_or_else(|| project_root.join("target"))
+        .join("wasm32-unknown-unknown")
+        .join(profile);
+
+    let mut wasm_files: Vec<PathBuf> = fs::read_dir(search_root)
+        .ok()?
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().map(|ext| ext == "wasm").unwrap_or(false))
+        .collect();
+
+    wasm_files.sort();
+    wasm_files.into_iter().next()
 }
 
 fn build_android(release: bool, abi_list: Option<&str>) -> anyhow::Result<()> {
@@ -1180,12 +1388,29 @@ fn extract_zip_file(zip_path: &PathBuf, target_dir: &PathBuf) -> anyhow::Result<
 pub struct Device {
     serial: String,
     name: String,
-    ios: bool,
+    platform: DevicePlatform,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DevicePlatform {
+    Android,
+    Ios,
+    Web,
 }
 
 impl std::fmt::Display for Device {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} [{}]", self.name, self.serial)
+    }
+}
+
+impl Device {
+    fn platform_name(&self) -> &'static str {
+        match self.platform {
+            DevicePlatform::Android => "Android",
+            DevicePlatform::Ios => "iOS",
+            DevicePlatform::Web => "Web",
+        }
     }
 }
 
@@ -1221,7 +1446,7 @@ fn get_android_devices() -> Vec<Device> {
             devices.push(Device {
                 serial,
                 name,
-                ios: false,
+                platform: DevicePlatform::Android,
             });
         }
     }
@@ -1245,7 +1470,7 @@ pub fn get_available_simulators() -> anyhow::Result<Vec<Device>> {
                         devices.push(Device {
                             serial: d["udid"].as_str().unwrap().to_string(),
                             name: d["name"].as_str().unwrap().to_string(),
-                            ios: true,
+                            platform: DevicePlatform::Ios,
                         });
                     }
                 }

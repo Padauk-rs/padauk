@@ -1,5 +1,6 @@
 use crate::ui::color::ColorValue;
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum ChipStyle {
     Assist,
@@ -8,12 +9,14 @@ pub enum ChipStyle {
     Suggestion,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum ChipShape {
     Default,
     Pill,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct ChipStyleOptions {
     pub enabled: bool,

@@ -1,3 +1,4 @@
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum ButtonStyle {
     Filled,
@@ -7,6 +8,7 @@ pub enum ButtonStyle {
     Text,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum ButtonShape {
     Default,
@@ -14,6 +16,7 @@ pub enum ButtonShape {
     Pill,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct ButtonStyleOptions {
     pub enabled: bool,
@@ -41,6 +44,7 @@ impl Default for ButtonStyleOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum IconButtonStyle {
     Standard,
@@ -49,6 +53,7 @@ pub enum IconButtonStyle {
     Outlined,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct IconButtonOptions {
     pub enabled: bool,
@@ -68,6 +73,7 @@ impl Default for IconButtonOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum FabStyle {
     Small,
@@ -76,6 +82,7 @@ pub enum FabStyle {
     Extended,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct FabOptions {
     pub shape: ButtonShape,
@@ -95,6 +102,7 @@ impl Default for FabOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum IconType {
     Add,

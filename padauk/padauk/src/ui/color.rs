@@ -1,3 +1,4 @@
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Debug)]
 pub enum ColorValue {
     Rgb { r: u8, g: u8, b: u8, a: u8 },
