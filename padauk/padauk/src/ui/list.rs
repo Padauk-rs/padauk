@@ -1,5 +1,6 @@
 use crate::ui::{button::IconType, color::ColorValue};
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct ListItemOptions {
     pub enabled: bool,
@@ -29,6 +30,7 @@ impl Default for ListItemOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug, Default)]
 pub struct ListItemTrailing {
     pub text: Option<String>,

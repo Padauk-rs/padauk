@@ -16,10 +16,12 @@ use crate::ui::{
         NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
     },
     navigation_rail::{NavigationRailDestination, NavigationRailOptions},
+    tabs::{TabDestination, TabsOptions},
     text_field::{TextFieldOptions, TextFieldStyle},
 };
 
 // Android-specific definitions
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone)]
 pub enum AndroidUiNode {
     // --- Layouts ---
@@ -149,6 +151,11 @@ pub enum AndroidUiNode {
     NavigationRail {
         destinations: Vec<NavigationRailDestination>,
         options: NavigationRailOptions,
+        modifiers: Modifiers,
+    },
+    Tabs {
+        destinations: Vec<TabDestination>,
+        options: TabsOptions,
         modifiers: Modifiers,
     },
 

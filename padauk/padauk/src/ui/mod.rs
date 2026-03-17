@@ -18,5 +18,6 @@ pub mod navigation_drawer;
 pub mod navigation_rail;
 pub mod render_callback;
 pub mod state;
+pub mod tabs;
 pub mod text_field;
 pub mod widget;

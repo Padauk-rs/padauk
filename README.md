@@ -37,7 +37,7 @@ It features a robust **Dual-Layer Architecture**:
 
 * **Zero-Boilerplate Entry**: A simple attribute macro #[padauk::main] handles the platform handshake for you.
 
-* **Smart CLI**: `padauk run` auto-selects running emulators/simulators and handles the entire toolchain: Rust compilation, FFI binding generation, asset syncing, and Gradle/Xcode builds. `padauk build android` produces APKs (debug/release).
+* **Smart CLI**: `padauk run` auto-selects Android, iOS, and Chrome web targets and handles Rust compilation, binding generation, and platform builds. `padauk build android` produces APKs and `padauk build web` emits `web/app.wasm`.
 
 ### 🚧 Status
 
@@ -47,7 +47,7 @@ It features a robust **Dual-Layer Architecture**:
 
 * ⚠️ **iOS**: Under active development (XCFramework generation and linking logic implemented).
 
-* ❌ **Desktop/Web**: Not supported yet.
+* 🚧 **Web**: CLI template and Chrome run target are available (WASM/native HTML renderer scaffold).
 
 ### 🛠 Prerequisites
 
@@ -79,8 +79,8 @@ cd padauk
 
 # 2. Build the Framework Assets (AAR/XCFramework)
 cd padauk
-chmod +x script/build-android-release.sh
-./script/build-android-release.sh
+chmod +x script/build.sh
+./script/build.sh
 
 # 3. Install the CLI binary.
 cd padauk-cli
@@ -128,7 +128,7 @@ fn main() -> impl Widget {
 
 **3. Run (auto-select)**
 
-Padauk detects running Android emulators and booted iOS simulators.
+Padauk detects running Android emulators, booted iOS simulators, and a Chrome browser target for web projects.
 ```
 padauk run
 ```
@@ -137,7 +137,7 @@ Run with release mode:
 padauk run --release
 ```
 
-**4. Build Android APK**
+**4. Build artifacts**
 
 ```
 padauk build android
@@ -151,6 +151,11 @@ padauk build android --release
 Optional ABI override (comma-separated):
 ```
 padauk build android --abi arm64-v8a,x86_64
+```
+
+Build web wasm bundle:
+```
+padauk build web
 ```
 
 ### 📱 Example APK
@@ -169,7 +174,8 @@ my_awesome_app/
 │   └── raw/
 ├── android/             # Standard Gradle project (auto-managed).
 ├── ios/                 # Standard Xcode project (auto-managed).
-├── rust/                # Your Rust code lives here.
+├── web/                 # Web host files + generated app.wasm (Material template).
+├── rust/                # Your native app Rust code lives here.
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs       # Entry point
@@ -191,7 +197,7 @@ Please run the CI script locally before pushing:
 ```
 # This builds everything and runs integration tests
 cd padauk
-./script/build-android-release.sh
+./script/build.sh
 cd ../padauk-cli
 ./script/build.sh
 ```

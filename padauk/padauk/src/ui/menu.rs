@@ -1,11 +1,13 @@
 use crate::ui::text_field::TextFieldStyle;
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct MenuItem {
     pub label: String,
     pub enabled: bool,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct DropdownFieldOptions {
     pub placeholder: Option<String>,

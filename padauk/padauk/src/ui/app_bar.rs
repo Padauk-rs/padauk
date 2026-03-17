@@ -1,3 +1,4 @@
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum AppBarStyle {
     Small,
@@ -6,6 +7,7 @@ pub enum AppBarStyle {
     Large,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct AppBarStyleOptions {
     pub container_color: Option<crate::ui::color::ColorValue>,

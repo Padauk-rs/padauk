@@ -18,6 +18,7 @@ mod navigation_rails;
 mod navigator;
 mod scroll;
 mod state_demo;
+mod tabs;
 mod text_fields;
 
 uniffi::setup_scaffolding!();

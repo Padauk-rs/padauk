@@ -80,7 +80,7 @@ open class RustBuffer : Structure() {
 
     @Suppress("TooGenericExceptionThrown")
     fun asByteBuffer() =
-        this.data?.getByteBuffer(0, this.len.toLong())?.also {
+        this.data?.getByteBuffer(0, this.len)?.also {
             it.order(ByteOrder.BIG_ENDIAN)
         }
 }
@@ -281,8 +281,9 @@ internal inline fun<T> uniffiTraitInterfaceCall(
     try {
         writeReturn(makeCall())
     } catch(e: kotlin.Exception) {
+        val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-        callStatus.error_buf = FfiConverterString.lower(e.toString())
+        callStatus.error_buf = FfiConverterString.lower(err)
     }
 }
 
@@ -299,8 +300,9 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
         } else {
+            val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
             callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-            callStatus.error_buf = FfiConverterString.lower(e.toString())
+            callStatus.error_buf = FfiConverterString.lower(err)
         }
     }
 }
@@ -610,30 +612,11 @@ internal open class UniffiForeignFutureResultVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultVoid.UniffiByValue,)
 }
-internal interface UniffiCallbackInterfaceRenderCallbackMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
-}
 internal interface UniffiCallbackInterfaceResourceLoaderMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`name`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
-internal open class UniffiVTableCallbackInterfaceRenderCallback(
-    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
-) : Structure() {
-    class UniffiByValue(
-        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-        `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
-    ): UniffiVTableCallbackInterfaceRenderCallback(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
-
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRenderCallback) {
-        `uniffiFree` = other.`uniffiFree`
-        `uniffiClone` = other.`uniffiClone`
-        `onUpdate` = other.`onUpdate`
-    }
-
+internal interface UniffiCallbackInterfaceRenderCallbackMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "loadRawResource")
 internal open class UniffiVTableCallbackInterfaceResourceLoader(
@@ -651,6 +634,25 @@ internal open class UniffiVTableCallbackInterfaceResourceLoader(
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `loadRawResource` = other.`loadRawResource`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceRenderCallback(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceRenderCallbackMethod0? = null,
+    ): UniffiVTableCallbackInterfaceRenderCallback(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRenderCallback) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
     }
 
 }
@@ -677,7 +679,11 @@ internal object IntegrityCheckingUniffiLib {
         uniffiCheckContractApiVersion(this)
         uniffiCheckApiChecksums(this)
     }
+    external fun uniffi_padauk_checksum_func_padauk_render_root(
+    ): Short
     external fun uniffi_padauk_checksum_func_init_logging(
+    ): Short
+    external fun uniffi_padauk_checksum_func_register_resource_loader(
     ): Short
     external fun uniffi_padauk_checksum_func_padauk_dispatch_action(
     ): Short
@@ -687,19 +693,15 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_padauk_checksum_func_padauk_nav_pop(
     ): Short
-    external fun uniffi_padauk_checksum_func_padauk_render_root(
-    ): Short
     external fun uniffi_padauk_checksum_func_register_render_callback(
-    ): Short
-    external fun uniffi_padauk_checksum_func_register_resource_loader(
-    ): Short
-    external fun uniffi_padauk_checksum_method_rendercallback_on_update(
     ): Short
     external fun uniffi_padauk_checksum_method_resourceloader_load_raw_resource(
     ): Short
+    external fun uniffi_padauk_checksum_method_rendercallback_on_update(
+    ): Short
     external fun ffi_padauk_uniffi_contract_version(
     ): Int
-    
+
         
 }
 
@@ -712,11 +714,15 @@ internal object UniffiLib {
         uniffiCallbackInterfaceResourceLoader.register(this)
         
     }
-    external fun uniffi_padauk_fn_init_callback_vtable_rendercallback(`vtable`: UniffiVTableCallbackInterfaceRenderCallback,
-    ): Unit
     external fun uniffi_padauk_fn_init_callback_vtable_resourceloader(`vtable`: UniffiVTableCallbackInterfaceResourceLoader,
     ): Unit
+    external fun uniffi_padauk_fn_init_callback_vtable_rendercallback(`vtable`: UniffiVTableCallbackInterfaceRenderCallback,
+    ): Unit
+    external fun uniffi_padauk_fn_func_padauk_render_root(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     external fun uniffi_padauk_fn_func_init_logging(uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_padauk_fn_func_register_resource_loader(`loader`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_padauk_fn_func_padauk_dispatch_action(`id`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -726,11 +732,7 @@ internal object UniffiLib {
     ): Byte
     external fun uniffi_padauk_fn_func_padauk_nav_pop(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    external fun uniffi_padauk_fn_func_padauk_render_root(uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     external fun uniffi_padauk_fn_func_register_render_callback(`callback`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    external fun uniffi_padauk_fn_func_register_resource_loader(`loader`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun ffi_padauk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -836,7 +838,7 @@ internal object UniffiLib {
     ): Unit
     external fun ffi_padauk_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    
+
         
 }
 
@@ -851,34 +853,34 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_padauk_checksum_func_init_logging() != 51795.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 31984.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action() != 6256.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_init_logging() != 45615.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action_with_string() != 46349.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_register_resource_loader() != 36024.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_nav_can_pop() != 9472.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action() != 55377.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_nav_pop() != 12885.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_dispatch_action_with_string() != 63169.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_padauk_render_root() != 49349.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_can_pop() != 52562.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_register_render_callback() != 17765.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_padauk_nav_pop() != 28188.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_func_register_resource_loader() != 36297.toShort()) {
+    if (lib.uniffi_padauk_checksum_func_register_render_callback() != 25349.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_method_rendercallback_on_update() != 50468.toShort()) {
+    if (lib.uniffi_padauk_checksum_method_resourceloader_load_raw_resource() != 18441.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_padauk_checksum_method_resourceloader_load_raw_resource() != 54703.toShort()) {
+    if (lib.uniffi_padauk_checksum_method_rendercallback_on_update() != 21807.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1209,6 +1211,8 @@ data class AppBarStyleOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1257,6 +1261,8 @@ data class ButtonStyleOptions (
     var `contentPadding`: kotlin.Float?
     
 ){
+    
+
     
 
     
@@ -1322,6 +1328,8 @@ data class CardStyleOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1379,6 +1387,8 @@ data class ChipStyleOptions (
     var `elevation`: kotlin.Float?
     
 ){
+    
+
     
 
     
@@ -1442,6 +1452,8 @@ data class DividerOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1491,6 +1503,8 @@ data class DropdownFieldOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1537,6 +1551,8 @@ data class FabOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1580,6 +1596,8 @@ data class IconButtonOptions (
     var `contentColor`: ColorValue?
     
 ){
+    
+
     
 
     
@@ -1636,6 +1654,8 @@ data class ListItemOptions (
     var `trailingSupportingText`: kotlin.Boolean
     
 ){
+    
+
     
 
     
@@ -1696,6 +1716,8 @@ data class ListItemTrailing (
     
 
     
+
+    
     companion object
 }
 
@@ -1729,6 +1751,8 @@ data class MenuItem (
     var `enabled`: kotlin.Boolean
     
 ){
+    
+
     
 
     
@@ -1799,6 +1823,8 @@ data class Modifiers (
     var `enabled`: kotlin.Boolean?
     
 ){
+    
+
     
 
     
@@ -1901,6 +1927,8 @@ data class NavigationBarOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -1959,6 +1987,8 @@ data class NavigationDestination (
     
 
     
+
+    
     companion object
 }
 
@@ -2004,6 +2034,8 @@ data class NavigationDrawerDestination (
     var `actionId`: kotlin.String
     
 ){
+    
+
     
 
     
@@ -2061,6 +2093,8 @@ data class NavigationDrawerOptions (
     var `unselectedTextColor`: ColorValue?
     
 ){
+    
+
     
 
     
@@ -2122,6 +2156,8 @@ data class NavigationRailDestination (
     
 
     
+
+    
     companion object
 }
 
@@ -2180,6 +2216,8 @@ data class NavigationRailOptions (
     
 
     
+
+    
     companion object
 }
 
@@ -2231,6 +2269,122 @@ public object FfiConverterTypeNavigationRailOptions: FfiConverterRustBuffer<Navi
 
 
 
+data class TabDestination (
+    var `label`: kotlin.String
+    , 
+    var `icon`: IconType?
+    , 
+    var `selected`: kotlin.Boolean
+    , 
+    var `actionId`: kotlin.String
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTabDestination: FfiConverterRustBuffer<TabDestination> {
+    override fun read(buf: ByteBuffer): TabDestination {
+        return TabDestination(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeIconType.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TabDestination) = (
+            FfiConverterString.allocationSize(value.`label`) +
+            FfiConverterOptionalTypeIconType.allocationSize(value.`icon`) +
+            FfiConverterBoolean.allocationSize(value.`selected`) +
+            FfiConverterString.allocationSize(value.`actionId`)
+    )
+
+    override fun write(value: TabDestination, buf: ByteBuffer) {
+            FfiConverterString.write(value.`label`, buf)
+            FfiConverterOptionalTypeIconType.write(value.`icon`, buf)
+            FfiConverterBoolean.write(value.`selected`, buf)
+            FfiConverterString.write(value.`actionId`, buf)
+    }
+}
+
+
+
+data class TabsOptions (
+    var `style`: TabsStyle
+    , 
+    var `scrollable`: kotlin.Boolean
+    , 
+    var `containerColor`: ColorValue?
+    , 
+    var `contentColor`: ColorValue?
+    , 
+    var `indicatorColor`: ColorValue?
+    , 
+    var `selectedContentColor`: ColorValue?
+    , 
+    var `unselectedContentColor`: ColorValue?
+    , 
+    var `dividerColor`: ColorValue?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTabsOptions: FfiConverterRustBuffer<TabsOptions> {
+    override fun read(buf: ByteBuffer): TabsOptions {
+        return TabsOptions(
+            FfiConverterTypeTabsStyle.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+            FfiConverterOptionalTypeColorValue.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TabsOptions) = (
+            FfiConverterTypeTabsStyle.allocationSize(value.`style`) +
+            FfiConverterBoolean.allocationSize(value.`scrollable`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`containerColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`contentColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`indicatorColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`selectedContentColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`unselectedContentColor`) +
+            FfiConverterOptionalTypeColorValue.allocationSize(value.`dividerColor`)
+    )
+
+    override fun write(value: TabsOptions, buf: ByteBuffer) {
+            FfiConverterTypeTabsStyle.write(value.`style`, buf)
+            FfiConverterBoolean.write(value.`scrollable`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`containerColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`contentColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`indicatorColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`selectedContentColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`unselectedContentColor`, buf)
+            FfiConverterOptionalTypeColorValue.write(value.`dividerColor`, buf)
+    }
+}
+
+
+
 data class TextFieldOptions (
     var `placeholder`: kotlin.String?
     , 
@@ -2251,6 +2405,8 @@ data class TextFieldOptions (
     var `trailingIcon`: IconType?
     
 ){
+    
+
     
 
     
@@ -2305,8 +2461,8 @@ public object FfiConverterTypeTextFieldOptions: FfiConverterRustBuffer<TextField
 sealed class AndroidUiNode {
     
     data class Column(
-        val `children`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `children`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2315,8 +2471,8 @@ sealed class AndroidUiNode {
     }
     
     data class Row(
-        val `children`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `children`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2325,8 +2481,8 @@ sealed class AndroidUiNode {
     }
     
     data class Stack(
-        val `children`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `children`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2342,7 +2498,7 @@ sealed class AndroidUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2352,13 +2508,13 @@ sealed class AndroidUiNode {
     
     data class FullscreenDialog(
         val `title`: kotlin.String, 
-        val `content`: List<AndroidUiNode>, 
+        val `content`: List<rs.padauk.core.AndroidUiNode>, 
         val `confirmLabel`: kotlin.String?, 
         val `confirmActionId`: kotlin.String?, 
         val `dismissLabel`: kotlin.String, 
         val `dismissActionId`: kotlin.String, 
         val `dismissible`: kotlin.Boolean, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2375,7 +2531,7 @@ sealed class AndroidUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2393,7 +2549,7 @@ sealed class AndroidUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2412,7 +2568,7 @@ sealed class AndroidUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2421,8 +2577,8 @@ sealed class AndroidUiNode {
     }
     
     data class Scroll(
-        val `child`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `child`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2431,8 +2587,8 @@ sealed class AndroidUiNode {
     }
     
     data class ListView(
-        val `items`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `items`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2444,11 +2600,11 @@ sealed class AndroidUiNode {
         val `headline`: kotlin.String, 
         val `supportingText`: kotlin.String?, 
         val `overlineText`: kotlin.String?, 
-        val `leadingIcon`: IconType?, 
-        val `trailing`: ListItemTrailing, 
+        val `leadingIcon`: rs.padauk.core.IconType?, 
+        val `trailing`: rs.padauk.core.ListItemTrailing, 
         val `actionId`: kotlin.String?, 
-        val `options`: ListItemOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `options`: rs.padauk.core.ListItemOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2457,8 +2613,8 @@ sealed class AndroidUiNode {
     }
     
     data class Divider(
-        val `options`: DividerOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `options`: rs.padauk.core.DividerOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2467,13 +2623,13 @@ sealed class AndroidUiNode {
     }
     
     data class Scaffold(
-        val `appBar`: List<AndroidUiNode>, 
-        val `drawer`: List<AndroidUiNode>, 
-        val `rail`: List<AndroidUiNode>, 
-        val `body`: List<AndroidUiNode>, 
-        val `bottomBar`: List<AndroidUiNode>, 
-        val `floatingActionButton`: List<AndroidUiNode>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `appBar`: List<rs.padauk.core.AndroidUiNode>, 
+        val `drawer`: List<rs.padauk.core.AndroidUiNode>, 
+        val `rail`: List<rs.padauk.core.AndroidUiNode>, 
+        val `body`: List<rs.padauk.core.AndroidUiNode>, 
+        val `bottomBar`: List<rs.padauk.core.AndroidUiNode>, 
+        val `floatingActionButton`: List<rs.padauk.core.AndroidUiNode>, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2483,10 +2639,10 @@ sealed class AndroidUiNode {
     
     data class AppBar(
         val `title`: kotlin.String, 
-        val `leading`: List<AndroidUiNode>, 
-        val `style`: AppBarStyle, 
-        val `options`: AppBarStyleOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `leading`: List<rs.padauk.core.AndroidUiNode>, 
+        val `style`: rs.padauk.core.AppBarStyle, 
+        val `options`: rs.padauk.core.AppBarStyleOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2495,9 +2651,9 @@ sealed class AndroidUiNode {
     }
     
     data class NavigationBar(
-        val `destinations`: List<NavigationDestination>, 
-        val `options`: NavigationBarOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `destinations`: List<rs.padauk.core.NavigationDestination>, 
+        val `options`: rs.padauk.core.NavigationBarOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2507,10 +2663,10 @@ sealed class AndroidUiNode {
     
     data class NavigationDrawer(
         val `title`: kotlin.String?, 
-        val `destinations`: List<NavigationDrawerDestination>, 
-        val `drawerType`: NavigationDrawerType, 
-        val `options`: NavigationDrawerOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `destinations`: List<rs.padauk.core.NavigationDrawerDestination>, 
+        val `drawerType`: rs.padauk.core.NavigationDrawerType, 
+        val `options`: rs.padauk.core.NavigationDrawerOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2519,9 +2675,20 @@ sealed class AndroidUiNode {
     }
     
     data class NavigationRail(
-        val `destinations`: List<NavigationRailDestination>, 
-        val `options`: NavigationRailOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `destinations`: List<rs.padauk.core.NavigationRailDestination>, 
+        val `options`: rs.padauk.core.NavigationRailOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Tabs(
+        val `destinations`: List<rs.padauk.core.TabDestination>, 
+        val `options`: rs.padauk.core.TabsOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2532,7 +2699,7 @@ sealed class AndroidUiNode {
     data class Text(
         val `text`: kotlin.String, 
         val `spSize`: kotlin.Float, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2543,11 +2710,11 @@ sealed class AndroidUiNode {
     data class TextField(
         val `label`: kotlin.String, 
         val `value`: kotlin.String, 
-        val `style`: TextFieldStyle, 
+        val `style`: rs.padauk.core.TextFieldStyle, 
         val `onChangeActionId`: kotlin.String, 
-        val `options`: TextFieldOptions, 
+        val `options`: rs.padauk.core.TextFieldOptions, 
         val `errorText`: kotlin.String?, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2557,9 +2724,9 @@ sealed class AndroidUiNode {
     
     data class Menu(
         val `label`: kotlin.String, 
-        val `items`: List<MenuItem>, 
+        val `items`: List<rs.padauk.core.MenuItem>, 
         val `actionIds`: List<kotlin.String>, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2571,10 +2738,10 @@ sealed class AndroidUiNode {
         val `label`: kotlin.String, 
         val `value`: kotlin.String, 
         val `optionsList`: List<kotlin.String>, 
-        val `options`: DropdownFieldOptions, 
+        val `options`: rs.padauk.core.DropdownFieldOptions, 
         val `onChangeActionId`: kotlin.String, 
         val `errorText`: kotlin.String?, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2584,10 +2751,10 @@ sealed class AndroidUiNode {
     
     data class Button(
         val `actionId`: kotlin.String, 
-        val `content`: List<AndroidUiNode>, 
-        val `style`: ButtonStyle, 
-        val `options`: ButtonStyleOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `content`: List<rs.padauk.core.AndroidUiNode>, 
+        val `style`: rs.padauk.core.ButtonStyle, 
+        val `options`: rs.padauk.core.ButtonStyleOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2597,10 +2764,10 @@ sealed class AndroidUiNode {
     
     data class IconButton(
         val `actionId`: kotlin.String, 
-        val `icon`: IconType, 
-        val `style`: IconButtonStyle, 
-        val `options`: IconButtonOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `icon`: rs.padauk.core.IconType, 
+        val `style`: rs.padauk.core.IconButtonStyle, 
+        val `options`: rs.padauk.core.IconButtonOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2609,11 +2776,11 @@ sealed class AndroidUiNode {
     }
     
     data class Card(
-        val `children`: List<AndroidUiNode>, 
-        val `style`: CardStyle, 
+        val `children`: List<rs.padauk.core.AndroidUiNode>, 
+        val `style`: rs.padauk.core.CardStyle, 
         val `actionId`: kotlin.String?, 
-        val `options`: CardStyleOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `options`: rs.padauk.core.CardStyleOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2625,10 +2792,10 @@ sealed class AndroidUiNode {
         val `checked`: kotlin.Boolean, 
         val `actionId`: kotlin.String, 
         val `enabled`: kotlin.Boolean, 
-        val `colorChecked`: ColorValue?, 
-        val `colorUnchecked`: ColorValue?, 
-        val `colorCheckmark`: ColorValue?, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `colorChecked`: rs.padauk.core.ColorValue?, 
+        val `colorUnchecked`: rs.padauk.core.ColorValue?, 
+        val `colorCheckmark`: rs.padauk.core.ColorValue?, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2638,14 +2805,14 @@ sealed class AndroidUiNode {
     
     data class Chip(
         val `label`: kotlin.String, 
-        val `style`: ChipStyle, 
+        val `style`: rs.padauk.core.ChipStyle, 
         val `selected`: kotlin.Boolean, 
         val `actionId`: kotlin.String, 
-        val `leadingIcon`: IconType?, 
-        val `trailingIcon`: IconType?, 
+        val `leadingIcon`: rs.padauk.core.IconType?, 
+        val `trailingIcon`: rs.padauk.core.IconType?, 
         val `closeActionId`: kotlin.String?, 
-        val `options`: ChipStyleOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `options`: rs.padauk.core.ChipStyleOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2655,11 +2822,11 @@ sealed class AndroidUiNode {
     
     data class Fab(
         val `actionId`: kotlin.String, 
-        val `icon`: IconType, 
-        val `style`: FabStyle, 
+        val `icon`: rs.padauk.core.IconType, 
+        val `style`: rs.padauk.core.FabStyle, 
         val `label`: kotlin.String?, 
-        val `options`: FabOptions, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `options`: rs.padauk.core.FabOptions, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2668,9 +2835,9 @@ sealed class AndroidUiNode {
     }
     
     data class Image(
-        val `source`: ImageSource, 
-        val `fit`: BoxFit, 
-        val `modifiers`: Modifiers) : AndroidUiNode()
+        val `source`: rs.padauk.core.ImageSource, 
+        val `fit`: rs.padauk.core.BoxFit, 
+        val `modifiers`: rs.padauk.core.Modifiers) : AndroidUiNode()
         
     {
         
@@ -2680,6 +2847,11 @@ sealed class AndroidUiNode {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
@@ -2812,12 +2984,17 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeNavigationRailOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            18 -> AndroidUiNode.Text(
+            18 -> AndroidUiNode.Tabs(
+                FfiConverterSequenceTypeTabDestination.read(buf),
+                FfiConverterTypeTabsOptions.read(buf),
+                FfiConverterTypeModifiers.read(buf),
+                )
+            19 -> AndroidUiNode.Text(
                 FfiConverterString.read(buf),
                 FfiConverterFloat.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            19 -> AndroidUiNode.TextField(
+            20 -> AndroidUiNode.TextField(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterTypeTextFieldStyle.read(buf),
@@ -2826,13 +3003,13 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            20 -> AndroidUiNode.Menu(
+            21 -> AndroidUiNode.Menu(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeMenuItem.read(buf),
                 FfiConverterSequenceString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            21 -> AndroidUiNode.DropdownField(
+            22 -> AndroidUiNode.DropdownField(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterSequenceString.read(buf),
@@ -2841,28 +3018,28 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            22 -> AndroidUiNode.Button(
+            23 -> AndroidUiNode.Button(
                 FfiConverterString.read(buf),
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeButtonStyle.read(buf),
                 FfiConverterTypeButtonStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            23 -> AndroidUiNode.IconButton(
+            24 -> AndroidUiNode.IconButton(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeIconButtonStyle.read(buf),
                 FfiConverterTypeIconButtonOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            24 -> AndroidUiNode.Card(
+            25 -> AndroidUiNode.Card(
                 FfiConverterSequenceTypeAndroidUiNode.read(buf),
                 FfiConverterTypeCardStyle.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterTypeCardStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            25 -> AndroidUiNode.Checkbox(
+            26 -> AndroidUiNode.Checkbox(
                 FfiConverterBoolean.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2871,7 +3048,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterOptionalTypeColorValue.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            26 -> AndroidUiNode.Chip(
+            27 -> AndroidUiNode.Chip(
                 FfiConverterString.read(buf),
                 FfiConverterTypeChipStyle.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -2882,7 +3059,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeChipStyleOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            27 -> AndroidUiNode.Fab(
+            28 -> AndroidUiNode.Fab(
                 FfiConverterString.read(buf),
                 FfiConverterTypeIconType.read(buf),
                 FfiConverterTypeFabStyle.read(buf),
@@ -2890,7 +3067,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeFabOptions.read(buf),
                 FfiConverterTypeModifiers.read(buf),
                 )
-            28 -> AndroidUiNode.Image(
+            29 -> AndroidUiNode.Image(
                 FfiConverterTypeImageSource.read(buf),
                 FfiConverterTypeBoxFit.read(buf),
                 FfiConverterTypeModifiers.read(buf),
@@ -3088,6 +3265,15 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 4UL
                 + FfiConverterSequenceTypeNavigationRailDestination.allocationSize(value.`destinations`)
                 + FfiConverterTypeNavigationRailOptions.allocationSize(value.`options`)
+                + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
+            )
+        }
+        is AndroidUiNode.Tabs -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeTabDestination.allocationSize(value.`destinations`)
+                + FfiConverterTypeTabsOptions.allocationSize(value.`options`)
                 + FfiConverterTypeModifiers.allocationSize(value.`modifiers`)
             )
         }
@@ -3379,15 +3565,22 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
-            is AndroidUiNode.Text -> {
+            is AndroidUiNode.Tabs -> {
                 buf.putInt(18)
+                FfiConverterSequenceTypeTabDestination.write(value.`destinations`, buf)
+                FfiConverterTypeTabsOptions.write(value.`options`, buf)
+                FfiConverterTypeModifiers.write(value.`modifiers`, buf)
+                Unit
+            }
+            is AndroidUiNode.Text -> {
+                buf.putInt(19)
                 FfiConverterString.write(value.`text`, buf)
                 FfiConverterFloat.write(value.`spSize`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
                 Unit
             }
             is AndroidUiNode.TextField -> {
-                buf.putInt(19)
+                buf.putInt(20)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterString.write(value.`value`, buf)
                 FfiConverterTypeTextFieldStyle.write(value.`style`, buf)
@@ -3398,7 +3591,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Menu -> {
-                buf.putInt(20)
+                buf.putInt(21)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterSequenceTypeMenuItem.write(value.`items`, buf)
                 FfiConverterSequenceString.write(value.`actionIds`, buf)
@@ -3406,7 +3599,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.DropdownField -> {
-                buf.putInt(21)
+                buf.putInt(22)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterString.write(value.`value`, buf)
                 FfiConverterSequenceString.write(value.`optionsList`, buf)
@@ -3417,7 +3610,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Button -> {
-                buf.putInt(22)
+                buf.putInt(23)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`content`, buf)
                 FfiConverterTypeButtonStyle.write(value.`style`, buf)
@@ -3426,7 +3619,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.IconButton -> {
-                buf.putInt(23)
+                buf.putInt(24)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeIconButtonStyle.write(value.`style`, buf)
@@ -3435,7 +3628,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Card -> {
-                buf.putInt(24)
+                buf.putInt(25)
                 FfiConverterSequenceTypeAndroidUiNode.write(value.`children`, buf)
                 FfiConverterTypeCardStyle.write(value.`style`, buf)
                 FfiConverterOptionalString.write(value.`actionId`, buf)
@@ -3444,7 +3637,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Checkbox -> {
-                buf.putInt(25)
+                buf.putInt(26)
                 FfiConverterBoolean.write(value.`checked`, buf)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterBoolean.write(value.`enabled`, buf)
@@ -3455,7 +3648,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Chip -> {
-                buf.putInt(26)
+                buf.putInt(27)
                 FfiConverterString.write(value.`label`, buf)
                 FfiConverterTypeChipStyle.write(value.`style`, buf)
                 FfiConverterBoolean.write(value.`selected`, buf)
@@ -3468,7 +3661,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Fab -> {
-                buf.putInt(27)
+                buf.putInt(28)
                 FfiConverterString.write(value.`actionId`, buf)
                 FfiConverterTypeIconType.write(value.`icon`, buf)
                 FfiConverterTypeFabStyle.write(value.`style`, buf)
@@ -3478,7 +3671,7 @@ public object FfiConverterTypeAndroidUiNode : FfiConverterRustBuffer<AndroidUiNo
                 Unit
             }
             is AndroidUiNode.Image -> {
-                buf.putInt(28)
+                buf.putInt(29)
                 FfiConverterTypeImageSource.write(value.`source`, buf)
                 FfiConverterTypeBoxFit.write(value.`fit`, buf)
                 FfiConverterTypeModifiers.write(value.`modifiers`, buf)
@@ -3499,6 +3692,10 @@ enum class AppBarStyle {
     CENTER_ALIGNED,
     MEDIUM,
     LARGE;
+
+    
+
+
     companion object
 }
 
@@ -3534,6 +3731,10 @@ enum class BoxFit {
     FIT_HEIGHT,
     NONE,
     SCALE_DOWN;
+
+    
+
+
     companion object
 }
 
@@ -3565,6 +3766,10 @@ enum class ButtonShape {
     DEFAULT,
     ROUNDED,
     PILL;
+
+    
+
+
     companion object
 }
 
@@ -3598,6 +3803,10 @@ enum class ButtonStyle {
     ELEVATED,
     OUTLINED,
     TEXT;
+
+    
+
+
     companion object
 }
 
@@ -3629,6 +3838,10 @@ enum class CardShape {
     DEFAULT,
     ROUNDED,
     PILL;
+
+    
+
+
     companion object
 }
 
@@ -3660,6 +3873,10 @@ enum class CardStyle {
     FILLED,
     ELEVATED,
     OUTLINED;
+
+    
+
+
     companion object
 }
 
@@ -3690,6 +3907,10 @@ enum class ChipShape {
     
     DEFAULT,
     PILL;
+
+    
+
+
     companion object
 }
 
@@ -3722,6 +3943,10 @@ enum class ChipStyle {
     FILTER,
     INPUT,
     SUGGESTION;
+
+    
+
+
     companion object
 }
 
@@ -3772,6 +3997,11 @@ sealed class ColorValue {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
@@ -3844,6 +4074,10 @@ enum class FabStyle {
     NORMAL,
     LARGE,
     EXTENDED;
+
+    
+
+
     companion object
 }
 
@@ -3876,6 +4110,10 @@ enum class IconButtonStyle {
     FILLED,
     FILLED_TONAL,
     OUTLINED;
+
+    
+
+
     companion object
 }
 
@@ -3910,6 +4148,10 @@ enum class IconType {
     FAVORITE,
     SEARCH,
     PERSON;
+
+    
+
+
     companion object
 }
 
@@ -3975,6 +4217,11 @@ sealed class ImageSource {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
@@ -4064,8 +4311,8 @@ public object FfiConverterTypeImageSource : FfiConverterRustBuffer<ImageSource>{
 sealed class IosUiNode {
     
     data class VStack(
-        val `views`: List<IosUiNode>, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `views`: List<rs.padauk.core.IosUiNode>, 
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4081,7 +4328,7 @@ sealed class IosUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4091,13 +4338,13 @@ sealed class IosUiNode {
     
     data class FullscreenDialog(
         val `title`: kotlin.String, 
-        val `content`: List<IosUiNode>, 
+        val `content`: List<rs.padauk.core.IosUiNode>, 
         val `confirmLabel`: kotlin.String?, 
         val `confirmActionId`: kotlin.String?, 
         val `dismissLabel`: kotlin.String, 
         val `dismissActionId`: kotlin.String, 
         val `dismissible`: kotlin.Boolean, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4114,7 +4361,7 @@ sealed class IosUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4132,7 +4379,7 @@ sealed class IosUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4151,7 +4398,7 @@ sealed class IosUiNode {
         val `dismissLabel`: kotlin.String?, 
         val `dismissActionId`: kotlin.String?, 
         val `dismissible`: kotlin.Boolean, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4160,8 +4407,8 @@ sealed class IosUiNode {
     }
     
     data class ScrollView(
-        val `views`: List<IosUiNode>, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `views`: List<rs.padauk.core.IosUiNode>, 
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4172,7 +4419,7 @@ sealed class IosUiNode {
     data class Label(
         val `title`: kotlin.String, 
         val `ptSize`: kotlin.Float, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4182,8 +4429,8 @@ sealed class IosUiNode {
     
     data class Button(
         val `actionId`: kotlin.String, 
-        val `label`: List<IosUiNode>, 
-        val `attributes`: Modifiers) : IosUiNode()
+        val `label`: List<rs.padauk.core.IosUiNode>, 
+        val `attributes`: rs.padauk.core.Modifiers) : IosUiNode()
         
     {
         
@@ -4193,6 +4440,11 @@ sealed class IosUiNode {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
@@ -4502,6 +4754,10 @@ enum class MainAxisAlignment {
     CENTER,
     END,
     SPACE_BETWEEN;
+
+    
+
+
     companion object
 }
 
@@ -4533,6 +4789,10 @@ enum class NavigationDrawerType {
     MODAL,
     DISMISSIBLE,
     PERMANENT;
+
+    
+
+
     companion object
 }
 
@@ -4578,6 +4838,9 @@ sealed class PlatformException: kotlin.Exception() {
             get() = "details=${ `details` }"
     }
     
+
+    
+
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<PlatformException> {
         override fun lift(error_buf: RustBuffer.ByValue): PlatformException = FfiConverterTypePlatformError.lift(error_buf)
@@ -4639,10 +4902,48 @@ public object FfiConverterTypePlatformError : FfiConverterRustBuffer<PlatformExc
 
 
 
+enum class TabsStyle {
+    
+    PRIMARY,
+    SECONDARY;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTabsStyle: FfiConverterRustBuffer<TabsStyle> {
+    override fun read(buf: ByteBuffer) = try {
+        TabsStyle.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: TabsStyle) = 4UL
+
+    override fun write(value: TabsStyle, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 enum class TextFieldStyle {
     
     FILLED,
     OUTLINED;
+
+    
+
+
     companion object
 }
 
@@ -5163,6 +5464,34 @@ public object FfiConverterSequenceTypeNavigationRailDestination: FfiConverterRus
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeTabDestination: FfiConverterRustBuffer<List<TabDestination>> {
+    override fun read(buf: ByteBuffer): List<TabDestination> {
+        val len = buf.getInt()
+        return List<TabDestination>(len) {
+            FfiConverterTypeTabDestination.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TabDestination>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTabDestination.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TabDestination>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTabDestination.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeAndroidUiNode: FfiConverterRustBuffer<List<AndroidUiNode>> {
     override fun read(buf: ByteBuffer): List<AndroidUiNode> {
         val len = buf.getInt()
@@ -5211,12 +5540,31 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
             FfiConverterTypeIosUiNode.write(it, buf)
         }
     }
-} fun `initLogging`()
+} fun `padaukRenderRoot`(): AndroidUiNode {
+            return FfiConverterTypeAndroidUiNode.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_padauk_render_root(
+    
+        _status)
+}
+    )
+    }
+    
+ fun `initLogging`()
         = 
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_padauk_fn_func_init_logging(
     
         _status)
+}
+    
+    
+ fun `registerResourceLoader`(`loader`: ResourceLoader)
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_padauk_fn_func_register_resource_loader(
+    
+        FfiConverterTypeResourceLoader.lower(`loader`),_status)
 }
     
     
@@ -5257,31 +5605,12 @@ public object FfiConverterSequenceTypeIosUiNode: FfiConverterRustBuffer<List<Ios
 }
     
     
- fun `padaukRenderRoot`(): AndroidUiNode {
-            return FfiConverterTypeAndroidUiNode.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_padauk_fn_func_padauk_render_root(
-    
-        _status)
-}
-    )
-    }
-    
  fun `registerRenderCallback`(`callback`: RenderCallback)
         = 
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_padauk_fn_func_register_render_callback(
     
         FfiConverterTypeRenderCallback.lower(`callback`),_status)
-}
-    
-    
- fun `registerResourceLoader`(`loader`: ResourceLoader)
-        = 
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_padauk_fn_func_register_resource_loader(
-    
-        FfiConverterTypeResourceLoader.lower(`loader`),_status)
 }
     
     

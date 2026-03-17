@@ -1,5 +1,6 @@
 use crate::ui::color::ColorValue;
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum CardStyle {
     Filled,
@@ -7,6 +8,7 @@ pub enum CardStyle {
     Outlined,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum CardShape {
     Default,
@@ -14,6 +16,7 @@ pub enum CardShape {
     Pill,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct CardStyleOptions {
     pub enabled: bool,

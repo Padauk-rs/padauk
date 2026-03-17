@@ -1,6 +1,7 @@
 use crate::UiNode;
 use crate::{Widget, impl_modifiers, ui::modifier::Modifiers};
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone)]
 pub enum BoxFit {
     Contain,
@@ -12,6 +13,7 @@ pub enum BoxFit {
     ScaleDown,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone)]
 pub enum ImageSource {
     Asset { name: String },

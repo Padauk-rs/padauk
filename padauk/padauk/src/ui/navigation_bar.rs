@@ -1,5 +1,6 @@
 use crate::ui::{button::IconType, color::ColorValue};
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct NavigationBarOptions {
     pub container_color: Option<ColorValue>,
@@ -27,6 +28,7 @@ impl Default for NavigationBarOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct NavigationDestination {
     pub label: String,

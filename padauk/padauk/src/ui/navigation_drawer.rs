@@ -1,5 +1,6 @@
 use crate::ui::{button::IconType, color::ColorValue};
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum NavigationDrawerType {
     Modal,
@@ -7,6 +8,7 @@ pub enum NavigationDrawerType {
     Permanent,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct NavigationDrawerOptions {
     pub gestures_enabled: bool,
@@ -34,6 +36,7 @@ impl Default for NavigationDrawerOptions {
     }
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct NavigationDrawerDestination {
     pub label: String,

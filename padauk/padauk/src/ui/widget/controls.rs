@@ -17,6 +17,7 @@ use crate::{
             NavigationDrawerDestination, NavigationDrawerOptions, NavigationDrawerType,
         },
         navigation_rail::{NavigationRailDestination, NavigationRailOptions},
+        tabs::{TabDestination, TabsOptions},
         text_field::{TextFieldOptions, TextFieldStyle},
         widget::{UiNode, Widget},
     },
@@ -351,6 +352,116 @@ pub fn nav_rail_destination(
     NavigationRailDestination {
         label: label.into(),
         icon,
+        selected,
+        action_id,
+    }
+}
+
+// ==========================
+//        TABS WIDGET
+// ==========================
+
+pub struct Tabs {
+    pub destinations: Vec<TabDestination>,
+    pub options: TabsOptions,
+    pub modifiers: Modifiers,
+}
+
+impl_modifiers!(Tabs);
+
+impl Widget for Tabs {
+    fn build(&self) -> UiNode {
+        if self.destinations.is_empty() {
+            warn!("Tabs expects at least one destination; got none");
+        }
+
+        let selected_count = self
+            .destinations
+            .iter()
+            .filter(|item| item.selected)
+            .count();
+        if selected_count != 1 {
+            warn!(
+                "Tabs expects exactly one selected destination; got {}",
+                selected_count
+            );
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            UiNode::Label {
+                title: "Tabs is Android-only for now".to_string(),
+                pt_size: 14.0,
+                attributes: self.modifiers.clone(),
+            }
+        }
+
+        #[cfg(not(target_os = "ios"))]
+        {
+            UiNode::Tabs {
+                destinations: self.destinations.clone(),
+                options: self.options.clone(),
+                modifiers: self.modifiers.clone(),
+            }
+        }
+    }
+}
+
+impl Tabs {
+    pub fn new(destinations: Vec<TabDestination>) -> Self {
+        Self {
+            destinations,
+            options: TabsOptions::default(),
+            modifiers: Modifiers::default(),
+        }
+    }
+
+    pub fn options(mut self, options: TabsOptions) -> Self {
+        self.options = options;
+        self
+    }
+}
+
+pub fn tabs(destinations: Vec<TabDestination>) -> Tabs {
+    Tabs::new(destinations)
+}
+
+pub fn tab(
+    label: impl Into<String>,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> TabDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    TabDestination {
+        label: label.into(),
+        icon: None,
+        selected,
+        action_id,
+    }
+}
+
+pub fn tab_with_icon(
+    label: impl Into<String>,
+    icon: IconType,
+    selected: bool,
+    on_tap: impl Fn() + Send + Sync + 'static,
+) -> TabDestination {
+    let action_id = Uuid::new_v4().to_string();
+    let callback = Arc::new(on_tap);
+    crate::ui::event_registry::register_action(action_id.clone(), {
+        let callback = callback.clone();
+        move || callback()
+    });
+
+    TabDestination {
+        label: label.into(),
+        icon: Some(icon),
         selected,
         action_id,
     }

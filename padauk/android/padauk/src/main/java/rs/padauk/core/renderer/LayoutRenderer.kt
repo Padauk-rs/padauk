@@ -31,9 +31,16 @@ import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.LeadingIconTab
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +54,7 @@ import rs.padauk.core.AndroidUiNode
 import rs.padauk.core.AppBarStyle
 import rs.padauk.core.NavigationDrawerType
 import rs.padauk.core.PadaukRenderer
+import rs.padauk.core.TabsStyle
 import rs.padauk.core.padaukDispatchAction
 import rs.padauk.core.widget.toCompose
 import rs.padauk.core.widget.toComposeColor
@@ -420,6 +428,95 @@ internal fun renderNavigationBar(widget: AndroidUiNode.NavigationBar) {
                 )
             )
         }
+    }
+}
+
+@Composable
+internal fun renderTabs(widget: AndroidUiNode.Tabs) {
+    if (widget.destinations.isEmpty()) return
+
+    val selectedIndex = widget.destinations.indexOfFirst { it.selected }.let { index ->
+        if (index >= 0) index else 0
+    }
+    val isPrimary = widget.options.style == TabsStyle.PRIMARY
+    val containerColor = widget.options.containerColor?.toComposeColor()
+        ?: if (isPrimary) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surface
+    val contentColor = widget.options.contentColor?.toComposeColor()
+        ?: MaterialTheme.colorScheme.onSurface
+    val indicatorColor = widget.options.indicatorColor?.toComposeColor()
+        ?: if (isPrimary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    val selectedContentColor = widget.options.selectedContentColor?.toComposeColor()
+        ?: if (isPrimary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    val unselectedContentColor = widget.options.unselectedContentColor?.toComposeColor()
+        ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val dividerColor = widget.options.dividerColor?.toComposeColor()
+        ?: MaterialTheme.colorScheme.outlineVariant
+
+    val indicator: @Composable (tabPositions: List<androidx.compose.material3.TabPosition>) -> Unit = {
+        tabPositions ->
+        if (tabPositions.isNotEmpty()) {
+            TabRowDefaults.Indicator(
+                modifier = Modifier.tabIndicatorOffset(
+                    tabPositions[selectedIndex.coerceIn(0, tabPositions.lastIndex)]
+                ),
+                color = indicatorColor
+            )
+        }
+    }
+
+    val divider: @Composable () -> Unit = {
+        HorizontalDivider(color = dividerColor)
+    }
+
+    val tabsContent: @Composable () -> Unit = {
+        widget.destinations.forEach { destination ->
+            val icon = destination.icon
+            if (icon != null) {
+                LeadingIconTab(
+                    selected = destination.selected,
+                    onClick = { padaukDispatchAction(destination.actionId) },
+                    text = { Text(destination.label) },
+                    icon = {
+                        Icon(
+                            imageVector = iconVector(icon),
+                            contentDescription = destination.label
+                        )
+                    },
+                    selectedContentColor = selectedContentColor,
+                    unselectedContentColor = unselectedContentColor
+                )
+            } else {
+                Tab(
+                    selected = destination.selected,
+                    onClick = { padaukDispatchAction(destination.actionId) },
+                    text = { Text(destination.label) },
+                    selectedContentColor = selectedContentColor,
+                    unselectedContentColor = unselectedContentColor
+                )
+            }
+        }
+    }
+
+    if (widget.options.scrollable) {
+        ScrollableTabRow(
+            selectedTabIndex = selectedIndex,
+            modifier = widget.modifiers.toCompose(),
+            containerColor = containerColor,
+            contentColor = contentColor,
+            indicator = indicator,
+            divider = divider,
+            tabs = tabsContent
+        )
+    } else {
+        TabRow(
+            selectedTabIndex = selectedIndex,
+            modifier = widget.modifiers.toCompose(),
+            containerColor = containerColor,
+            contentColor = contentColor,
+            indicator = indicator,
+            divider = divider,
+            tabs = tabsContent
+        )
     }
 }
 

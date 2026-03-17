@@ -1,11 +1,13 @@
 use crate::ui::button::IconType;
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Enum, Clone, Copy, Debug)]
 pub enum TextFieldStyle {
     Filled,
     Outlined,
 }
 
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize))]
 #[derive(uniffi::Record, Clone)]
 pub struct TextFieldOptions {
     pub placeholder: Option<String>,
